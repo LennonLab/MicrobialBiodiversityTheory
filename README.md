@@ -1,3 +1,2 @@
-# METE_HMP
-Repo for code from last spring where the Maximum Entropy Theory of Ecology was applied to abundance data from the Human Microbiome Project
- 
+# MicroMETE
+Project repository for data and Python code associated with the testing of maximum entropy theory in microbial ecology. 
