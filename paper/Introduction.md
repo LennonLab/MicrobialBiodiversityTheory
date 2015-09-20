@@ -12,7 +12,7 @@
 **S2:** Recognizing that the SAD is a distribution of total abundance (*N*) among a number of species (*S*), constraint-based methods seek to predict the most likely form of the SAD given, e.g., *N* and *S* as the only empirical inputs.  
 **S3:** Most of these constraint-based approaches are based on maximum-likelihood and invoke the principle of maximum entropy (MaxEnt), i.e., the most likely form of the SAD is that having the most ways of occurring.  
 **S3:** Though simple in concept, MaxEnt predictions require assumptions such as whether species and/or individuals are distinguishable, and whether average abundance (*N*/*S*) is also constrained (Pueyo et al. 2006, Harte 2011).  
-**S4:** Consequently, different predictions for abundance patterns (like the SAD) are possible under a constraint-based framework (Haegeman and Loreau 2011).  
+**S4:** Consequently, different predictions for abundance patterns (like the SAD) are possible under a constraint-based framework (Haegeman and Etienne 2010).  
 **S5:** So far, the maximum entropy theory of ecology (METE) has been the most accurate constraint-based framework for predicting the SAD and linking it to other primary patterns of biodiversity (Harte et al. 2008, 2009, Harte 2011, White et al. 2012, Xiao et al. 2014).
 
 
@@ -33,6 +33,6 @@
 ##P5: Here, we...
 **S1:** Here, we test the SAD prediction of METE using the largest compilation of microbial community data ever assembled from publicly available sources.  
 **S2:** These data include 20,216 sites of bacterial, archaeal, and microscopic fungal communities from the Earth Microbiome Project, the Human Microbiome Project, and community datasets from Argonne National Laboratory's metagenomic server MG-RAST.  
-**S3:** We use the maximum-likelihood prediction for the Broken Stick model as an additional MaxEnt prediction for the SAD based on *N* and *S* (Haegeman and Loreau 2011).
+**S3:** We use the maximum-likelihood prediction for the Broken Stick model as an additional MaxEnt prediction for the SAD based on *N* and *S* (Haegeman and Etienne 2010).
 **S4:** We compare these MaxEnt predictions to microbial SADs as previously done in studies of macroscopic plants and animals (e.g., White et al. 2012, Xiao et al. 2014).  
 **S5:** In demonstrating previously undocumented failure of METE to predict microbial SADs, we suggest a more appropriate MaxEnt model for SADs characterized by a "rare biosphere", i.e., a MaxEnt form of the Zipf-distribution.
