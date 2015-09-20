@@ -8,4 +8,5 @@
 **S6:** Consequently, METE and the broken-stick frequently underpredict the abundance of the most abundant species and over predict the abundance of the rarest species.
 
 ##P2
+**S1:** We asked whether the success of METE (log-series) and the broken-stick (geometric distribution) were influenced by the two primary constraint-variables, i.e., total abundance *N* and species richness *S*. The two variables 
 

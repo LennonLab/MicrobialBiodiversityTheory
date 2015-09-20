@@ -1,7 +1,13 @@
 # Methods
 
 ## Data
-
+We used 15,535 sites of communities of bacteria, archaea, and microscopic fungi. 
+14,962 of these were from the Earth Microbiome Project (EMP) (14) obtained on 22 August, 2014. 
+Sample processing, sequencing and amplicon data are standardized and performed by the EMP and all are publicly available at www.microbio.me/emp. 
+The EMP data consist of open and closed reference datasets. 
+The QIIME tutorial (http://qiime.org/tutorials/otu_picking.html) defines closed-reference as a classification scheme where any reads that do not hit a sequence in a reference collection are excluded from analysis. 
+In contrast, open-reference refers to a scheme where reads that do not hit a reference collection are subsequently clustered de novo and represent unique but unclassified taxonomic units. 
+Our main results are based on closed-reference data, due to the greater accuracy of the approach and because unclassified sequences were excluded from other microbial datasets (below).	We also used 4,303 sites from the Data Analysis and Coordination Center (DACC) for the National Institutes of Health (NIH) Common Fund supported Human Microbiome Project (HMP). These data consisted of samples taken from 15 or 18 locations (including the skin, gut, vagina, and oral cavity) on each of 300 healthy individuals. The v3-v5 region of the 16S rRNA gene was sequenced for each sample. We excluded sites from pilot phases of the HMP as well as time-series data. See http://hmpdacc.org/micro_analysis/microbiome_analyses.php. for details on HMP sequencing and sampling protocols.We also included 1,319 non-experimental PCR-targeted rRNA amplicon sequencing projects from the Argonne National Laboratory metagenomics server MG-RAST (16). Represented in this compilation were samples from arctic aquatic systems (130 sites; MG-RAST id: mgp138), hydrothermal vents (123 sites; MG-RAST id: mgp327) (37), freshwater lakes in China (187 sites; MG-RAST id: mgp2758) (38), arctic soils (44 sites; MG-RAST id: mgp69) (39), temperate soils (84 sites; MG-RAST id: mgp68) (40), bovine fecal samples (16 sites; MG-RAST id: mgp14132), human gut microbiome samples not part of the HMP project (529 sites; MG-RAST id: mgp401) (41), a global-scale dataset of indoor fungal systems (128 sites) (42), and freshwater, marine, and intertidal river sediments (34 sites; MG-RAST id: mgp1829). The use of MG-RAST allowed us to choose common parameter values for percent sequence similarity (i.e. 97% for species-level) and taxa assignment including a maximum e-value (probability of observing an equal or better match in a database of a given size) of 10-5, a minimum alignment length of 50 base pairs, and minimum percent sequence similarities of 95, 97, and 99% to the closest reference sequence in MG-RAST’s M5 rRNA database (37-42).Quantifying dominance, evenness, rarity, and richness. We calculated or estimated aspects of diversity (dominance, evenness, rarity, richness) for each site in our data compilation. All analyses can be reproduced or modified for further exploration by using code, data, and following directions provided here: https://github.com/LennonLab/ScalingMicroBiodiversity. 
 
 ## MaxEnt predictions of the SAD
 ### METE
@@ -39,5 +45,5 @@ where β is defined by the equation
 **S2:** That is, vectors of species abundances ranked from greatest to least.  
 **S3:** Both predictions yield the same value of *S* that is given as the empirical input.  
 **S4:** This means that the observed and predicted SADs can be directly compared using regression analyses to reveals the percent variation explained by each model (METE, Broken-stick).  
-**S5:** We found the predicted form of the SAD for METE and the broken-stick, for each site in our data, then calculated a modified coefficient of determination (r-square) around the 1-to-l line (as per White et al. 2012, Locey and White 2013, Xiao et al. 2014).
- 
+**S5:** We found the predicted form of the SAD for METE and the broken-stick, for each site in our data using source code of White et al. (2012) provided on the public GitHub repositories: https://github.com/weecology/macroecotools and https://github.com/weecology/white-etal-2012-ecology/blob/master/mete_sads.py. 
+**S6:** Using that source code, we calculated the modified coefficient of determination (r-square) around the 1-to-l line (as per White et al. 2012, Locey and White 2013, Xiao et al. 2014).
