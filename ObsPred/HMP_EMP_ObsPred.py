@@ -19,7 +19,7 @@ def generate_obs_pred_data(datasets, methods):
 
             gN = 0
             #OUT = open(mydir+'/data/'+method+'_'+dataset+'_obs_pred.txt','w+')
-            IN = mydir+'/data/'+dataset+'_SADs.txt'
+            IN = mydir+'/MicroMETE/data/'+dataset+'_SADs.txt'
             num_lines = sum(1 for line in open(IN))
 
             for line in open(IN):
