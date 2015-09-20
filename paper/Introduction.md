@@ -8,12 +8,12 @@
 **S5:** However, successful theories that not only predict the SAD but couple it to other patterns of biodiveristy tend to be stochastic and primarily statistical (Hubbell 2001, McGill 2010, Harte 2011).
 
 ##P2: The success of constraint-based biodiversity theory
-**S1:** The newest paradigm in predicting the SAD  takes a purely constraint-based approach (Harte et al. 2003, Pueyo et al. 2006, Harte 2011, White et al. 2012, Locey and White 2013, Xiao et al. 2014).  
+**S1:** The newest paradigm in predicting the SAD  takes a purely constraint-based approach (Harte et al. 2008, 2009, Harte 2011, Pueyo et al. 2006, White et al. 2012, Locey and White 2013, Xiao et al. 2014).  
 **S2:** Recognizing that the SAD is a distribution of total abundance (*N*) among a number of species (*S*), constraint-based methods seek to predict the most likely form of the SAD given, e.g., *N* and *S* as the only empirical inputs.  
 **S3:** Most of these constraint-based approaches are based on maximum-likelihood and invoke the principle of maximum entropy (MaxEnt), i.e., the most likely form of the SAD is that having the most ways of occurring.  
 **S3:** Though simple in concept, MaxEnt predictions require assumptions such as whether species and/or individuals are distinguishable, and whether average abundance (*N*/*S*) is also constrained (Pueyo et al. 2006, Harte 2011).  
 **S4:** Consequently, different predictions for abundance patterns (like the SAD) are possible under a constraint-based framework (Haegeman and Loreau 2011).  
-**S5:** So far, the maximum entropy theory of ecology (METE) has been the most accurate constraint-based framework for predicting the SAD and linking it to other primary patterns of biodiversity (Harte et al. 2003, Harte 2011, White et al. 2012, Xiao et al. 2014).
+**S5:** So far, the maximum entropy theory of ecology (METE) has been the most accurate constraint-based framework for predicting the SAD and linking it to other primary patterns of biodiversity (Harte et al. 2008, 2009, Harte 2011, White et al. 2012, Xiao et al. 2014).
 
 
 ##P3: Constraint-based theory is rarely tested among microbes
