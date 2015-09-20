@@ -25,8 +25,17 @@ where β is defined by the equation
 
 
 ### Broken-stick 
-While other MaxEnt models produce similar (Frank 2011) or identical (Pueyo et al. 2007, Dewar and Porté 2008) predictions for the form of the SAD, MaxEnt models based on different assumptions can yield different predictions (Haegeman and Etienne 2010).
+**S1:** While some other MaxEnt models produce similar, if not, identical (Pueyo et al. 2007, Dewar and Porté 2008, Frank 2011) predictions for the SAD, MaxEnt models based on different assumptions can yield very different predictions (Haegeman and Etienne 2010).   
+**S2:** One example is the geometric distribution, which as pointed out by Haegeman and Etienne (2010) is also the simultaneous discrete Broken-stick model of MacArthur (1960).  
+**S3:** Unlike the log-series, the broken-stick model predict a relatively even distribution that is often a poor fit to empirical SADs (ref).  
+**S4:** The broken-stick gives equal weight to all ordered configurations of *S* species whose abundances sum to *N*, the equation for which is:
 
+###insert equation
 
 ## Testing MaxEnt predictions
-
+**S1:** Both METE (log-series) and the Broken-stick (geometric distribution) produce predictions for the rank-abundance form of the SAD.  
+**S2:** That is, vectors of species abundances ranked from greatest to least.  
+**S3:** Both predictions yield the same value of *S* that is given as the empirical input.  
+**S4:** This means that the observed and predicted SADs can be directly compared using regression analyses to reveals the percent variation explained by each model (METE, Broken-stick).  
+**S5:** We found the predicted form of the SAD for METE and the broken-stick, for each site in our data, then calculated a modified coefficient of determination (r-square) around the 1-to-l line (as per White et al. 2012, Locey and White 2013, Xiao et al. 2014).
+ 
