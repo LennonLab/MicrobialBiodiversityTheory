@@ -13,7 +13,7 @@
 **S3:** Most of these constraint-based approaches are based on maximum-likelihood and invoke the principle of maximum entropy (MaxEnt), i.e., the most likely form of the SAD is that having the most ways of occurring.  
 **S3:** Though simple in concept, MaxEnt predictions require assumptions such as whether species and/or individuals are distinguishable, and whether average abundance (*N*/*S*) is also constrained (Pueyo et al. 2006, Harte 2011).  
 **S4:** Consequently, different predictions for abundance patterns (like the SAD) are possible under a constraint-based framework (Haegeman and Loreau 2011).  
-**S5:** So far, the maximum entropy theory of ecology (METE) has been the most accurate constraint-based framework for predicting the SAD and linking it to other primary biodiversity patterns of biodiversity (Harte et al. 2003, Harte 2011, White et al. 2012, Xiao et al. 2014).
+**S5:** So far, the maximum entropy theory of ecology (METE) has been the most accurate constraint-based framework for predicting the SAD and linking it to other primary patterns of biodiversity (Harte et al. 2003, Harte 2011, White et al. 2012, Xiao et al. 2014).
 
 
 ##P3: Constraint-based theory is rarely tested among microbes
@@ -25,10 +25,10 @@
 
 ##P4: Patterns of microbial commonness and rarity are poorly characterized
 **S1:** Across microbial communities of natural and host-associated ecosystems, most microbial taxa or species account for the minority of relative abundance.  
-**S2:** This seemingly universal pattern of microbial commonness and rarity is known as the microbial "rare biosphere".
-**S3:** The rare biosphere has been documented in thousands of studies since its first description less than a decade ago (Sogin et al. 2006).
-**S4:** Though often described, e.g., as a percent of species with less than 0.1% abundance, the rare biosphere pattern is rarely examined with general biodiversity theory.
-**S5:** Yet, the rare biosphere pattern appears to reiterate the universal nature of uneven SADs, the most powerful predictions of which are arguably produced by METE.
+**S2:** This seemingly universal pattern of microbial commonness and rarity is known as the microbial "rare biosphere".  
+**S3:** The rare biosphere has been documented in thousands of studies since its first description less than a decade ago (Sogin et al. 2006).  
+**S4:** Though often described, e.g., as a percent of species with less than 0.1% abundance, the rare biosphere pattern is rarely examined with general biodiversity theory.  
+**S5:** Yet, the rare biosphere pattern appears to reiterate the universal nature of uneven SADs, the most powerful predictions of which are arguably produced by METE.  
 
 ##P5: Here, we...
 **S1:** Here, we test the SAD prediction of METE using the largest compilation of microbial community data ever assembled from publicly available sources.  
