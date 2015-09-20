@@ -14,7 +14,7 @@ from mpl_toolkits.axes_grid.inset_locator import inset_axes
 import macroecotools
 import mete
 import macroeco_distributions as md
-
+from scipy import stats
 
 def get_GeomSeries(N,S,zeros):
 
@@ -31,7 +31,6 @@ def generate_obs_pred_data(datasets, methods):
     for method in methods:
         for dataset in datasets:
 
-<<<<<<< HEAD
             OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred.txt','w+')
             OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2.txt','w+')
             IN = mydir  + dataset + '-Data' + '/' + dataset +'-SADs.txt'
@@ -44,25 +43,12 @@ def generate_obs_pred_data(datasets, methods):
                     line = eval(line)
                 #line.strip("[]")
                 #line.split()
-=======
-            OUT = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred.txt','w+')
-            IN = mydir + '/HMP-Data/HMP_SADs.txt'
-            num_lines = sum(1 for line in open(IN))
-
-            for j,line in enumerate(open(IN)):
-
-                line = line.split()
->>>>>>> upstream/master
                 obs = map(int, line)
 
                 N = sum(obs)
                 S = len(obs)
 
-<<<<<<< HEAD
                 if S < 10 or N <= S:
-=======
-                if S < 10:
->>>>>>> upstream/master
                     continue
 
                 obs.sort()
@@ -78,7 +64,6 @@ def generate_obs_pred_data(datasets, methods):
 
                 r2 = macroecotools.obs_pred_rsquare(np.log10(obs), np.log10(pred))
                 print " r2:", r2
-<<<<<<< HEAD
                 print>> OUT2, j, N, S, r2
                 # write to file, by cite, observed and expected ranked abundances
                 for i, sp in enumerate(pred):
@@ -88,16 +73,6 @@ def generate_obs_pred_data(datasets, methods):
                 num_lines -= 1
 
             OUT1.close()
-=======
-
-                # write to file, by cite, observed and expected ranked abundances
-                for i, sp in enumerate(pred):
-                    print>> OUT, j, obs[i], pred[i]
-
-                num_lines -= 1
-
-            OUT.close()
->>>>>>> upstream/master
 
         print dataset
 
@@ -106,15 +81,9 @@ def generate_obs_pred_data(datasets, methods):
 
 def import_obs_pred_data(input_filename):   # TAKEN FROM THE mete_sads.py script used for White et al. (2012)
     data = np.genfromtxt(input_filename, dtype = "f8,f8,f8", names = ['site','obs','pred'], delimiter = " ")
-<<<<<<< HEAD
     #test = data[0:5000]
     #return test
     return data
-=======
-    test = data[0:5000]
-    return test
-    #return data
->>>>>>> upstream/master
 
 
 
@@ -162,11 +131,7 @@ def plot_obs_pred_sad(methods, datasets, data_dir= mydir, radius=2): # TAKEN FRO
     for i, dataset in enumerate(datasets):
         for j, method in enumerate(methods):
 
-<<<<<<< HEAD
             #if method == 'mete' and dataset == 'EMP': continue
-=======
-            if method == 'mete' and dataset == 'EMP': continue
->>>>>>> upstream/master
 
             print method, dataset
             obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred.txt')
@@ -203,7 +168,6 @@ def plot_obs_pred_sad(methods, datasets, data_dir= mydir, radius=2): # TAKEN FRO
     plt.savefig('obs_pred_plots.png', dpi=600)#, bbox_inches = 'tight')#, pad_inches=0)
 
 
-<<<<<<< HEAD
 def import_NSR2_data(input_filename):   # TAKEN FROM THE mete_sads.py script used for White et al. (2012)
     data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8", names = ['site','N','S', 'R2'], delimiter = " ")
     #test = data[0:5000]
@@ -211,31 +175,27 @@ def import_NSR2_data(input_filename):   # TAKEN FROM THE mete_sads.py script use
     return data
 
 # Make a function to generate the histogram.
-def NSR2_regression(methods, datasets, data_dir= mydir, n_or_s):
+def NSR2_regression(methods, datasets, data_dir= mydir):
     fig = plt.figure()
     for i, dataset in enumerate(datasets):
         for j, method in enumerate(methods):
-            print method, dataset
+            print method, dataset, str(n_or_s)
             nsr2_data = import_NSR2_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_NSR2.txt')
-            if str(n_or_s).capitalize() = 'N'
-                x = ((nsr2_data["N"]))
-            elif str(n_or_s).capitalize() = 'S'
-                x = ((nsr2_data["N"]))
+            x = ((nsr2_data["N"]))
+            #elif str(n_or_s).capitalize() == 'S'
+            #x = ((nsr2_data["N"]))
             y = ((nsr2_data["R2"]))
+            fig, axs = plt.subplots(1, 1, sharey=True)
+            data.plot(kind='scatter', x='TV', y='Sales', ax=axs[0], figsize=(16, 8))
+            data.plot(kind='scatter', x='Radio', y='Sales', ax=axs[1])
+            data.plot(kind='scatter', x='Newspaper', y='Sales', ax=axs[2])
 
 
 #methods = ['geom', 'mete']
 methods = ['mete']
 #datasets = ['HMP']
 datasets = ['EMPopen']
+params = ['N','S']
 #generate_obs_pred_data(datasets, methods)
 #plot_obs_pred_sad(methods, datasets)
-NSR2_regression(methods, datasets, data_dir= mydir, n)
-=======
-
-methods = ['geom', 'mete']
-datasets = ['HMP']
-
-#generate_obs_pred_data(datasets, methods)
-plot_obs_pred_sad(methods, datasets)
->>>>>>> upstream/master
+NSR2_regression(methods, datasets, data_dir= mydir, n_or_s=n)
