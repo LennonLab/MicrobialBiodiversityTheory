@@ -1,20 +1,15 @@
-#!/usr/bin/env sage -python
 from __future__ import division
+import matplotlib.pyplot as plt
+import numpy as np
 import sys
 import os
 
-mydir = os.path.expanduser("~/Documents/Repos/HMP_EMP/")
-sys.path.append(mydir)
-
-import matplotlib.pyplot as plt
-import numpy as np
-from mpl_toolkits.axes_grid.inset_locator import inset_axes
-
-sys.path.append(mydir + "/global/GenAnalysis/tools/") # You'll need to change this
+mydir = os.path.expanduser("~/GitHub")
+#sys.path.append(mydir)
+sys.path.append(mydir + "/macroecotools/")
 import macroecotools
 import predRADs
 import mete
-
 
 
 def generate_obs_pred_data(datasets, methods):
