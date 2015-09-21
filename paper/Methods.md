@@ -20,9 +20,9 @@
 **S1:** We also included 1,319 non-experimental PCR-targeted rRNA amplicon sequencing projects from the Argonne National Laboratory metagenomics server MG-RAST (16).  
 **S2:** Represented in this compilation were samples from arctic aquatic systems (130 sites; MG-RAST id: mgp138), hydrothermal vents (123 sites; MG-RAST id: mgp327) (37), freshwater lakes in China (187 sites; MG-RAST id: mgp2758) (38), arctic soils (44 sites; MG-RAST id: mgp69) (39), temperate soils (84 sites; MG-RAST id: mgp68) (40), bovine fecal samples (16 sites; MG-RAST id: mgp14132), human gut microbiome samples not part of the HMP project (529 sites; MG-RAST id: mgp401) (41), a global-scale dataset of indoor fungal systems (128 sites) (42), and freshwater, marine, and intertidal river sediments (34 sites; MG-RAST id: mgp1829). 
 
-###P4**S1:** The use of MG-RAST allowed us to choose common parameter values for percent sequence similarity (i.e. 97% for species-level) and taxa assignment including a maximum e-value (probability of observing an equal or better match in a database of a given size) of 10-5, a minimum alignment length of 50 base pairs, and minimum percent sequence similarities of 95, 97, and 99% to the closest reference sequence in MG-RAST’s M5 rRNA database (37-42).**S2:** Quantifying dominance, evenness, rarity, and richness. 
+###P4**S1:** The use of MG-RAST allowed us to choose common parameter values for percent sequence similarity (i.e. 97% for species-level) and taxa assignment including a maximum e-value (probability of observing an equal or better match in a database of a given size) of 10-5, a minimum alignment length of 50 base pairs, and minimum percent sequence similarities of 95, 97, and 99% to the closest reference sequence in MG-RAST’s M5 rRNA database (37-42). **S2:** Quantifying dominance, evenness, rarity, and richness. 
 **S3:** We calculated or estimated aspects of diversity (dominance, evenness, rarity, richness) for each site in our data compilation. 
-**S4:** All analyses can be reproduced or modified for further exploration by using code, data, and following directions provided here: https://github.com/LennonLab/MicroMETE.
+**S4:** All analyses can be reproduced or modified for further exploration by using code, data, and following directions provided here: https://github.com/LennonLab/MicroMETE.  
 
 ## MaxEnt predictions of the SAD
 ### METE
@@ -49,16 +49,16 @@ where β is defined by the equation
 
 ### Broken-stick 
 **S1:** While some other MaxEnt models produce similar, if not, identical (Pueyo et al. 2007, Dewar and Porté 2008, Frank 2011) predictions for the SAD, MaxEnt models based on different assumptions can yield very different predictions (Haegeman and Etienne 2010).   
-**S2:** One example is the geometric distribution, which as pointed out by Haegeman and Etienne (2010) is also the simultaneous discrete Broken-stick model of MacArthur (1960).  
-**S3:** Unlike the log-series, the broken-stick model predict a relatively even distribution that is often a poor fit to empirical SADs (ref).  
+**S2:** One example is the simultaneous discrete Broken-stick model of MacArthur (1960), which as pointed out by Haegeman and Etienne (2010) is simply the geometric distribution with mean *N*/*S*.   
+**S3:** Unlike the log-series, the broken-stick model predicts a relatively even distribution which is often a poor fit to empirical SADs (Hubbell 2001).  
 **S4:** The broken-stick gives equal weight to all ordered configurations of *S* species whose abundances sum to *N*, the equation for which is:
 
 ###insert equation 3
 
 ## Testing MaxEnt predictions
-**S1:** Both METE (log-series) and the Broken-stick (geometric distribution) produce predictions for the rank-abundance form of the SAD.  
-**S2:** That is, vectors of species abundances ranked from greatest to least.  
+**S1:** Both METE (which predicts a log-series distribution) and the Broken-stick (i.e., the geometric distribution) produce predictions for the rank-abundance form of the SAD.   
+**S2:** This form of the SAD is simply a vector of species abundances ranked from greatest to least.  
 **S3:** Both predictions yield the same value of *S* that is given as the empirical input.  
 **S4:** This means that the observed and predicted SADs can be directly compared using regression analyses to reveals the percent variation explained by each model (METE, Broken-stick).  
-**S5:** We found the predicted form of the SAD for METE and the broken-stick, for each site in our data using source code of White et al. (2012) provided on the public GitHub repositories: https://github.com/weecology/macroecotools and https://github.com/weecology/white-etal-2012-ecology/blob/master/mete_sads.py. 
-**S6:** Using that source code, we calculated the modified coefficient of determination (r-square) around the 1-to-l line (as per White et al. 2012, Locey and White 2013, Xiao et al. 2014).
+**S5:** We generated the predicted forms of the SAD using the source code of White et al. (2012) (https://github.com/weecology/white-etal-2012-ecology) and the macroecotools repository (https://github.com/weecology/macroecotools), which contains functions for fitting maximum-likelihood forms of species abundance models in addition to functions for other macroecological analyses.  
+**S6:** Using that source code, we calculated the modified coefficient of determination (r-square) around the 1-to-1 line (as per White et al. 2012, Locey and White 2013, Xiao et al. 2014).

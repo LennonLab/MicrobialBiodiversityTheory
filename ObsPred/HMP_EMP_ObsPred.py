@@ -88,7 +88,8 @@ def transform_obs_data(datasets):
             obs.sort()
             obs.reverse()
             for i, sp in enumerate(obs):
-                print>>OUT, ct, obs[i]
+                #print>>OUT, ct, obs[i]
+                print OUT, ct, obs[i]
 
             print gN, 'countdown:', num_lines - ct
             ct += 1
