@@ -14,8 +14,9 @@ from mpl_toolkits.axes_grid.inset_locator import inset_axes
 import macroecotools
 import mete
 import macroeco_distributions as md
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn import linear_model
 from scipy import stats
-
 def get_GeomSeries(N,S,zeros):
 
     rank = range(1,S+1)
@@ -178,24 +179,54 @@ def import_NSR2_data(input_filename):   # TAKEN FROM THE mete_sads.py script use
 def NSR2_regression(methods, datasets, data_dir= mydir):
     fig = plt.figure()
     for i, dataset in enumerate(datasets):
-        for j, method in enumerate(methods):
-            print method, dataset, str(n_or_s)
-            nsr2_data = import_NSR2_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_NSR2.txt')
-            x = ((nsr2_data["N"]))
-            #elif str(n_or_s).capitalize() == 'S'
-            #x = ((nsr2_data["N"]))
-            y = ((nsr2_data["R2"]))
-            fig, axs = plt.subplots(1, 1, sharey=True)
-            data.plot(kind='scatter', x='TV', y='Sales', ax=axs[0], figsize=(16, 8))
-            data.plot(kind='scatter', x='Radio', y='Sales', ax=axs[1])
-            data.plot(kind='scatter', x='Newspaper', y='Sales', ax=axs[2])
+        count  = 0
+        for k, param in enumerate(params):
+            for j, method in enumerate(methods):
+                nsr2_data = import_NSR2_data(data_dir + 'NSR2/' + method+'_'+dataset+'_NSR2.txt')
+                y = ((nsr2_data["R2"]))
+                print method, dataset, param
+                ax = fig.add_subplot(2, 3, count+1)
+                if param == "N" or param == "S":
+                    x = np.log10(((nsr2_data[param])))
+                else:
+                    N_count = ((nsr2_data["N"]))
+                    S_count = ((nsr2_data["S"]))
+                    x = np.divide(N_count, S_count)
+                #elif str(n_or_s).capitalize() == 'S'
+                #x = ((nsr2_data["N"]))
+                macroecotools.plot_color_by_pt_dens(x, y, 0.1, loglog=0,
+                                plot_obj=plt.subplot(3, 2, count+1))
+                slope, intercept, r_value, p_value, std_err = stats.linregress(x,y)
+                plt.xlim(np.amin(x), np.amax(x))
+                print len(x)
+                plt.ylim(-1,1)
 
+                predict_y = intercept + slope * x
+                pred_error = y - predict_y
+                degrees_of_freedom = len(x) - 2
+                residual_std_error = np.sqrt(np.sum(pred_error**2) / degrees_of_freedom)
+                plt.plot(x, predict_y, 'k-')
+                plt.subplots_adjust(wspace=0.5, hspace=0.3)
+                # Plotting
+                #plt.text(-8,-80,'Rank-abundance at the centre of the feasible set',fontsize=10)
+                #plt.text(-8.5,500,'Observed rank-abundance',rotation='90',fontsize=10)
+                plt.xlabel(param)
+                plt.ylabel(r'$r^{2}$',fontsize=16)
+                plt.text(1.35, 1.5, r'$p$'+ ' = '+str(round(p_value,2)), fontsize=12, color='Crimson')
+                leg = plt.legend(loc=1,prop={'size':10})
+                leg.draw_frame(False)
+                print r_value, p_value
+                count += 1
+        plt.tight_layout()
+        plt.savefig('testNvR2.png')
+        #plt.xscale()
+        plt.close()
 
-#methods = ['geom', 'mete']
-methods = ['mete']
-#datasets = ['HMP']
-datasets = ['EMPopen']
-params = ['N','S']
+methods = ['geom', 'mete']
+#methods = ['mete']
+datasets = ['HMP']
+#datasets = ['EMPclosed']
+params = ['N','S', 'N/S']
 #generate_obs_pred_data(datasets, methods)
 #plot_obs_pred_sad(methods, datasets)
-NSR2_regression(methods, datasets, data_dir= mydir, n_or_s=n)
+NSR2_regression(methods, datasets, data_dir= mydir)

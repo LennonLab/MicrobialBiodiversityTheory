@@ -11,20 +11,28 @@
 **S1:** The newest paradigm in predicting the SAD  takes a purely constraint-based approach (Harte et al. 2008, 2009, Harte 2011, Pueyo et al. 2006, White et al. 2012, Locey and White 2013, Xiao et al. 2014).  
 **S2:** Recognizing that the SAD is a distribution of total abundance (*N*) among a number of species (*S*), constraint-based methods seek to predict the most likely form of the SAD given, e.g., *N* and *S* as the only empirical inputs.  
 **S3:** Most of these constraint-based approaches are based on maximum-likelihood and invoke the principle of maximum entropy (MaxEnt), i.e., the most likely form of the SAD is that having the most ways of occurring.  
+
+**Alt S3:**
+**Most of these apparoaches are based on a maximum-likelihood framwork that operates from the framework, wherein the most likel form of the SAD is that having the most ways of occurring given a set of constraints (i.e. *N* and *S*)**
+
 **S3:** Though simple in concept, MaxEnt predictions require assumptions such as whether species and/or individuals are distinguishable, and whether average abundance (*N*/*S*) is also constrained (Pueyo et al. 2006, Harte 2011).  
 **S4:** Consequently, different predictions for abundance patterns (like the SAD) are possible under a constraint-based framework (Haegeman and Etienne 2010).  
-**S5:** So far, the maximum entropy theory of ecology (METE) has been the most accurate constraint-based framework for predicting the SAD and linking it to other primary patterns of biodiversity (Harte et al. 2008, 2009, Harte 2011, White et al. 2012, Xiao et al. 2014).
+**S5:** So far, the maximum entropy theory of ecology (METE) has been the most accurate constraint-based framework for predicting **the** **(Would SADs be better?)** SAD and linking it to other primary patterns of biodiversity (Harte et al. 2008, 2009, Harte 2011, White et al. 2012, Xiao et al. 2014).
 
 
 ##P3: Constraint-based theory is rarely tested among microbes
-**S1:** METE has been widely successful in predicting the SAD among communities of macroscopic plants and animals (White et al. 2012).  
+**S1:** METE has been widely successful in predicting the SAD**s?** among communities of macroscopic plants and animals (White et al. 2012).  
 **S2:** METE then places the pattern at the center of a unifying maximum-likelihood framework that predicts up to **7?** other geographical, abundance-, energy-, and richness-related patterns.  
+
+
+
 **S3:** While this unifying breadth is unmatched among biodiversity theories, refinements are needed to improve the accuracy of METE's energy-related predictions (Xiao et al. 2014).  
 **S4:** However, in terms of predicting the SAD, METE often explains more than 90% of variation in abundance among species of plant and animal, based on the largest available compilations of community data (White et al. 2012).  
-**S5:** Yet, despite its success in predicting SADs and potential to unify other patterns, METE has yet been tested among the most abundant and taxonomically diverse organisms on Earth, i.e., bacteria.
+**S5:** Yet, despite its success in predicting SADs and potential to unify other patterns, METE has yet been tested among the most abundant and taxonomically diverse organisms on Earth, i.e., bacteria **and archaea**.
 
 ##P4: Patterns of microbial commonness and rarity are poorly characterized
-**S1:** Across microbial communities of natural and host-associated ecosystems, most microbial taxa or species account for the minority of relative abundance.  
+**S1:** Across microbial communities of natural and host-associated ecosystems, most microbial taxa **or species(cross out)** account for the minority of relative abundance( **Maybe change the sentence to focus on the "long-tail"**).
+  
 **S2:** This seemingly universal pattern of microbial commonness and rarity is known as the microbial "rare biosphere".  
 **S3:** The rare biosphere has been documented in thousands of studies since its first description less than a decade ago (Sogin et al. 2006).  
 **S4:** Though often described, e.g., as a percent of species with less than 0.1% abundance, the rare biosphere pattern is rarely examined with general biodiversity theory.  
