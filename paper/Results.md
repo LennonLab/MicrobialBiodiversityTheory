@@ -8,14 +8,24 @@
 **S6:** Both METE and the broken-stick under-predict the abundance of the most abundant species and over-predict the abundance of the rarest species.
 
 ##P2
-**S1:** We found that the success of METE and the broken-stick were influenced by the two primary constraint-variables, i.e., total abundance *N* and species richness *S*. 
-
-r2 vs. N:
-HMP BS: R2 = -0.39, p = 0.0
-HMP METE: R2 = -0.19, p = 0.0
-
-r2 vs. S:
-HMP BS: R2 = -0.39, p = 0.0
-HMP METE: R2 = -0.19, p = 0.0
+**S1:** We found that the success of METE and the broken-stick were influenced by the two primary state-variables (*N* and *S*) and the primary constraint of average abundance (*N*/*S*) (Table 1). Across each dataset (EMP, HMP, MG-RAST) increasing *N* led to decreasing fits of each model while 
 
 
+
+
+Table 1. 
+
+| Dataset | Model | Variable |  r^2  | p-value |
+|:-------:|:-----:|:--------:|:-----:|:-------:|
+|   HMP   |   BS  |     N    | -0.39 |   0.0   |
+|   HMP   |  METE |     N    | -0.19 |   0.0   |
+|   HMP   |   BS  |     S    |       |         |
+|   HMP   |  METE |     S    |       |         |
+|   HMP   |   BS  |    N/S   |       |         |
+|   HMP   |  METE |    N/S   |       |         |
+|   EMP   |   BS  |     N    |       |         |
+|   EMP   |  METE |     N    |       |         |
+|   EMP   |   BS  |     S    |       |         |
+|   EMP   |  METE |     S    |       |         |
+|   EMP   |   BS  |    N/S   |       |         |
+|   EMP   |  METE |    N/S   |       |         |
