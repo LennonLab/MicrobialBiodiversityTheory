@@ -17,19 +17,19 @@
 ###P3:  Biology Rare biosphere
 **S1:** The exceptional unevenness of microbial SADs could be driven by factors suggested to explain the presence of the microbial "rare biosphere".  
 **S2:** Widespread microbial dispersal and the ability of microbes to persist in suboptimal environments could, together, allow many small populations of dormant or slow-growing populations to persist in a given environment (ref).  
-**S3:** Additionally, microorganisms have shown unparalleled capacities to partition resource at ultra-fine levels, e.g., wavelengths of light (ref).
-**S4:** Finally, copies of rRNA sequences do not directly reflect standing abundance and will be influenced by differences in microbial activity and species-specific copy number (ref).
+**S3:** Additionally, microorganisms have shown unparalleled capacities to partition resource at ultra-fine levels, e.g., wavelengths of light (ref).  
+**S4:** Finally, copies of rRNA sequences do not directly reflect standing abundance and will be influenced by differences in microbial activity and species-specific copy number (ref).  
 **S5:** In effect, the failure of the broken-stick model and METE may simultaneously owe as much to constraint-based influences as to biological differences between the ecology of microbes and macrobes.
 
 ###P4: Microbial METE
-**S1:** In conclusion, the most successful model of species abundance among macroscopic plants and animals appears to fail among communities of bacteria, archaea, and microscopic fungi.
+**S1:** The most successful model of species abundance among macroscopic plants and animals appears to fail among communities of bacteria, archaea, and microscopic fungi.  
 **S2:** Whether due to massive differences in *N* and *N*/*S* between microbes and macrobes, which likewise owe to differences in their biology, or to factors suggested to explain the microbial "rare biosphere", ecologists are still challenged to find an appropriate model to accurately predict microbial SADs.  
 **S3:** To this end, we suggest an SAD model with naturally greater unevenness, i.e., the Zipf-distribution.  
 **S4:** While the broken-stick provides a relatively even distribution and the log-series provides a relatvely uneven distribution, the Zipf-distribution provides one the most uneven distributions for SADs and can likewise be derived as a prediction of MaxEnt (Baek et al. 2011).  
-**S6:** In comparison to METE, the Zipf would simultaneously predict greater numbers of singletons and a greater abundance for the most abundant species, which would presumably provide a better fit to microbial SADs. 
-**S5:** In fact, as a MaxEnt prediction, the Zipf "...provides the best prediction for the number of groups with *k* elements, given the total number of elements (*N*), groups (*S*), & the number of elements in the largest group (*Nmax*).
-**S6:** In this way, a suitable MaxEnt prediction for microbial SADs may require *Nmax* as a constraint, which is not needed or does not improve SAD predictions for plants and animals.
-**S7:** To our knowledge, no analytical formalulation of the Zipf as a MaxEnt prediction based on *N*, *S*, and *Nmax* is available, but is potentially needed for extending SAD theory to large communities of macrobes or very small communities of microbes.
+**S5:** In comparison to METE, the Zipf would simultaneously predict greater numbers of singletons and a greater abundance for the most abundant species, which would presumably provide a better fit to microbial SADs. 
+**S6:** In fact, as a MaxEnt prediction, the Zipf "...provides the best prediction for the number of groups with *k* elements, given the total number of elements (*N*), groups (*S*), & the number of elements in the largest group (*Nmax*).
+**S7:** In this way, a suitable MaxEnt prediction for microbial SADs may require *Nmax* as a constraint, which is not needed or does not improve SAD predictions for plants and animals.
+**S8:** To our knowledge, no analytical formalulation of the Zipf as a MaxEnt prediction based on *N*, *S*, and *Nmax* is available, but is potentially needed for extending SAD theory to large communities of macrobes or very small communities of microbes.
 
 ###P5: Conclusion
 **S1:** Constraint-based biodiversity theory provides a first-principle framework for predicting biodiversity patterns based solely on empirical inputs.  
