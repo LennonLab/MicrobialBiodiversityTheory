@@ -82,7 +82,7 @@ def generate_obs_pred_data(datasets, methods):
 
 def import_obs_pred_data(input_filename):   # TAKEN FROM THE mete_sads.py script used for White et al. (2012)
     data = np.genfromtxt(input_filename, dtype = "f8,f8,f8", names = ['site','obs','pred'], delimiter = " ")
-    #test = data[0:5000]
+    #test = data[0:10000]
     #return test
     return data
 
@@ -128,7 +128,7 @@ def plot_obs_pred_sad(methods, datasets, data_dir= mydir, radius=2): # TAKEN FRO
 
     #xs = [[60,1], [100,1], [20,1], [60,1], [40,1], [200,1], [800,1.5], [200,1.5]]
     #rs = ['0.93','0.77','0.84','0.81','0.78','0.83','0.58','0.76']
-
+    count = 0
     for i, dataset in enumerate(datasets):
         for j, method in enumerate(methods):
 
@@ -137,16 +137,15 @@ def plot_obs_pred_sad(methods, datasets, data_dir= mydir, radius=2): # TAKEN FRO
             print method, dataset
             obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred.txt')
             site = ((obs_pred_data["site"]))
-            "only 1st 100 sites"
+            #"only 1st 100 sites"
             obs = ((obs_pred_data["obs"]))
             pred = ((obs_pred_data["pred"]))
-
             axis_min = 0.5 * min(obs)
             axis_max = 2 * max(obs)
-            ax = fig.add_subplot(2, 2, j+1)
+            ax = fig.add_subplot(3, 2, count+1)
 
             macroecotools.plot_color_by_pt_dens(pred, obs, radius, loglog=1,
-                            plot_obj=plt.subplot(2,2,j+1))
+                            plot_obj=plt.subplot(3,2,count+1))
 
             plt.plot([axis_min, axis_max],[axis_min, axis_max], 'k-')
             plt.xlim(axis_min, axis_max)
@@ -158,15 +157,15 @@ def plot_obs_pred_sad(methods, datasets, data_dir= mydir, radius=2): # TAKEN FRO
             #plt.text(xs[0][1],xs[0][0],dataset+'\n'+rs[0],fontsize=8)
             #xs.pop(0)
             #rs.pop(0)
-
             # Create inset for histogram of site level r^2 values
             axins = inset_axes(ax, width="30%", height="30%", loc=4)
             hist_mete_r2(site, np.log10(obs), np.log10(pred))
             plt.setp(axins, xticks=[], yticks=[])
-
+            count += 1
     plt.text(-8,-80,'Rank-abundance at the centre of the feasible set',fontsize=10)
     plt.text(-8.5,500,'Observed rank-abundance',rotation='90',fontsize=10)
     plt.savefig('obs_pred_plots.png', dpi=600)#, bbox_inches = 'tight')#, pad_inches=0)
+    plt.close()
 
 
 def import_NSR2_data(input_filename):   # TAKEN FROM THE mete_sads.py script used for White et al. (2012)
@@ -180,9 +179,24 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
     fig = plt.figure()
     for i, dataset in enumerate(datasets):
         count  = 0
+        test_count = 0
         for k, param in enumerate(params):
             for j, method in enumerate(methods):
                 nsr2_data = import_NSR2_data(data_dir + 'NSR2/' + method+'_'+dataset+'_NSR2.txt')
+
+                #nsr2_data[[~np.isnan(nsr2_data).any(axis=1)]]
+                #nsr2_data[~np.isinf(nsr2_data).any(axis=1)]
+                #nsr2_data[~np.isnan(nsr2_data).any(1)]
+                list = ['nan', 'NAN', '-inf', 'inf']
+                #for x in nsr2_data:
+                #    print type(x)
+                #    value = str(x[3])
+
+                #if np.isinf(x[3]) == True:
+                #    print "infinity"
+                mask = np.all(np.isinf(nsr2_data), axis=1)
+
+
                 y = ((nsr2_data["R2"]))
                 print method, dataset, param
                 ax = fig.add_subplot(2, 3, count+1)
@@ -192,13 +206,17 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
                     N_count = ((nsr2_data["N"]))
                     S_count = ((nsr2_data["S"]))
                     x = np.divide(N_count, S_count)
+                    x = np.log10(x)
+
                 #elif str(n_or_s).capitalize() == 'S'
                 #x = ((nsr2_data["N"]))
                 macroecotools.plot_color_by_pt_dens(x, y, 0.1, loglog=0,
                                 plot_obj=plt.subplot(3, 2, count+1))
                 slope, intercept, r_value, p_value, std_err = stats.linregress(x,y)
+                #if param == 'N/S':
+                #    plt.xlim(np.amin(x), 1000)
+                #else:
                 plt.xlim(np.amin(x), np.amax(x))
-                print len(x)
                 plt.ylim(-1,1)
 
                 predict_y = intercept + slope * x
@@ -212,21 +230,28 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
                 #plt.text(-8.5,500,'Observed rank-abundance',rotation='90',fontsize=10)
                 plt.xlabel(param)
                 plt.ylabel(r'$r^{2}$',fontsize=16)
-                plt.text(1.35, 1.5, r'$p$'+ ' = '+str(round(p_value,2)), fontsize=12, color='Crimson')
+                r_2 = "r2 =" + str(round(r_value,2))
+                p_s = "p =" + str(round(p_value,2))
+                #plt.text(0, 1, r'$p$'+ ' = '+str(round(p_value,2)), fontsize=12)
+                #plt.text(0, 1, r'$r_{2}$'+ ' = '+str(round(r_value,2)), fontsize=12)
+                #ax.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=14,
+    #verticalalignment='top', bbox=props)
                 leg = plt.legend(loc=1,prop={'size':10})
-                leg.draw_frame(False)
+                #leg.draw_frame(False)
+                #plt.legend(loc='upper left')
                 print r_value, p_value
                 count += 1
         plt.tight_layout()
-        plt.savefig('testNvR2.png')
+        fig_name = 'NSR2_GeomMete' + str(dataset) + '.png'
+        plt.savefig(fig_name)
         #plt.xscale()
         plt.close()
 
 methods = ['geom', 'mete']
 #methods = ['mete']
-datasets = ['HMP']
+datasets = ['HMP', 'EMPclosed', 'EMPopen']
 #datasets = ['EMPclosed']
 params = ['N','S', 'N/S']
 #generate_obs_pred_data(datasets, methods)
-#plot_obs_pred_sad(methods, datasets)
-NSR2_regression(methods, datasets, data_dir= mydir)
+plot_obs_pred_sad(methods, datasets)
+#NSR2_regression(methods, datasets, data_dir= mydir)
