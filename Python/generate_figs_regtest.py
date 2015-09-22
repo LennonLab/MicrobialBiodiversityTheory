@@ -32,16 +32,22 @@ def generate_obs_pred_data(datasets, methods):
     for method in methods:
         for dataset in datasets:
 
-            OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred.txt','w+')
-            OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2.txt','w+')
+            #OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred.txt','w+')
+            #OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2.txt','w+')
+            OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred_subset.txt','w+')
+            OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2_subset.txt','w+')
             IN = mydir  + dataset + '-Data' + '/' + dataset +'-SADs.txt'
             num_lines = sum(1 for line in open(IN))
-
+            # randomly pick 5000 linres
+            random_sites = np.random.randint(300,size=num_lines)
+            num_lines = 300
             for j,line in enumerate(open(IN)):
                 if dataset == "HMP" :
                     line = line.split()
                 else:
                     line = eval(line)
+                    if j not in random_sites:
+                        continue
                 #line.strip("[]")
                 #line.split()
                 obs = map(int, line)
@@ -50,6 +56,7 @@ def generate_obs_pred_data(datasets, methods):
                 S = len(obs)
 
                 if S < 10 or N <= S:
+                    num_lines += 1
                     continue
 
                 obs.sort()
@@ -87,7 +94,6 @@ def import_obs_pred_data(input_filename):   # TAKEN FROM THE mete_sads.py script
     return data
 
 
-
 def hist_mete_r2(sites, obs, pred):  # TAKEN FROM Macroecotools or the mete_sads.py script used for White et al. (2012)
     """Generate a kernel density estimate of the r^2 values for obs-pred plots"""
     r2s = []
@@ -115,6 +121,7 @@ def obs_pred_r2_multi(methods, datasets, data_dir= mydir): # TAKEN FROM THE mete
     for i, dataset in enumerate(datasets):
         for j, method in enumerate(methods):
             obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method + "_" + dataset + '_obs_pred.txt')
+            #obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method + "_" + dataset + '_obs_pred.txt')
             obs = ((obs_pred_data["obs"]))
             pred = ((obs_pred_data["pred"]))
             print method, dataset,' ',macroecotools.obs_pred_rsquare(np.log10(obs), np.log10(pred))
@@ -135,11 +142,26 @@ def plot_obs_pred_sad(methods, datasets, data_dir= mydir, radius=2): # TAKEN FRO
             #if method == 'mete' and dataset == 'EMP': continue
 
             print method, dataset
-            obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred.txt')
+            if method == 'EMPclosed' or method == 'EMPopen':
+                obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred_subset.txt')
+            else:
+                obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred.txt')
+            print method, dataset
             site = ((obs_pred_data["site"]))
-            #"only 1st 100 sites"
             obs = ((obs_pred_data["obs"]))
             pred = ((obs_pred_data["pred"]))
+            #if method == 'EMPclosed' or method == 'EMPopen':
+            #    unique = np.unique(((obs_pred_data["site"])))
+            #    site_num = unique.size
+            #    random_sites = np.random.randint(5000,size=site_num)
+            #    obs_pred_data = obs_pred_data[random_sites, :]
+            #    site = ((obs_pred_data["site"]))
+            #    obs = ((obs_pred_data["obs"]))
+            #    pred = ((obs_pred_data["pred"]))
+            #else:
+            #    site = ((obs_pred_data["site"]))
+            #    obs = ((obs_pred_data["obs"]))
+            #    pred = ((obs_pred_data["pred"]))
             axis_min = 0.5 * min(obs)
             axis_max = 2 * max(obs)
             ax = fig.add_subplot(3, 2, count+1)
@@ -247,11 +269,11 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
         #plt.xscale()
         plt.close()
 
-methods = ['geom', 'mete']
-#methods = ['mete']
-datasets = ['HMP', 'EMPclosed', 'EMPopen']
-#datasets = ['EMPclosed']
+#methods = ['geom', 'mete']
+methods = ['geom']
+#datasets = ['HMP', 'EMPclosed', 'EMPopen']
+datasets = ['EMPclosed']
 params = ['N','S', 'N/S']
-#generate_obs_pred_data(datasets, methods)
+generate_obs_pred_data(datasets, methods)
 plot_obs_pred_sad(methods, datasets)
 #NSR2_regression(methods, datasets, data_dir= mydir)
