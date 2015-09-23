@@ -27,7 +27,7 @@ def get_GeomSeries(N,S,zeros):
 
     return abd
 
-def generate_obs_pred_data(datasets, methods):
+def generate_obs_pred_data(datasets, methods, size):
 
     for method in methods:
         for dataset in datasets:
@@ -37,10 +37,12 @@ def generate_obs_pred_data(datasets, methods):
             OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred_subset.txt','w+')
             OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2_subset.txt','w+')
             IN = mydir  + dataset + '-Data' + '/' + dataset +'-SADs.txt'
-            num_lines = sum(1 for line in open(IN))
-            # randomly pick 5000 linres
-            random_sites = np.random.randint(300,size=num_lines)
-            num_lines = 300
+            if method == "HMP":
+                num_lines = sum(1 for line in open(IN))
+            else:
+                num_lines = sum(1 for line in open(IN))
+                random_sites = np.random.randint(num_lines,size=size)
+                num_lines = size
             for j,line in enumerate(open(IN)):
                 if dataset == "HMP" :
                     line = line.split()
@@ -140,9 +142,8 @@ def plot_obs_pred_sad(methods, datasets, data_dir= mydir, radius=2): # TAKEN FRO
         for j, method in enumerate(methods):
 
             #if method == 'mete' and dataset == 'EMP': continue
-
-            print method, dataset
-            if method == 'EMPclosed' or method == 'EMPopen':
+            #obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred_subset.txt')
+            if str(dataset) == 'EMPclosed' or str(dataset) == 'EMPopen':
                 obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred_subset.txt')
             else:
                 obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred.txt')
@@ -150,18 +151,6 @@ def plot_obs_pred_sad(methods, datasets, data_dir= mydir, radius=2): # TAKEN FRO
             site = ((obs_pred_data["site"]))
             obs = ((obs_pred_data["obs"]))
             pred = ((obs_pred_data["pred"]))
-            #if method == 'EMPclosed' or method == 'EMPopen':
-            #    unique = np.unique(((obs_pred_data["site"])))
-            #    site_num = unique.size
-            #    random_sites = np.random.randint(5000,size=site_num)
-            #    obs_pred_data = obs_pred_data[random_sites, :]
-            #    site = ((obs_pred_data["site"]))
-            #    obs = ((obs_pred_data["obs"]))
-            #    pred = ((obs_pred_data["pred"]))
-            #else:
-            #    site = ((obs_pred_data["site"]))
-            #    obs = ((obs_pred_data["obs"]))
-            #    pred = ((obs_pred_data["pred"]))
             axis_min = 0.5 * min(obs)
             axis_max = 2 * max(obs)
             ax = fig.add_subplot(3, 2, count+1)
@@ -248,16 +237,15 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
                 plt.plot(x, predict_y, 'k-')
                 plt.subplots_adjust(wspace=0.5, hspace=0.3)
                 # Plotting
-                #plt.text(-8,-80,'Rank-abundance at the centre of the feasible set',fontsize=10)
-                #plt.text(-8.5,500,'Observed rank-abundance',rotation='90',fontsize=10)
+                plt.text(-8,-80,'Rank-abundance at the centre of the feasible set',fontsize=10)
+                plt.text(-8.5,500,'Observed rank-abundance',rotation='90',fontsize=10)
                 plt.xlabel(param)
                 plt.ylabel(r'$r^{2}$',fontsize=16)
-                r_2 = "r2 =" + str(round(r_value,2))
-                p_s = "p =" + str(round(p_value,2))
+                #r_2 = "r2 =" + str(round(r_value,2))
+                #p_s = "p =" + str(round(p_value,2))
                 #plt.text(0, 1, r'$p$'+ ' = '+str(round(p_value,2)), fontsize=12)
                 #plt.text(0, 1, r'$r_{2}$'+ ' = '+str(round(r_value,2)), fontsize=12)
-                #ax.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=14,
-    #verticalalignment='top', bbox=props)
+                #ax.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=14, verticalalignment='top', bbox=props)
                 leg = plt.legend(loc=1,prop={'size':10})
                 #leg.draw_frame(False)
                 #plt.legend(loc='upper left')
@@ -269,11 +257,11 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
         #plt.xscale()
         plt.close()
 
-#methods = ['geom', 'mete']
-methods = ['geom']
-#datasets = ['HMP', 'EMPclosed', 'EMPopen']
-datasets = ['EMPclosed']
+methods = ['geom', 'mete']
+#methods = ['geom']
+datasets = ['HMP', 'EMPclosed', 'EMPopen']
+#datasets = ['EMPopen', 'EMPclosed']
 params = ['N','S', 'N/S']
-generate_obs_pred_data(datasets, methods)
+#generate_obs_pred_data(datasets, methods, 500)
 plot_obs_pred_sad(methods, datasets)
 #NSR2_regression(methods, datasets, data_dir= mydir)
