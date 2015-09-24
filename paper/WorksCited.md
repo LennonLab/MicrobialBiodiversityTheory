@@ -14,6 +14,8 @@ Harte, J. (2011). Maximum Entropy and Ecology. New York, New York, USA: Oxford U
 
 Harte, J., Smith, A. B., & Storch, D. (2009). Biodiversity scales from plots to biomes with a universal species-area curve. Ecology Letters, 12(8), 789–797. 
 
+Hubbell, S. P. (2001). The Unified Neutral Theory of Biodiversity and Biogeography. Princeton, New Jersey, USA: Princeton University Press.
+
 Locey, K. J., & White, E. P. (2013). How species richness and total abundance constrain the distribution of abundance. Ecology Letters, 16(9), 1177–1185. 
 
 McGill, B. J. (2010). Towards a unification of unified theories of biodiversity. Ecology Letters, 13(5), 627–642. 
