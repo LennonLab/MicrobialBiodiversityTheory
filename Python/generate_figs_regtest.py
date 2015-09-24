@@ -242,7 +242,7 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
 
                 y = ((nsr2_data["R2"]))
                 print method, dataset, param
-                ax = fig.add_subplot(2, 3, count+1)
+                ax = fig.add_subplot(3, 2, count+1)
                 if param == "N" or param == "S":
                     x = np.log10(((nsr2_data[param])))
                 else:
@@ -270,7 +270,7 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
                 plt.subplots_adjust(wspace=0.5, hspace=0.3)
                 # Plotting
                 plt.xlabel(param)
-                plt.ylabel(r'$r^{2}$',fontsize=16)
+                #plt.ylabel(r'$r^{2}$',fontsize=16)
                 #r_2 = "r2 =" + str(round(r_value,2))
                 #p_s = "p =" + str(round(p_value,2))
                 #plt.text(0, 1, r'$p$'+ ' = '+str(round(p_value,2)), fontsize=12)
@@ -280,22 +280,27 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
                 #leg.draw_frame(False)
                 #plt.legend(loc='upper left')
                 print r_value, p_value
+
                 count += 1
-        plt.tight_layout()
-        plt.text(-8,-80,'Rank-abundance at the centre of the feasible set',fontsize=10)
-        plt.text(-8.5,500,'Observed rank-abundance',rotation='90',fontsize=10)
-        fig_name = 'NSR2_GeomMete' + str(dataset) + '.png'
-        plt.savefig(fig_name)
-        #plt.xscale()
-        plt.close()
+    #ax.set_ylabel('common ylabel')
+    plt.tight_layout()
+    fig.text(0.02, 0.5, r'$r^{2}$', ha='center', va='center', rotation='vertical', size = 'medium')
+    #ax.set_ylabel('common ylabel')
+    #fig.text(-8,-80,'Rank-abundance at the centre of the feasible set',fontsize=10)
+    #plt.suptitle(-8.5,500,r'$r^{2}$',rotation='90',fontsize=10)
+    fig_name = 'NSR2_GeomMete' + str(dataset) + '.png'
+    plt.savefig(fig_name)
+    plt.xscale()
+    plt.close()
 
 methods = ['geom', 'mete']
 #methods = ['geom']
-datasets = ['HMP', 'EMPclosed', 'EMPopen']
+#datasets = ['HMP', 'EMPclosed', 'EMPopen']
 #datasets = ['EMPclosed', 'EMPopen']
 #datasets = ['HMP']
+datasets = ['EMPclosed'] 
 #datasets = ['EMPopen']
 params = ['N','S', 'N/S']
 #generate_obs_pred_data(datasets, methods, 0)
-plot_obs_pred_sad(methods, datasets)
-#NSR2_regression(methods, datasets, data_dir= mydir)
+#plot_obs_pred_sad(methods, datasets)
+NSR2_regression(methods, datasets, data_dir= mydir)
