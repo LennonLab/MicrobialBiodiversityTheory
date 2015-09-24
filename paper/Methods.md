@@ -40,20 +40,24 @@
 **S4:** The log-series distribution is among the oldest and most successful SAD models but has generally lacked a convincing first-principle explanation from either an ecological or statistical perspective.  
 **S4:** In this case, METE predicts the shape of which is dependent only on the values of *S* and *N*:
 
-###insert equation 1
+$$\Phi\left ( n\mid S_{0},N_{0} \right ) = \frac{1}{log(\beta ^{-1})}\frac{e^{-\beta n}}{n}
+$$
 
 where β is defined by the equation 
 
-###insert equation 2
+$$\frac{N_{0}}{S_{0}}=\frac{\sum_{n=1}^{N_{0}}e^{-\beta n}}{\sum_{n=1}^{N_{0}}e^{-\beta n}/n}
+$$
 
 
 ### Broken-stick 
 **S1:** While some other MaxEnt models produce similar, if not, identical (Pueyo et al. 2007, Dewar and Porté 2008, Frank 2011) predictions for the SAD, MaxEnt models based on different assumptions can yield very different predictions (Haegeman and Etienne 2010).   
 **S2:** One example is the simultaneous discrete Broken-stick model of MacArthur (1960), which as pointed out by Haegeman and Etienne (2010) is simply the geometric distribution with mean *N*/*S*.   
 **S3:** Unlike the log-series, the broken-stick model predicts a relatively even distribution which is often a poor fit to empirical SADs (Hubbell 2001).  
-**S4:** The broken-stick gives equal weight to all ordered configurations of *S* species whose abundances sum to *N*, the equation for which is:
+**S4:** The broken-stick gives equal weight to all ordered configurations of *S* species whose abundances sum to *N*, the equation for which for the $$r^{th}$$ rarest species being:
 
-###insert equation 3
+$$\frac{N}{S}\sum_{i=1}^{r}\frac{1}{S-i+1}$$
+
+With $$r$$ being the abundance of the  
 
 ## Testing MaxEnt predictions
 **S1:** Both METE (which predicts a log-series distribution) and the Broken-stick (i.e., the geometric distribution) produce predictions for the rank-abundance form of the SAD.   
