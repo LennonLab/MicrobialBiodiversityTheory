@@ -3,20 +3,26 @@ from __future__ import division
 import sys
 import os
 
-#mydir = os.path.expanduser("~/Desktop/Repos/HMP_EMP/")
 #sys.path.append(mydir)
 mydir = os.path.expanduser("~/github/MicroMETE/data/")
 
 import  matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.axes_grid.inset_locator import inset_axes
-
 import macroecotools
 import mete
 import macroeco_distributions as md
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn import linear_model
 from scipy import stats
+
+
+"""This code was written using MIT liscenced code from the following Weecology
+repos: METE (https://github.com/weecology/METE) and macroecotools
+(https://github.com/weecology/macroecotools).
+We in no way assume ownership their code"""
+
+
 def get_GeomSeries(N,S,zeros):
 
     rank = range(1,S+1)
@@ -24,14 +30,12 @@ def get_GeomSeries(N,S,zeros):
     SNratio = S/N
     if zeros == False:
         abd = md.trunc_geom.ppf(np.array(cdf), SNratio, N)
-
     return abd
 
 def generate_obs_pred_data(datasets, methods, size):
 
     for method in methods:
         for dataset in datasets:
-
             #OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred.txt','w+')
             #OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2.txt','w+')
             #OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred_subset.txt','w+')
@@ -95,7 +99,6 @@ def generate_obs_pred_data(datasets, methods, size):
             OUT1.close()
 
         print dataset
-
 
 
 
@@ -290,15 +293,15 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
     #plt.suptitle(-8.5,500,r'$r^{2}$',rotation='90',fontsize=10)
     fig_name = 'NSR2_GeomMete' + str(dataset) + '.png'
     plt.savefig(fig_name)
-    plt.xscale()
+    #plt.xscale()
     plt.close()
 
 methods = ['geom', 'mete']
 #methods = ['geom']
 #datasets = ['HMP', 'EMPclosed', 'EMPopen']
 #datasets = ['EMPclosed', 'EMPopen']
-#datasets = ['HMP']
-datasets = ['EMPclosed'] 
+datasets = ['HMP']
+#datasets = ['EMPclosed']
 #datasets = ['EMPopen']
 params = ['N','S', 'N/S']
 #generate_obs_pred_data(datasets, methods, 0)
