@@ -6,6 +6,7 @@ import pickle
 #sys.path.append(mydir)
 mydir = os.path.expanduser("~/github/MicroMETE/data/")
 
+import scipy as sp
 import  matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.axes_grid.inset_locator import inset_axes
@@ -407,6 +408,10 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
 
 
                 y = ((nsr2_data["R2"]))
+                mean = np.mean(y)
+                std_error = sp.stats.sem(y)
+                print "mean = " + str(mean)
+                print "standard error = " + str(std_error)
                 print method, dataset, param
                 ax = fig.add_subplot(3, 2, count+1)
                 if param == "N" or param == "S":
@@ -470,10 +475,10 @@ methods = ['geom', 'mete']
 #datasets = ['HMP', 'EMPclosed', 'EMPopen']
 #datasets = ['EMPclosed', 'EMPopen']
 #datasets = ['HMP']
-datasets = ['MGRAST99']
+#datasets = ['MGRAST95']
 
 #datasets = ['EMPclosed']
-#datasets = ['EMPopen']
+datasets = ['EMPopen']
 params = ['N','S', 'N/S']
 #get_SADs()
 #generate_obs_pred_data(datasets, methods, 0)
