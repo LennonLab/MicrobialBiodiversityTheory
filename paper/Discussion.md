@@ -1,11 +1,12 @@
 # Discussion
 ###P1: METE fails for microbes
-**S1:** Maximum entropy theory of ecology (METE) has been highly successful in predicting how abundance varies within and across communities of macroscopic plants and animals.  
+**S1:** Maximum entropy theory of ecology (METE) has been highly successful in predicting how abundance varies within and across communities of macroscopic plants and animals (**might replace with organisms)**.  
 **S2:** Here, we showed that METE fails to explain similar degrees of variance within and among communities of bacteria, archaea, and microscopic fungi.  
 **S3:** Likewise, the success of METE is influenced by its primary state variables (*N*, *S*) and by its primary constraint (*N*/*S*).  
 **S4:** As a result, METE tends to fail with increasing *N* and *N*/*S*.  
 **S5:** Consequently, these conditions also characterize numerical differences between microbial and macrobial SADs.  
-**S6:** That is, *N* for microbial datasets often represents tens of thousands to millions of rRNA reads while *N* for macrobial SADs is often ranges between a few hundred to a few thousand individuals.  
+**S6:** That is, *N* for microbial datasets often represents tens of thousands to millions of rRNA reads (**do you mean individuals here? there's raw read number, and then there's the processed read number maybe something like "certain microbial datasets are estimated to contain tens of millions or reads**) while *N* for macrobial SADs is often ranges between a few hundred to a few thousand individuals.  
+
 
 ###P2: METE fails as expected for large N
 **S1:** The failure of the broken stick model and METE could have been anticipated.  
@@ -17,8 +18,9 @@
 ###P3:  Biology Rare biosphere
 **S1:** The exceptional unevenness of microbial SADs could be driven by factors suggested to explain the presence of the microbial "rare biosphere".  
 **S2:** Widespread microbial dispersal and the ability of microbes to persist in suboptimal environments could, together, allow many small populations of dormant or slow-growing populations to persist in a given environment (ref).  
-**S3:** Additionally, microorganisms have shown unparalleled capacities to partition resource at ultra-fine levels, e.g., wavelengths of light (ref).  
-**S4:** Finally, copies of rRNA sequences do not directly reflect standing abundance and will be influenced by differences in microbial activity and species-specific copy number (ref).  
+**S3:** Additionally, microorganisms have shown unparalleled capacities to partition **limited** resource at ultra-fine levels, e.g., wavelengths of light (ref).  
+**S4:** Finally, copies of rRNA sequences do not directly reflect standing abundance and will be influenced by differences in microbial activity and species-specific copy number (ref) **(I'm not sure how differences in microbial activity can impact the copy number of the rRNA gene, it would affect rRNA transcript copy number. (Also, the copy-number variation among taxa isn't really a big deal)). To me the big methodological hurdle is the sequence similarity threshold, which is kind of resolved through the MGRAST data.**
+  
 **S5:** In effect, the failure of the broken-stick model and METE may simultaneously owe as much to constraint-based influences as to biological differences between the ecology of microbes and macrobes.
 
 ###P4: Microbial METE
@@ -29,7 +31,7 @@
 **S5:** In comparison to METE, the Zipf would simultaneously predict greater numbers of singletons and a greater abundance for the most abundant species, which would presumably provide a better fit to microbial SADs. 
 **S6:** In fact, as a MaxEnt prediction, the Zipf "...provides the best prediction for the number of groups with *k* elements, given the total number of elements (*N*), groups (*S*), & the number of elements in the largest group (*Nmax*).
 **S7:** In this way, a suitable MaxEnt prediction for microbial SADs may require *Nmax* as a constraint, which is not needed or does not improve SAD predictions for plants and animals.
-**S8:** To our knowledge, no analytical formalulation of the Zipf as a MaxEnt prediction based on *N*, *S*, and *Nmax* is available, but is potentially needed for extending SAD theory to large communities of macrobes or very small communities of microbes.
+**S8:** To our knowledge, no analytical formalulation of the Zipf as a MaxEnt prediction based on *N*, *S*, and *Nmax* is available, but is potentially needed for extending SAD theory to large communities of macrobes or very small communities of microbes **(not immediately related, but I wonder how METE would do on community sequence data from an acid-mine drainage site)**.
 
 ###P5: Conclusion
 **S1:** Constraint-based biodiversity theory provides a first-principle framework for predicting biodiversity patterns based solely on empirical inputs.  
