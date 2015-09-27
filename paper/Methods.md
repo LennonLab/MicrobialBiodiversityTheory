@@ -1,6 +1,10 @@
 # Methods
 **Note:** Some numbers in parentheses correspond to references; a reference section is being built.
 
+** This sentence should probably go in the Methods, could be confusing 
+Negative values were possible because the relationship is not fitted, i.e., estimating variation around a line with a slope of 1.0 and intercept of zero (White et al. 2012, Locey and White 2013, Xiao et al. 2014).**  
+
+
 ## Data
 ###P1
 **S1:** For the analysis we used bacterial and archaeal community sequence data from 15,535 sites.  
