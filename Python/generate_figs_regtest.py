@@ -2,7 +2,7 @@
 from __future__ import division
 import sys
 import os
-
+import pickle
 #sys.path.append(mydir)
 mydir = os.path.expanduser("~/github/MicroMETE/data/")
 
@@ -22,6 +22,159 @@ repos: METE (https://github.com/weecology/METE) and macroecotools
 (https://github.com/weecology/macroecotools).
 We in no way assume ownership their code"""
 
+def get_SADs_mgrast(path, threshold):
+    path_list = []
+    path  = path + 'MGRAST-data/' + threshold + '/'
+    for subdir, dirs, files in os.walk(path):
+        for file in files:
+            file_path = os.path.join(subdir, file)
+            if file_path.endswith("-data.txt"):
+                path_list.append(file_path)
+    for x in path_list:
+        SADdict = {}
+        with open(x) as f:
+            for d in f:
+                print d
+                #print len(d)
+                if d.strip():
+                    d = d.split()
+                    if 'BOVINE' in x:
+                        site = d[0]
+                        #species = d[1] # Dataset name plus species identifier
+                        abundance = float(d[-1])
+
+                    else:
+                        site = d[0]
+                        #year = d[1]
+                        #if closedref == True:
+                        #    for i in d:
+                        #        if 'unclassified' in i:
+                        #            #print 'unclassified'
+                        #            continue
+                        #        elif 'unidentified' in i:
+                        #            #print 'unidentified'
+                        #            continue
+
+                        abundance = float(d[-1])
+
+
+                    if abundance > 0:
+                        if site in SADdict:
+                            SADdict[site].append(abundance)
+                        else:
+                            SADdict[site] = [abundance]
+    SADs = SADdict.values()
+    filteredSADs = []
+    for sad in SADs:
+        if len(sad) >= 10:
+            filteredSADs.append(sad)
+    OUT =  open(path + 'MGRAST-' + threshold + '-SADs.txt', 'w')
+    #with open(OUT,'wb') as f:
+    #    pickle.dump(f,OUT)
+    #print >> OUT, filteredSADs
+    #return filteredSADs
+    SAD_nested_list = list(SADdict.values())
+    for SAD in SAD_nested_list:
+        print>> OUT, SAD
+
+
+def get_SADs(path, name, closedref=True):
+
+    SADdict = {}
+    DATA = path + name + '-data.txt'
+
+    with open(DATA) as f:
+
+        for d in f:
+            print d
+            #print len(d)
+
+            if d.strip():
+                d = d.split()
+
+                if name == 'GENTRY':
+                    site = d[0]
+                    #species = d[1] # Dataset name plus species identifier
+                    abundance = float(d[-1])
+
+                else:
+                    site = d[0]
+                    #year = d[1]
+
+                    if closedref == True:
+                        for i in d:
+                            if 'unclassified' in i:
+                                #print 'unclassified'
+                                continue
+                            elif 'unidentified' in i:
+                                #print 'unidentified'
+                                continue
+
+                    abundance = float(d[-1])
+
+
+                if abundance > 0:
+                    if site in SADdict:
+                        SADdict[site].append(abundance)
+                    else:
+                        SADdict[site] = [abundance]
+
+    SADs = SADdict.values()
+    filteredSADs = []
+    for sad in SADs:
+        if len(sad) >= 10:
+            filteredSADs.append(sad)
+
+
+    return filteredSADs
+
+
+
+
+def EMP_SADs(path, name, mgrast):
+
+    minS = 10
+
+    IN = path + '/' + name + '-SSADdata.txt'
+    n = sum(1 for line in open(IN))
+
+    SiteDict = {}
+
+    with open(IN) as f:
+
+        for d in f:
+
+            n -= 1
+
+            if d.strip():
+
+                d = d.split()
+                #species = d[0]
+                sample = d[1]
+                abundance = float(d[2])
+
+                if abundance > 0:
+                    if sample not in SiteDict:
+
+                        SiteDict[sample] = [abundance]
+
+                    else:
+                        SiteDict[sample].append(abundance)
+
+
+    SADs = SiteDict.values()
+    filteredSADs = []
+    for sad in SADs:
+        if len(sad) >= minS:
+            filteredSADs.append(sad)
+
+    return filteredSADs
+
+
+
+
+
+
 
 def get_GeomSeries(N,S,zeros):
 
@@ -40,18 +193,26 @@ def generate_obs_pred_data(datasets, methods, size):
             #OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2.txt','w+')
             #OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred_subset.txt','w+')
             #OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2_subset.txt','w+')
-            IN = mydir  + dataset + '-Data' + '/' + dataset +'-SADs.txt'
-            if method == "HMP" or size == 0:
+
+            if dataset == "HMP":
+                IN = mydir  + dataset + '-Data' + '/' + dataset +'-SADs.txt'
                 num_lines = sum(1 for line in open(IN))
                 OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred.txt','w+')
                 OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2.txt','w+')
-            else:
+            elif dataset == 'EMPclosed' or dataset == 'EMPpen':
+                IN = mydir  + dataset + '-Data' + '/' + dataset +'-SADs.txt'
                 num_lines = sum(1 for line in open(IN))
                 random_sites = np.random.randint(num_lines,size=size)
                 num_lines = size
                 OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred_subset.txt','w+')
                 OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2_subset.txt','w+')
                 num_lines = sum(1 for line in open(IN))
+            else:
+                IN = mydir + 'MGRAST-Data/' + dataset +  '/' + 'MGRAST-' + dataset + '-SADs.txt'
+                num_lines = sum(1 for line in open(IN))
+                OUT1 = open(mydir + "ObsPred/" + method +'_'+ 'MGRAST' + dataset+'_obs_pred.txt','w+')
+                OUT2 = open(mydir + "NSR2/" + method +'_'+ 'MGRAST' + dataset+'_NSR2.txt','w+')
+
             for j,line in enumerate(open(IN)):
                 if dataset == "HMP":
                     line = line.split()
@@ -160,8 +321,10 @@ def plot_obs_pred_sad(methods, datasets, data_dir= mydir, radius=2): # TAKEN FRO
             #obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred_test.txt')
             if str(dataset) == 'EMPclosed' or str(dataset) == 'EMPopen':
                 obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred_subset.txt')
-            else:
+            elif str(dataset) == 'HMP':
                 obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred.txt')
+            else:
+                obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method + '_' + 'MGRAST' + dataset +'_obs_pred.txt')
             print method, dataset
             site = ((obs_pred_data["site"]))
             obs = ((obs_pred_data["obs"]))
@@ -171,11 +334,11 @@ def plot_obs_pred_sad(methods, datasets, data_dir= mydir, radius=2): # TAKEN FRO
             ax = fig.add_subplot(3, 2, count+1)
             if j == 0:
                 if i == 0:
-                    ax.set_ylabel("HMP", rotation=90, size='small')
+                    ax.set_ylabel("95% Sequence Similarity", rotation=90, size=8)
                 elif i == 1:
-                    ax.set_ylabel("EMP closed", rotation=90, size='small')
+                    ax.set_ylabel("97% Sequence Similarity", rotation=90, size=8)
                 elif i == 2:
-                    ax.set_ylabel("EMP open", rotation=90, size='small')
+                    ax.set_ylabel("99% Sequence Similarity", rotation=90, size=8)
             if i == 0 and j == 0:
                 ax.set_title("Broken-stick")
             elif i == 0 and j == 1:
@@ -270,9 +433,15 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
                 degrees_of_freedom = len(x) - 2
                 residual_std_error = np.sqrt(np.sum(pred_error**2) / degrees_of_freedom)
                 plt.plot(x, predict_y, 'k-')
+                plt.axhline(linewidth=2, color='lightgray')
                 plt.subplots_adjust(wspace=0.5, hspace=0.3)
                 # Plotting
                 plt.xlabel(param)
+                if j == 0 and k == 0:
+                    plt.title('Broken-stick', fontsize = 'large')
+                elif j == 1 and k == 0:
+                    plt.title('METE', fontsize = 'large')
+
                 #plt.ylabel(r'$r^{2}$',fontsize=16)
                 #r_2 = "r2 =" + str(round(r_value,2))
                 #p_s = "p =" + str(round(p_value,2))
@@ -300,10 +469,16 @@ methods = ['geom', 'mete']
 #methods = ['geom']
 #datasets = ['HMP', 'EMPclosed', 'EMPopen']
 #datasets = ['EMPclosed', 'EMPopen']
-datasets = ['HMP']
+#datasets = ['HMP']
+datasets = ['MGRAST99']
+
 #datasets = ['EMPclosed']
 #datasets = ['EMPopen']
 params = ['N','S', 'N/S']
+#get_SADs()
+#generate_obs_pred_data(datasets, methods, 0)
 #generate_obs_pred_data(datasets, methods, 0)
 #plot_obs_pred_sad(methods, datasets)
 NSR2_regression(methods, datasets, data_dir= mydir)
+
+#get_SADs_mgrast(mydir, '99')
