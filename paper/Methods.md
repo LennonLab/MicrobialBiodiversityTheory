@@ -5,22 +5,30 @@
 ###P1
 **S1:** We used 15,535 sites of communities of bacteria, archaea, and microscopic fungi.  
 **S2:** 14,962 of these sites were from the Earth Microbiome Project (EMP) (14) obtained on 22 August, 2014.  
-**S3:** Sample processing, sequencing and amplicon data are standardized and performed by the EMP and all are publicly available at www.microbio.me/emp.  
+**S3:** Sample processing and sequencing **and amplicon data (cross out)** **of the V4 region of the 16s ribosomal RNA gene** are standardized **and performed(cross out)** by the EMP and all are publicly available at www.microbio.me/emp.  
 **S4:** The EMP data consist of open and closed reference datasets, which are defined in the QIIME tutorial (http://qiime.org/tutorials/otu_picking.html).  
 **S5:** QIIME defines closed-reference as a classification scheme where any reads that do not hit a sequence in a reference collection are excluded from analysis.  
 **S6:** In contrast, open-reference refers to a scheme where reads that do not hit a reference collection are subsequently clustered de novo and represent unique but unclassified taxonomic units.  
 **S7:** Our main results are based on closed-reference data, due to the greater accuracy of the approach and because unclassified sequences were excluded from other microbial datasets (below).	
 ###P2
 **S1:** We also used 4,303 sites from the Data Analysis and Coordination Center (DACC) for the National Institutes of Health (NIH) Common Fund supported Human Microbiome Project (HMP).  
-**S2:** These data consisted of samples taken from 15 or 18 locations (including the skin, gut, vagina, and oral cavity) on each of 300 healthy individuals.  
-**S3:** The v3-v5 region of the 16S rRNA gene was sequenced for each sample.  
+**S2:** These data consisted of samples taken from 15 to 18 locations (including the skin, gut, vagina, and oral cavity) on each of 300 healthy individuals. 
+**add sentence**
+In each sample the v3-v5 region of the 16S rRNA gene was sequenced and analyzed using the mothur pipeline.  
+
+
 **S4:** We excluded sites from pilot phases of the HMP as well as time-series data; see http://hmpdacc.org/micro_analysis/microbiome_analyses.php. for details on HMP sequencing and sampling protocols.
 
 ###P3
-**S1:** We also included 1,319 non-experimental PCR-targeted rRNA amplicon sequencing projects from the Argonne National Laboratory metagenomics server MG-RAST (16).  
+**S1:** We also **(In addition to publically-available data from large-scale sequencing project, we)** included 1,319 non-experimental 16s (PCR-targeted cross out) rRNA amplicon sequencing projects from the Argonne National Laboratory metagenomics server MG-RAST (16).  
 **S2:** Represented in this compilation were samples from arctic aquatic systems (130 sites; MG-RAST id: mgp138), hydrothermal vents (123 sites; MG-RAST id: mgp327) (37), freshwater lakes in China (187 sites; MG-RAST id: mgp2758) (38), arctic soils (44 sites; MG-RAST id: mgp69) (39), temperate soils (84 sites; MG-RAST id: mgp68) (40), bovine fecal samples (16 sites; MG-RAST id: mgp14132), human gut microbiome samples not part of the HMP project (529 sites; MG-RAST id: mgp401) (41), a global-scale dataset of indoor fungal systems (128 sites) (42), and freshwater, marine, and intertidal river sediments (34 sites; MG-RAST id: mgp1829). 
 
-###P4**S1:** The use of MG-RAST allowed us to choose common parameter values for percent sequence similarity (i.e. 97% for species-level) and taxa assignment including a maximum e-value (probability of observing an equal or better match in a database of a given size) of 10-5, a minimum alignment length of 50 base pairs, and minimum percent sequence similarities of 95, 97, and 99% to the closest reference sequence in MG-RAST’s M5 rRNA database (37-42). **S2:** Quantifying dominance, evenness, rarity, and richness. 
+###P4
+A conceptual issue (use diffrent words) with 16s rRNA amplicon data is that organisms are clustered based on sequence similarity into Operational Taxonomic Units (OTUs) in lieu of species. While this is a common practice that is done in virtually all molecular studies of microbial community diversity, it does raise methodological issues, given that METE has been applied to a dataset where individuals are classified solely by sequence similarity
+
+
+**Alt S1:** The use of MG-RAST allowed us to assess this by choosing common parameter values for percent sequence similarity (i.e. 97% for species-level) and taxa assignment including a maximum e-value (probability of observing an equal or better match in a database of a given size) of 10-5, a minimum alignment length of 50 base pairs, and minimum percent sequence similarities of 95, 97, and 99% to the closest reference sequence in MG-RAST’s M5 rRNA database (37-42). 
+**S1:** The use of MG-RAST allowed us to choose common parameter values for percent sequence similarity (i.e. 97% for species-level) and taxa assignment including a maximum e-value (probability of observing an equal or better match in a database of a given size) of 10-5, a minimum alignment length of 50 base pairs, and minimum percent sequence similarities of 95, 97, and 99% to the closest reference sequence in MG-RAST’s M5 rRNA database (37-42). **S2:** Quantifying dominance, evenness, rarity, and richness. 
 **S3:** We calculated or estimated aspects of diversity (dominance, evenness, rarity, richness) for each site in our data compilation. 
 **S4:** All analyses can be reproduced or modified for further exploration by using code, data, and following directions provided here: https://github.com/LennonLab/MicroMETE.  
 
@@ -40,20 +48,24 @@
 **S4:** The log-series distribution is among the oldest and most successful SAD models but has generally lacked a convincing first-principle explanation from either an ecological or statistical perspective.  
 **S4:** In this case, METE predicts the shape of which is dependent only on the values of *S* and *N*:
 
-###insert equation 1
+$$\Phi\left ( n\mid S_{0},N_{0} \right ) = \frac{1}{log(\beta ^{-1})}\frac{e^{-\beta n}}{n}
+$$
 
-where β is defined by the equation 
+where $$\beta$$ is defined by the equation 
 
-###insert equation 2
+$$\frac{N_{0}}{S_{0}}=\frac{\sum_{n=1}^{N_{0}}e^{-\beta n}}{\sum_{n=1}^{N_{0}}e^{-\beta n}/n}
+$$
 
 
 ### Broken-stick 
 **S1:** While some other MaxEnt models produce similar, if not, identical (Pueyo et al. 2007, Dewar and Porté 2008, Frank 2011) predictions for the SAD, MaxEnt models based on different assumptions can yield very different predictions (Haegeman and Etienne 2010).   
 **S2:** One example is the simultaneous discrete Broken-stick model of MacArthur (1960), which as pointed out by Haegeman and Etienne (2010) is simply the geometric distribution with mean *N*/*S*.   
 **S3:** Unlike the log-series, the broken-stick model predicts a relatively even distribution which is often a poor fit to empirical SADs (Hubbell 2001).  
-**S4:** The broken-stick gives equal weight to all ordered configurations of *S* species whose abundances sum to *N*, the equation for which is:
+**S4:** The broken-stick gives equal weight to all ordered configurations of *S* species whose abundances sum to *N*, the equation for which for the $$r^{th}$$ rarest species being:
 
-###insert equation 3
+$$\frac{N}{S}\sum_{i=1}^{r}\frac{1}{S-i+1}$$
+
+With $$r$$ being the abundance of the  
 
 ## Testing MaxEnt predictions
 **S1:** Both METE (which predicts a log-series distribution) and the Broken-stick (i.e., the geometric distribution) produce predictions for the rank-abundance form of the SAD.   
