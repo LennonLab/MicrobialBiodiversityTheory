@@ -1,11 +1,9 @@
 #Results
 
-Across microbial datasets, SAD predictions from the maximum entropy theory of ecology (METE) generally failed to explain more than 60% of variation in abundance among species (Figure 1; Table 1). This is a relatively poor level of explanatory power given that METE commonly explains 90% or more of variation among macroscopic plants and animals.
-
-Previous tests of METE on communities of macroscopic plants and animals **(are much more successful)** produced much greater success, often explaining 90% or greater variation in abundance (Harte et al. 2008, 2009, White et al. 2012, Xiao et al. 2014).  
-**S3:** As expected, due to its relatively even form, the broken-stick model (effectively the geometric distribution) performed considerably worse than METE and generally produced negative r-square values.   
-**S4:** Negative values were possible because the relationship is not fitted, i.e., estimating variation around a line with a slope of 1.0 and intercept of zero (White et al. 2012, Locey and White 2013, Xiao et al. 2014).  
-**S5:** While the log-series (METE) characterizes the form of the SAD better than the broken-stick, microbial SADs are still characterized by disparities in abundance that METE fails to capture.  
+SAD predictions from the maximum entropy theory of ecology (METE) generally explained less than 55% of variation in HMP and EMP data. 
+This is a relatively poor level of explanatory power given that METE commonly explains 90% or more of variation among macroscopic plants and animals. METE, however, performed considerably better for MG-RAST datasets, which were generally characterized by smaller values of *N* (Figure 1; Table 1). 
+  
+While the log-series (METE) characterizes the form of the SAD better than the broken-stick, microbial SADs are still characterized by disparities in abundance that METE fails to capture.  
 **S6:** Both METE and the broken-stick under-predict the abundance of the most abundant species and over-predict the abundance of the rarest species.
 
 ##P2
