@@ -1,36 +1,30 @@
 # Discussion
-###P1: METE fails for microbes
-**S1:** Maximum entropy theory of ecology (METE) has been highly successful in predicting how abundance varies within and across communities of macroscopic plants and animals (**might replace with organisms)**.  
-**S2:** Here, we showed that METE fails to explain similar degrees of variance within and among communities of bacteria, archaea, and microscopic fungi.  
-**S3:** Likewise, the success of METE is influenced by its primary state variables (*N*, *S*) and by its primary constraint (*N*/*S*).  
-**S4:** As a result, METE tends to fail with increasing *N* and *N*/*S*.  
-**S5:** Consequently, these conditions also characterize numerical differences between microbial and macrobial SADs.  
-**S6:** That is, *N* for microbial datasets often represents tens of thousands to millions of rRNA reads (**do you mean individuals here? there's raw read number, and then there's the processed read number maybe something like "certain microbial datasets are estimated to contain tens of millions or reads**) while *N* for macrobial SADs is often ranges between a few hundred to a few thousand individuals.  
+Within and among communities of macroscopic organisms, METE often explains 90% or more of observed variation in abundance among species. 
+Here, we showed that while METE performs better than an alternative MaxEnt prediction (i.e., Broken-stick) it often fails to explain the majority of variation within and among communities of bacteria and archaea. 
+These results are primarily due to the tendency of both models to under-predict dominance the abundance of the most abundant species.
 
+We also showed that METE's success is heavily influenced by one of its primary state variables (*N*). 
+As a result, increasing *N* causes METE as well as the Broken Stick to fail more severely. 
+Importantly, these conditions also characterize numerical differences between microbial and macrobial SAD datasets. 
+That is, *N* for microbial datasets often represents tens of thousands to millions of processed rRNA reads  while *N* for macrobial SADs typically ranges from a few hundred to a few thousand individual organisms. Consequently, METE might fail for microbes because it can be expected to fail with increasing *N*.
 
-###P2: METE fails as expected for large N
-**S1:** The failure of the broken stick model and METE could have been anticipated.  
-**S2:** It has been shown that as *N* increases, the evenness of the SAD can be expected to decrease as a result of purely numerical constraints (Locey and White 2013).  
-**S3:** In the same way, as average abundance (*N*/*S*) increases, the evenness of the SAD can be expected to naturally decrease.  
-**S4:** In both cases, constraints on the form of the SAD imposed by *N* and *N*/*S* lead to increasingly uneven SADs that outstrip the relatively even form predicted by the broken-stick as well as the highly uneven form predicted by METE (i.e. the log-series).
-**S5:** Yet, it remains to be seen whether the inability of METE to predict microbial SADs is entirely driven by numerical constraints.
+The failure of the Broken-stick model and METE could have been anticipated. It has been shown that as *N* increases, the evenness of the SAD can be expected to decrease as a result of numerical constraints (Locey and White 2013). 
+In the same way, as average abundance (*N*/*S*) increases, the evenness of the SAD can be expected to naturally decrease. 
+In both cases, constraints on the form of the SAD imposed by *N* and *N*/*S* lead to increasingly uneven SADs that outstrip the relatively even form predicted by the Broken-stick (i.e. the geometric distribution) as well as the relatively uneven form predicted by METE (i.e. the log-series distribution). 
+Still, it remains to be seen whether the inability of METE to predict microbial SADs is entirely driven by numerical constraints.
 
-###P3:  Biology Rare biosphere
-**S1:** The exceptional unevenness of microbial SADs could be driven by factors suggested to explain the presence of the microbial "rare biosphere".  
-**S2:** Widespread microbial dispersal and the ability of microbes to persist in suboptimal environments could, together, allow many small populations of dormant or slow-growing populations to persist in a given environment (ref).  
-**S3:** Additionally, microorganisms have shown unparalleled capacities to partition **limited** resource at ultra-fine levels, e.g., wavelengths of light (ref).  
-**S4:** Finally, copies of rRNA sequences do not directly reflect standing abundance and will be influenced by differences in microbial activity and species-specific copy number (ref) **(I'm not sure how differences in microbial activity can impact the copy number of the rRNA gene, it would affect rRNA transcript copy number. (Also, the copy-number variation among taxa isn't really a big deal)). To me the big methodological hurdle is the sequence similarity threshold, which is kind of resolved through the MGRAST data.**
-  
-**S5:** In effect, the failure of the broken-stick model and METE may simultaneously owe as much to constraint-based influences as to biological differences between the ecology of microbes and macrobes.
+Our study suggests that highly uneven SADs are driven by factors leading to high *N*. 
+However, uneven microbial SADs could also be driven by factors suggested to explain the microbial rare biosphere. 
+For example, widespread dispersal and the ability of microbes to persist in suboptimal environments may allow many small populations of dormant or slow-growing organisms to persist (Reid and Buckley 2011).  Additionally, microorganisms seem to have unparalleled capacities to partition limited resources (Muscarella et al. 2014). Consequently, the failure of the Broken-stick and METE may owe as much to the statistical influence of *N* as to the ecological mechanisms that cause differences in abundances among specific species.
 
-###P4: Microbial METE
-**S1:** The most successful model of species abundance among macroscopic plants and animals appears to fail among communities of bacteria, archaea, and microscopic fungi.  
-**S2:** Whether due to massive differences in *N* and *N*/*S* between microbes and macrobes, which likewise owe to differences in their biology, or to factors suggested to explain the microbial "rare biosphere", ecologists are still challenged to find an appropriate model to accurately predict microbial SADs.  
-**S3:** To this end, we suggest an SAD model with naturally greater unevenness, i.e., the Zipf-distribution.  
-**S4:** While the broken-stick provides a relatively even distribution and the log-series provides a relatvely uneven distribution, the Zipf-distribution provides one the most uneven distributions for SADs and can likewise be derived as a prediction of MaxEnt (Baek et al. 2011).  
-**S5:** In comparison to METE, the Zipf would simultaneously predict greater numbers of singletons and a greater abundance for the most abundant species, which would presumably provide a better fit to microbial SADs. 
-**S6:** In fact, as a MaxEnt prediction, the Zipf "...provides the best prediction for the number of groups with *k* elements, given the total number of elements (*N*), groups (*S*), & the number of elements in the largest group (*Nmax*).
-**S7:** In this way, a suitable MaxEnt prediction for microbial SADs may require *Nmax* as a constraint, which is not needed or does not improve SAD predictions for plants and animals.
+Our study reveals that ecology may lack an SAD model that accurately predicts differences in abundance among microbes. 
+More generally ecology may lack an appropriate model to predict abundances when *N* scales beyond a few tens of thousands. 
+At the least, ecology currently lacks a MaxEnt based SAD model that doesn't fail with increasing *N*.
+To this end, we suggest an SAD model with naturally greater unevenness than the log-series distriubtion, i.e., the Zipf-distribution. 
+The Zipf-distribution is based on a power-law and predicts one of the most uneven forms for the SAD. and can likewise be derived as a prediction of MaxEnt (Baek et al. 2011). 
+In comparison to METE, the Zipf would simultaneously predict greater numbers of singletons and a greater abundance for the most abundant species, which would presumably provide a better fit to microbial SADs. 
+In fact, as a MaxEnt prediction, the Zipf "...provides the best prediction for the number of groups with *k* elements, given the total number of elements (*N*), groups (*S*), & the number of elements in the largest group (*Nmax*).
+In this way, a suitable MaxEnt prediction for microbial SADs may require *Nmax* as a constraint, which is not needed or does not improve SAD predictions for plants and animals.
 **S8:** To our knowledge, no analytical formalulation of the Zipf as a MaxEnt prediction based on *N*, *S*, and *Nmax* is available, but is potentially needed for extending SAD theory to large communities of macrobes or very small communities of microbes **(not immediately related, but I wonder how METE would do on community sequence data from an acid-mine drainage site)**.
 
 ###P5: Conclusion
