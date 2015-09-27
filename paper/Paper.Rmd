@@ -1,0 +1,8 @@
+---
+title: "Untitled"
+author: "William R. Shoemaker, Kenneth J. Locey, and Jay T. Lennon"
+date: "September 27, 2015"
+output: pdf_document
+---
+
+![Caption for the picture.](../figures/obs_pred_plots_final.png)

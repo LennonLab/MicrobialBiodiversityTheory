@@ -25,7 +25,9 @@ The Zipf-distribution is based on a power-law and predicts one of the most uneve
 In comparison to METE, the Zipf would simultaneously predict greater numbers of singletons and a greater abundance for the most abundant species, which would presumably provide a better fit to microbial SADs. 
 In fact, as a MaxEnt prediction, the Zipf "...provides the best prediction for the number of groups with *k* elements, given the total number of elements (*N*), groups (*S*), & the number of elements in the largest group (*Nmax*).
 In this way, a suitable MaxEnt prediction for microbial SADs may require *Nmax* as a constraint, which is not needed or does not improve SAD predictions for plants and animals.
-**S8:** To our knowledge, no analytical formalulation of the Zipf as a MaxEnt prediction based on *N*, *S*, and *Nmax* is available, but is potentially needed for extending SAD theory to large communities of macrobes or very small communities of microbes **(not immediately related, but I wonder how METE would do on community sequence data from an acid-mine drainage site)**.
+**S8:** To our knowledge, no analytical formalulation of the Zipf as a MaxEnt prediction based on *N*, *S*, and *Nmax* is available, but is potentially needed for extending SAD theory to large communities of macrobes or very small communities of microbes. 
+
+$$N(k) \propto \exp (-bk)/k^{\gamma}$$
 
 ###P5: Conclusion
 **S1:** Constraint-based biodiversity theory provides a first-principle framework for predicting biodiversity patterns based solely on empirical inputs.  
