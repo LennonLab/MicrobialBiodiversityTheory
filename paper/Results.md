@@ -17,21 +17,39 @@ Table 1.
 
 | Dataset      | Model | Variable |  r<sup>2</sup>  | p-value |
 |:------------:|:-----:|:--------:|:-----:|:-------:|
-|   HMP        |   BS  |     N    |-0.386 |   1.15*E<sup>-159</sup>   |
-|   HMP        |  METE |     N    |-0.191 |   2.01*E<sup>-38</sup>   |
-|   HMP        |   BS  |     S    | 0.276 |   2.82*E<sup>-79</sup>      |
-|   HMP        |  METE |     S    | 0.314 |   1.44*E<sup>-103</sup>       |
+|   HMP        |   BS  |     N    |-0.386 |   1.15*10<sup>-159</sup>   |
+|   HMP        |  METE |     N    |-0.191 |   2.01*10<sup>-38</sup>   |
+|   HMP        |   BS  |     S    | 0.276 |   2.82*10<sup>-79</sup>      |
+|   HMP        |  METE |     S    | 0.314 |   1.44*10<sup>-103</sup>       |
 |   HMP        |   BS  |    N/S   |-0.626 |   0.0   |
-|   HMP        |  METE |    N/S   |-0.453 |   1.87*E<sup>-226</sup>       |
+|   HMP        |  METE |    N/S   |-0.453 |   1.87*10<sup>-226</sup>       |
 |   EMP closed |   BS  |     N    |-0.354 |   0.0   |
-|   EMP closed |  METE |     N    |-0.0824| 2.02*E<sup>-23</sup> |
-|   EMP closed |   BS  |     S    | 0.264 |  4.89*E<sup>-231</sup>       |
-|   EMP closed |  METE |     S    | 0.287 |1.32*E<sup>-274</sup>        |
+|   EMP closed |  METE |     N    |-0.0824| 2.02*10<sup>-23</sup> |
+|   EMP closed |   BS  |     S    | 0.264 |  4.89*10<sup>-231</sup>       |
+|   EMP closed |  METE |     S    | 0.287 |1.32*10<sup>-274</sup>        |
 |   EMP closed |   BS  |    N/S   |-0.695 |   0.0   |
 |   EMP closed |  METE |    N/S   |-0.377 |   0.0   |
 |   EMP open   |  BS   |    N     |-0.349 |   0.0   |
-|   EMP open   |  METE |    N     |-0.205 |   6.28*E<sup>-140</sup>      |
-|   EMP open   |  BS   |    S     | 0.0731| 5.00*E<sup>-19</sup>         |
-|   EMP open   |  METE |    S     | 0.103 | 1.57*E<sup>-36</sup>        |
+|   EMP open   |  METE |    N     |-0.205 |   6.28*10<sup>-140</sup>      |
+|   EMP open   |  BS   |    S     | 0.0731| 5.00*10<sup>-19</sup>         |
+|   EMP open   |  METE |    S     | 0.103 | 1.57*10<sup>-36</sup>        |
 |   EMP open   |  BS   |    N/S   |-0.763 | 0.0      |
 |   EMP open   |  METE |    N/S   |-0.544 | 0.0      |
+|   MGRAST 95% |  BS   |     N    | -0.302 | 0.141
+|   MGRAST 95% |  METE |     N    | -0.158 | 0.828
+|   MGRAST 95% |  BS   |     S    | 0.0234 | 0.828
+|   MGRAST 95% |  METE |     S    | 0.140 | 0.192
+|   MGRAST 95% |  BS   |     N/S  | -0.862 | 3.75*10<sup>-27</sup> 
+|   MGRAST 95% |  METE |     N/S  |-0.734 | 4.12*10<sup>-16</sup> 
+|   MGRAST 97% |  BS   |     N    | -0.0782 | 0.480
+|   MGRAST 97% |  METE |     N    | 0.226 | 0.0389
+|   MGRAST 97% |  BS   |     S    | 0.169 | 0.125
+|   MGRAST 97% |  METE |     S    | 0.353 | 0.00101
+|   MGRAST 97% |  BS   |     N/S  | -0.642 | 4.69*10<sup>-11</sup>
+|   MGRAST 97% |  METE |     N/S  | -0.244 | 0.0255
+|   MGRAST 99% |  BS   |     N    | -0.312 | 0.00265
+|   MGRAST 99% |  METE |     N    | -0.172 | 0.109
+|   MGRAST 99% |  BS   |     S    | 0.0150 | 0.890
+|   MGRAST 99% |  METE |     S    | 0.132 | 0.221
+|   MGRAST 99% |  BS   |     N/S  | -0.868 | 7.99*10<sup>-28</sup>
+|   MGRAST 99% |  METE |     N/S  | -0.737 | 2.71*10<sup>-16</sup>
