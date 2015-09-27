@@ -20,17 +20,16 @@ For example, widespread dispersal and the ability of microbes to persist in subo
 Our study reveals that ecology may lack an SAD model that accurately predicts differences in abundance among microbes. 
 More generally ecology may lack an appropriate model to predict abundances when *N* scales beyond a few tens of thousands. 
 At the least, ecology currently lacks a MaxEnt based SAD model that doesn't fail with increasing *N*.
-To this end, we suggest an SAD model with naturally greater unevenness than the log-series distriubtion, i.e., the Zipf-distribution. 
-The Zipf-distribution is based on a power-law and predicts one of the most uneven forms for the SAD. and can likewise be derived as a prediction of MaxEnt (Baek et al. 2011). 
-In comparison to METE, the Zipf would simultaneously predict greater numbers of singletons and a greater abundance for the most abundant species, which would presumably provide a better fit to microbial SADs. 
-In fact, as a MaxEnt prediction, the Zipf "...provides the best prediction for the number of groups with *k* elements, given the total number of elements (*N*), groups (*S*), & the number of elements in the largest group (*Nmax*).
-In this way, a suitable MaxEnt prediction for microbial SADs may require *Nmax* as a constraint, which is not needed or does not improve SAD predictions for plants and animals.
-**S8:** To our knowledge, no analytical formalulation of the Zipf as a MaxEnt prediction based on *N*, *S*, and *Nmax* is available, but is potentially needed for extending SAD theory to large communities of macrobes or very small communities of microbes. 
+To this end, we suggest an SAD model with naturally greater unevenness than the log-series distriubtion, i.e., the Zipf-distribution (Zipf 1949). The Zipf-distribution is based on a power-law and characterized by a single free parameter:
 
 $$N(k) \propto \exp (-bk)/k^{\gamma}$$
 
-###P5: Conclusion
-**S1:** Constraint-based biodiversity theory provides a first-principle framework for predicting biodiversity patterns based solely on empirical inputs.  
-**S2:** While MaxEnt frameworks infer no ecological processes they also avoid a common source of error in the study of commonness and rarity, i.e., inferring the importance of a process that has gone unverified and unmeasured (e.g., speciation, niche differentiation, coexistence).  
-**S3:** Yet, it seems clear from our study that the maximum entropy theory of ecology, which effectively predicts the log-series, will fail for communities of very large *N*, such as microbiomes where *N* easily exceeds many trillion.  
-**S4:** Consequently, while the microbial "rare biosphere" appears to be an exceptional phenomenon, we cannot yet say whether the cause is due more to the biology driving rarity independent of *N* or to the biology that allows microbes to attain such high degrees of *N*.
+and can be derived as a prediction of MaxEnt (Baek et al. 2011, Visser 2013). Likewise, the Zipf-distribution has been previously identified as the SAD model that best fits microbial SADs (Gans 2005). 
+However, this particular finding has received little attention.
+
+## Conclusion
+Constraint-based biodiversity theory provides a first-principle framework for predicting biodiversity patterns based solely on empirical inputs. 
+While MaxEnt frameworks infer no ecological processes they also avoid a common source of error in the study of commonness and rarity, i.e., inferring the importance of processes that have gone unverified and unmeasured (e.g., speciation, niche differentiation, coexistence). 
+Yet, it is clear from our study that the maximum entropy theory of ecology (METE) will fail for communities of very large *N*, such as microbiomes where *N* easily exceeds many million. 
+Consequently, while the microbial "rare biosphere" appears to be an exceptional phenomenon, we cannot yet say whether the cause is due more to the biology driving rarity independent of *N* or to the biology that allows microbes to attain such high degrees of *N*. 
+But what we can say is that microbial ecology and perhaps macroecology lacks an SAD theory to accurately predict distributions of abundance among large ecological communities, microbial communities, or both.
