@@ -13,20 +13,21 @@ While the log-series (METE) characterizes the form of the SAD better than the br
 
 Table 1.
 
-| Dataset | Model | $$\overline{r^{2}_{m}}$$ | $$\sigma_{\bar{r^{2}}}$$ |
-|:--------:|:-----:|---------|---------|
-|  HMP     |  BS   | 0.520   | 0.00846 |
-|  HMP     |  METE | -0.543  | 0.0170  |
-|EMP closed|  BS   | 0.562   | 0.00377 |
-|EMP closed|  METE | -0.434  | 0.00851 |
-|EMP open  |  BS   | 0.0619  | 0.00526 |
-|EMP open  |  METE | -0.881  | 0.0101  |
-|MGRAST 95%|  BS   | 0.816   | 0.0113  |
-|MGRAST 95%|  METE | 0.551   | 0.0242  |
-|MGRAST 97%|  BS   | 0.816   | 0.0103  |
-|MGRAST 97%|  METE | 0.571   | 0.0184  |
-|MGRAST 99%|  BS   | 0.811   | 0.0113  |
-|MGRAST 99%|  METE | 0.542   | 0.0244  |
+| Dataset | Model | $$\overline{r^{2}_{m}}$$ | $$\sigma_{\bar{r^{2}}}$$ | $$N$$|
+|:--------:|:-----:|:-------:|:------:|:----:|
+|  HMP     |  BS | -0.543  | 0.0170  |
+|  HMP     |  METE   | 0.520   | 0.00846 |
+|EMP closed|  BS | -0.434  | 0.00851 |
+|EMP closed|  METE   | 0.562   | 0.00377 |
+|EMP open  |  BS | -0.881  | 0.0101  |
+|EMP open  |  METE   | 0.0619  | 0.00526 |
+|MGRAST 95%|  BS | 0.551   | 0.0242  |
+|MGRAST 95%|  METE   | 0.816   | 0.0113  |
+|MGRAST 97%|  BS | 0.571   | 0.0184  |
+|MGRAST 97%|  METE   | 0.816   | 0.0103  |
+|MGRAST 99%|  BS | 0.542   | 0.0244  |
+|MGRAST 99%|  METE   | 0.811   | 0.0113  |
+
 
 
 Table 2. 

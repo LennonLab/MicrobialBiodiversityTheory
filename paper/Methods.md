@@ -18,23 +18,23 @@ Negative values were possible because the relationship is not fitted, i.e., esti
 **S1:** We also used 4,303 sites from the Data Analysis and Coordination Center (DACC) for the National Institutes of Health (NIH) Common Fund supported Human Microbiome Project (HMP).  
 **S2:** These data consisted of samples taken from 15 to 18 locations (including the skin, gut, vagina, and oral cavity) on each of 300 healthy individuals. 
 **add sentence**
-In each sample the v3-v5 region of the 16S rRNA gene was sequenced and analyzed using the mothur pipeline.  
+In each sample the V3-V5 region of the 16S rRNA gene was sequenced and analyzed using the mothur pipeline.  
 
 
 **S4:** We excluded sites from pilot phases of the HMP as well as time-series data; see http://hmpdacc.org/micro_analysis/microbiome_analyses.php. for details on HMP sequencing and sampling protocols.
 
 ###P3
-**S1:** We also **(In addition to publically-available data from large-scale sequencing project, we)** included 1,319 non-experimental 16s (PCR-targeted cross out) rRNA amplicon sequencing projects from the Argonne National Laboratory metagenomics server MG-RAST (16).  
+**S1:** We also included 1,319 non-experimental sequencing projects consisting of processed 16s rRNA amplicon reads from the Argonne National Laboratory metagenomics server MG-RAST (16).  
 **S2:** Represented in this compilation were samples from arctic aquatic systems (130 sites; MG-RAST id: mgp138), hydrothermal vents (123 sites; MG-RAST id: mgp327) (37), freshwater lakes in China (187 sites; MG-RAST id: mgp2758) (38), arctic soils (44 sites; MG-RAST id: mgp69) (39), temperate soils (84 sites; MG-RAST id: mgp68) (40), bovine fecal samples (16 sites; MG-RAST id: mgp14132), human gut microbiome samples not part of the HMP project (529 sites; MG-RAST id: mgp401) (41), a global-scale dataset of indoor fungal systems (128 sites) (42), and freshwater, marine, and intertidal river sediments (34 sites; MG-RAST id: mgp1829). 
 
 ###P4
-A conceptual issue (use diffrent words) with 16s rRNA amplicon data is that organisms are clustered based on sequence similarity into Operational Taxonomic Units (OTUs) in lieu of species. While this is a common practice that is done in virtually all molecular studies of microbial community diversity, it does raise methodological issues, given that METE has been applied to a dataset where individuals are classified solely by sequence similarity
 
+**S1:** A common convention in lieu of traditional species classificaiton for microbial community sequence data is to cluster 16s rRNA amplicon reads into Operational Taxonomic Units (OTUs) based on a 97% cutoff for sequence similarity. Locey and White showed that the percent cutoff of sequence similarity does not change the shape of the SAD (Locely & While, 2013). 
 
-**Alt S1:** The use of MG-RAST allowed us to assess this by choosing common parameter values for percent sequence similarity (i.e. 97% for species-level) and taxa assignment including a maximum e-value (probability of observing an equal or better match in a database of a given size) of 10-5, a minimum alignment length of 50 base pairs, and minimum percent sequence similarities of 95, 97, and 99% to the closest reference sequence in MG-RAST’s M5 rRNA database (37-42). 
-**S1:** The use of MG-RAST allowed us to choose common parameter values for percent sequence similarity (i.e. 97% for species-level) and taxa assignment including a maximum e-value (probability of observing an equal or better match in a database of a given size) of 10-5, a minimum alignment length of 50 base pairs, and minimum percent sequence similarities of 95, 97, and 99% to the closest reference sequence in MG-RAST’s M5 rRNA database (37-42). **S2:** Quantifying dominance, evenness, rarity, and richness. 
-**S3:** We calculated or estimated aspects of diversity (dominance, evenness, rarity, richness) for each site in our data compilation. 
-**S4:** All analyses can be reproduced or modified for further exploration by using code, data, and following directions provided here: https://github.com/LennonLab/MicroMETE.  
+**S2:** However, how the percent cutoff affects the fit of SAD models to emperical data is rarely been tested in the literature (Dumbrell et al., 2010; Woodcock et al., 2007).
+**S3:** The use of MG-RAST allowed us to choose common parameter values for percent sequence similarity (i.e. 97% for species-level) and taxa assignment including a maximum e-value (probability of observing an equal or better match in a database of a given size) of 10-5, a minimum alignment length of 50 base pairs, and minimum percent sequence similarities of 95, 97, and 99% to the closest reference sequence in MG-RAST’s M5 rRNA database (37-42). **S4:** Quantifying dominance, evenness, rarity, and richness. 
+**S5:** We calculated or estimated aspects of diversity (dominance, evenness, rarity, richness) for each site in our data compilation. 
+**S6:** All analyses can be reproduced or modified for further exploration by using code, data, and following directions provided here: https://github.com/LennonLab/MicroMETE.  
 
 ## MaxEnt predictions of the SAD
 ### METE
