@@ -11,8 +11,9 @@ Project repository for data and Python code associated with the testing of maxim
 - [x] Figures  
 - [x] Finish table 1  
 - [x] Refine/finish lit cited.  
-- [ ] Edit and revise main body.	
+- [x] Edit and revise main body.	
 - [ ] Add average N and S to Table 1.
+- [ ] Create draft using RMarkdown.
 
 ## The MIT License (MIT)
 
