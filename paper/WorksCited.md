@@ -2,6 +2,8 @@
 
 Amend, A. S., Seifert, K. A., Samson, R., & Bruns, T. D. (2010). Indoor fungal composition is geographically patterned and more diverse in temperate zones than in the tropics. Proc. Natl Acad. Sci. USA 107, 13748–13753.
 
+Baldridge, E., Xiao, X., White, E. P. (2015). An extensive comparison of species-abundance distribution models. doi: http://dx.doi.org/10.1101/024802
+
 Brown, J. H., Mehlman, D. W., & Stevens, G. C. (1995). Spatial Variation in Abundance. Ecology, 76(5), 1371–1382. 
 
 Chu, H. et al. (2010). Soil bacterial diversity in the Arctic is not fundamentally different from that 	found in other biomes. Environ. Microbiol. 12, 2998–3006 
@@ -65,6 +67,8 @@ Welch, D. B. M., & Huse, S. M. (2006). Microbial Diversity in the Deep Sea and t
 White, E. P., Thibault, K. M., & Xiao, X. (2012). Characterizing species abundance distributions across taxa and ecosystems using a simple maximum entropy model R eports. Ecology, 93(8), 1772–1778.
 
 Whitman, W. B., Coleman, D. C., Wiebe, W. J. (1998). Prokaryotes: The unseen majority. Proc 	Natl Acad Sci USA 95, 6578–6583 
+
+Wilson, J. B. (1993). Would We Recognize a Broken-Stick Community if we Found One? Oikos, 67(1), 181–183.
 
 Woodcock, S., et al. (2007). Neutral assembly of bacterial communities. FEMS Microbiol Ecol., 62(2), 171-80. 
 
