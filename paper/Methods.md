@@ -3,9 +3,9 @@
 
 ## Data
 ###P1
-**S1:** We used 15,535 sites of communities of bacteria, archaea, and microscopic fungi.  
+**S1:** For the analysis we used bacterial and archaeal community sequence data from 15,535 sites.  
 **S2:** 14,962 of these sites were from the Earth Microbiome Project (EMP) (14) obtained on 22 August, 2014.  
-**S3:** Sample processing and sequencing **and amplicon data (cross out)** **of the V4 region of the 16s ribosomal RNA gene** are standardized **and performed(cross out)** by the EMP and all are publicly available at www.microbio.me/emp.  
+**S3:** Sample processing and sequencing of the V4 region of the 16s ribosomal RNA gene** are standardized **and performed(cross out)** by the EMP and all are publicly available at www.microbio.me/emp.  
 **S4:** The EMP data consist of open and closed reference datasets, which are defined in the QIIME tutorial (http://qiime.org/tutorials/otu_picking.html).  
 **S5:** QIIME defines closed-reference as a classification scheme where any reads that do not hit a sequence in a reference collection are excluded from analysis.  
 **S6:** In contrast, open-reference refers to a scheme where reads that do not hit a reference collection are subsequently clustered de novo and represent unique but unclassified taxonomic units.  
@@ -65,12 +65,14 @@ $$
 
 $$\frac{N}{S}\sum_{i=1}^{r}\frac{1}{S-i+1}$$
 
-With $$r$$ being the abundance of the  
-
+With $$r$$ being the abundance of the $$r^{th}$$
+rarest species. 
 ## Testing MaxEnt predictions
 **S1:** Both METE (which predicts a log-series distribution) and the Broken-stick (i.e., the geometric distribution) produce predictions for the rank-abundance form of the SAD.   
 **S2:** This form of the SAD is simply a vector of species abundances ranked from greatest to least.  
 **S3:** Both predictions yield the same value of *S* that is given as the empirical input.  
 **S4:** This means that the observed and predicted SADs can be directly compared using regression analyses to reveals the percent variation explained by each model (METE, Broken-stick).  
 **S5:** We generated the predicted forms of the SAD using the source code of White et al. (2012) (https://github.com/weecology/white-etal-2012-ecology) and the macroecotools repository (https://github.com/weecology/macroecotools), which contains functions for fitting maximum-likelihood forms of species abundance models in addition to functions for other macroecological analyses.  
-**S6:** Using that source code, we calculated the modified coefficient of determination (r-square) around the 1-to-1 line (as per White et al. 2012, Locey and White 2013, Xiao et al. 2014).
+**S6:** Using that source code, we calculated the modified coefficient of determination ($$r_{m}^{2}$$) around the 1-to-1 line (as per White et al. 2012, Locey and White 2013, Xiao et al. 2014).
+
+$$r_{m}^{2} = 1 - \frac{sum((obs - pred)^{2})}{sum((obs-(\overline{obs}))^{2})}$$
