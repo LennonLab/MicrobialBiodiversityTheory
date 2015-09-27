@@ -4,15 +4,15 @@ Project repository for data and Python code associated with the testing of maxim
 
 ###To do's:
 **Ken:**  
-- [ ] MG-RAST data for 95% and 99%  
+- [x] MG-RAST data for 95% and 99%  
 - [x] Start lit cited.
 
 **Will:**  
 - [x] Figures  
 - [x] Finish table 1  
 - [x] Refine/finish lit cited.  
-- [ ] Edit and revise main body.
-
+- [ ] Edit and revise main body.	
+- [ ] Add average N and S to Table 1.
 
 ## The MIT License (MIT)
 
