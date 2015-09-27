@@ -1,14 +1,13 @@
 #Results
 
-SAD predictions from the maximum entropy theory of ecology (METE) generally explained less than 55% of variation in HMP and EMP data. 
-This is a relatively poor level of explanatory power given that METE commonly explains 90% or more of variation among macroscopic plants and animals. METE, however, performed considerably better for MG-RAST datasets, which were generally characterized by smaller values of *N* (Figure 1; Table 1). 
-  
-While the log-series (METE) characterizes the form of the SAD better than the broken-stick, microbial SADs are still characterized by disparities in abundance that METE fails to capture.  
-**S6:** Both METE and the broken-stick under-predict the abundance of the most abundant species and over-predict the abundance of the rarest species.
+SAD predictions from the maximum entropy theory of ecology (METE) generally explained 0 to less than 55% of variation in HMP and EMP data (Figure 1; Table 1).
+This is a poor level of explanatory power given that METE commonly explains 90% or more of variation among macroscopic plants and animals (Baldridge 2015). METE, however, performed considerably better for MG-RAST datasets, often explaining 81% of variation among microbes (Figure 1; Table 1). 
 
-##P2
-**S1:** We found that the success of METE and the broken-stick were influenced by the two primary state-variables (*N* and *S*) and the primary constraint of average abundance (*N*/*S*) (Table 1). Across each dataset (EMP, HMP, MG-RAST) increasing *N* led to decreasing fits of each model while 
+Differences in the performance of METE among datasets are well-explained by differences in *N*.
+We found that MG-RAST data were characterized by smaller values of *N* (and the best performance of METE), while EMP open-reference data were characterized by the highest values of *N* and the worst performance of METE.
+Across all datasets, the success of METE and the Broken-stick were influenced by *N*, where increasing *N* led to decreasing performance of each model (Table 2).
 
+The percent sequence similarity cutoff used to cluster 16S rRNA reads into operational taxonomic units had no effect on the explanatory of METE and the Broken-Stick, even though this should influence the value of *S*. However, we did find that the amount of the variation explained by the geometric distribution increased with *S*, an expected result that has been previously predicted (Wilson 1993).
 
 
 Table 1.
@@ -32,7 +31,7 @@ Table 1.
 
 Table 2. 
 
-| Dataset      | Model | Variable |  $$r^{2}$$  | p-value |
+| Dataset      | Model | Variable |  $r$  | p-value |
 |:------------:|:-----:|:--------:|:-----:|:-------:|
 |   HMP        |   BS  |     N    |-0.386 |   1.15*10<sup>-159</sup>   |
 |   HMP        |  METE |     N    |-0.191 |   2.01*10<sup>-38</sup>   |
