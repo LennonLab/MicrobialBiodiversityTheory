@@ -12,20 +12,21 @@ The percent sequence similarity cutoff used to cluster 16S rRNA reads into opera
 
 Table 1.
 
-| Dataset | Model | $$\overline{r^{2}_{m}}$$ | $$\sigma_{\bar{r^{2}}}$$ | $$N$$|
-|:--------:|:-----:|:-------:|:------:|:----:|
-|  HMP     |  BS | -0.543  | 0.0170  |
-|  HMP     |  METE   | 0.520   | 0.00846 |
-|EMP closed|  BS | -0.434  | 0.00851 |
-|EMP closed|  METE   | 0.562   | 0.00377 |
-|EMP open  |  BS | -0.881  | 0.0101  |
-|EMP open  |  METE   | 0.0619  | 0.00526 |
-|MGRAST 95%|  BS | 0.551   | 0.0242  |
-|MGRAST 95%|  METE   | 0.816   | 0.0113  |
-|MGRAST 97%|  BS | 0.571   | 0.0184  |
-|MGRAST 97%|  METE   | 0.816   | 0.0103  |
-|MGRAST 99%|  BS | 0.542   | 0.0244  |
-|MGRAST 99%|  METE   | 0.811   | 0.0113  |
+| Dataset | Model | $$\overline{r^{2}_{m}}$$ | $$\sigma_{\bar{r^{2}}}$$ | $$N$$ | $$S$$ |
+|:--------:|:-----:|:-------:|:------:|:----:|:-----:|
+|  HMP     |  BS | -0.543  | 0.0170  | 5050 | 78 |
+|  HMP     |  METE   | 0.520   | 0.00846 ||
+|EMP closed|  BS | -0.434  | 0.00851 | 44779 | 1189 |
+|EMP closed|  METE   | 0.562   | 0.00377 ||
+|EMP open  |  BS | -0.881  | 0.0101  | 88751 | 7247 |
+|EMP open  |  METE   | 0.0619  | 0.00526 ||
+|MGRAST 95%|  BS | 0.551   | 0.0242  | 1200 | 247|
+|MGRAST 95%|  METE   | 0.816   | 0.0113  ||
+|MGRAST 97%|  BS | 0.571   | 0.0184  | 929 | 210|
+|MGRAST 97%|  METE   | 0.816   | 0.0103  ||
+|MGRAST 99%|  BS | 0.542   | 0.0244  | 1148 | 235 |
+|MGRAST 99%|  METE   | 0.811   | 0.0113  ||
+
 
 
 
@@ -51,21 +52,21 @@ Table 2.
 |   EMP open   |  METE |    S     | 0.103 | 1.57*10<sup>-36</sup>        |
 |   EMP open   |  BS   |    N/S   |-0.763 | 0.0      |
 |   EMP open   |  METE |    N/S   |-0.544 | 0.0      |
-|   MGRAST 95% |  BS   |     N    | -0.302 | 0.141
-|   MGRAST 95% |  METE |     N    | -0.158 | 0.828
-|   MGRAST 95% |  BS   |     S    | 0.0234 | 0.828
-|   MGRAST 95% |  METE |     S    | 0.140 | 0.192
-|   MGRAST 95% |  BS   |     N/S  | -0.862 | 3.75*10<sup>-27</sup> 
-|   MGRAST 95% |  METE |     N/S  |-0.734 | 4.12*10<sup>-16</sup> 
-|   MGRAST 97% |  BS   |     N    | -0.0782 | 0.480
-|   MGRAST 97% |  METE |     N    | 0.226 | 0.0389
-|   MGRAST 97% |  BS   |     S    | 0.169 | 0.125
-|   MGRAST 97% |  METE |     S    | 0.353 | 0.00101
-|   MGRAST 97% |  BS   |     N/S  | -0.642 | 4.69*10<sup>-11</sup>
-|   MGRAST 97% |  METE |     N/S  | -0.244 | 0.0255
-|   MGRAST 99% |  BS   |     N    | -0.312 | 0.00265
-|   MGRAST 99% |  METE |     N    | -0.172 | 0.109
-|   MGRAST 99% |  BS   |     S    | 0.0150 | 0.890
-|   MGRAST 99% |  METE |     S    | 0.132 | 0.221
-|   MGRAST 99% |  BS   |     N/S  | -0.868 | 7.99*10<sup>-28</sup>
-|   MGRAST 99% |  METE |     N/S  | -0.737 | 2.71*10<sup>-16</sup>
+|   MGRAST 95% |  BS   |     N    | -0.302 | 0.141 |
+|   MGRAST 95% |  METE |     N    | -0.158 | 0.828 |
+|   MGRAST 95% |  BS   |     S    | 0.0234 | 0.828 |
+|   MGRAST 95% |  METE |     S    | 0.140 | 0.192 |
+|   MGRAST 95% |  BS   |     N/S  | -0.862 | 3.75*10<sup>-27</sup> | 
+|   MGRAST 95% |  METE |     N/S  |-0.734 | 4.12*10<sup>-16</sup> | 
+|   MGRAST 97% |  BS   |     N    | -0.0782 | 0.480 |
+|   MGRAST 97% |  METE |     N    | 0.226 | 0.0389 |
+|   MGRAST 97% |  BS   |     S    | 0.169 | 0.125 |
+|   MGRAST 97% |  METE |     S    | 0.353 | 0.00101 |
+|   MGRAST 97% |  BS   |     N/S  | -0.642 | 4.69*10<sup>-11</sup> |
+|   MGRAST 97% |  METE |     N/S  | -0.244 | 0.0255 |
+|   MGRAST 99% |  BS   |     N    | -0.312 | 0.00265 |
+|   MGRAST 99% |  METE |     N    | -0.172 | 0.109 |
+|   MGRAST 99% |  BS   |     S    | 0.0150 | 0.890 |
+|   MGRAST 99% |  METE |     S    | 0.132 | 0.221 |
+|   MGRAST 99% |  BS   |     N/S  | -0.868 | 7.99*10<sup>-28</sup> |
+|   MGRAST 99% |  METE |     N/S  | -0.737 | 2.71*10<sup>-16</sup> |
