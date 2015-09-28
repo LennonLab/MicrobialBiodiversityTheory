@@ -76,3 +76,4 @@ Xiao, X., McGlinn, D. J., & White, E. P. (2015). A strong test of the Maximum En
 
 Yatsunenko, T. et al. (2012). Human gut microbiome viewed across age and geography. Nature 486, 	222-227 
 
+Zipf, G.K. (1949). Human Behavior and the Principle of Least Effort. Cambridge, Massachusetts: Addison-Wesley. p. 1.

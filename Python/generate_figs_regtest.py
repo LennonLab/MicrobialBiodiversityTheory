@@ -332,21 +332,23 @@ def plot_obs_pred_sad(methods, datasets, data_dir= mydir, radius=2): # TAKEN FRO
             pred = ((obs_pred_data["pred"]))
             axis_min = 0.5 * min(obs)
             axis_max = 2 * max(obs)
-            ax = fig.add_subplot(3, 2, count+1)
+            ax = fig.add_subplot(4, 2, count+1)
             if j == 0:
                 if i == 0:
-                    ax.set_ylabel("95% Sequence Similarity", rotation=90, size=8)
+                    ax.set_ylabel("HMP", rotation=90, size=8)
                 elif i == 1:
-                    ax.set_ylabel("97% Sequence Similarity", rotation=90, size=8)
+                    ax.set_ylabel("EMP closed", rotation=90, size=8)
                 elif i == 2:
-                    ax.set_ylabel("99% Sequence Similarity", rotation=90, size=8)
+                    ax.set_ylabel("EMP open", rotation=90, size=8)
+                elif i == 3:
+                    ax.set_ylabel('MGRAST', rotation=90, size=8)
             if i == 0 and j == 0:
                 ax.set_title("Broken-stick")
             elif i == 0 and j == 1:
                 ax.set_title("METE")
 
             macroecotools.plot_color_by_pt_dens(pred, obs, radius, loglog=1,
-                            plot_obj=plt.subplot(3,2,count+1))
+                            plot_obj=plt.subplot(4,2,count+1))
 
             plt.plot([axis_min, axis_max],[axis_min, axis_max], 'k-')
             plt.xlim(axis_min, axis_max)
@@ -387,9 +389,9 @@ def plot_obs_pred_sad(methods, datasets, data_dir= mydir, radius=2): # TAKEN FRO
 # Make a function to generate the histogram.
 def NSR2_regression(methods, datasets, data_dir= mydir):
     fig = plt.figure()
+    count  = 0
+    test_count = 0
     for i, dataset in enumerate(datasets):
-        count  = 0
-        test_count = 0
         for k, param in enumerate(params):
             for j, method in enumerate(methods):
                 nsr2_data = import_NSR2_data(data_dir + 'NSR2/' + method+'_'+dataset+'_NSR2.txt')
@@ -410,22 +412,27 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
                 y = ((nsr2_data["R2"]))
                 mean = np.mean(y)
                 std_error = sp.stats.sem(y)
+                print method, param, dataset
                 print "mean = " + str(mean)
                 print "standard error = " + str(std_error)
-                print method, dataset, param
-                ax = fig.add_subplot(3, 2, count+1)
+
+                #print method, dataset, param
+                ax = fig.add_subplot(3, 8, count+1)
                 if param == "N" or param == "S":
                     x = np.log10(((nsr2_data[param])))
                 else:
                     N_count = ((nsr2_data["N"]))
                     S_count = ((nsr2_data["S"]))
+                    print dataset, method
+                    print "mean N is " + str(np.mean(N_count))
+                    print "mean S is " + str(np.mean(S_count))
                     x = np.divide(N_count, S_count)
                     x = np.log10(x)
 
                 #elif str(n_or_s).capitalize() == 'S'
                 #x = ((nsr2_data["N"]))
                 macroecotools.plot_color_by_pt_dens(x, y, 0.1, loglog=0,
-                                plot_obj=plt.subplot(3, 2, count+1))
+                                plot_obj=plt.subplot(3, 8, count+1))
                 slope, intercept, r_value, p_value, std_err = stats.linregress(x,y)
                 #if param == 'N/S':
                 #    plt.xlim(np.amin(x), 1000)
@@ -439,7 +446,7 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
                 residual_std_error = np.sqrt(np.sum(pred_error**2) / degrees_of_freedom)
                 plt.plot(x, predict_y, 'k-')
                 plt.axhline(linewidth=2, color='lightgray')
-                plt.subplots_adjust(wspace=0.5, hspace=0.3)
+                plt.subplots_adjust(wspace=0.2, hspace=0.3)
                 # Plotting
                 plt.xlabel(param)
                 if j == 0 and k == 0:
@@ -471,18 +478,18 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
     plt.close()
 
 methods = ['geom', 'mete']
-#methods = ['geom']
-#datasets = ['HMP', 'EMPclosed', 'EMPopen']
+#geommethods = ['geom']
+#datasets = ['HMP', 'EMPclosed', 'EMPopen', 'MGRAST97']
 #datasets = ['EMPclosed', 'EMPopen']
-#datasets = ['HMP']
-#datasets = ['MGRAST95']
+#datasets = ['MGRAST99']
+datasets = ['MGRAST95']
 
-#datasets = ['EMPclosed']
-datasets = ['EMPopen']
-params = ['N','S', 'N/S']
+#params = ['N','S', 'N/S']
+params = ['N/S']
 #get_SADs()
 #generate_obs_pred_data(datasets, methods, 0)
-#generate_obs_pred_data(datasets, methods, 0)
+#empclosed = ['EMPclosed']
+#generate_obs_pred_data(empclosed, geommethods, 500)
 #plot_obs_pred_sad(methods, datasets)
 NSR2_regression(methods, datasets, data_dir= mydir)
 
