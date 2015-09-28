@@ -11,8 +11,7 @@ Most of these constraint-based approaches use a maximum-likelihood framwork that
 
 Though simple in concept, MaxEnt SAD predictions require assumptions such as whether species and individuals are distinguishable (Pueyo et al. 2006, Harte 2011). Consequently, different predictions based on *N* and *S* are possible under a MaxEnt framework (Haegeman and Etienne 2010). So far, however, the maximum entropy theory of ecology (METE) has been the most accurate MaxEnt framework for predicting the SAD and in linking it to other primary patterns of biodiversity (Harte 2011, Xiao et al. 2014).
 
-METE has been widely successful in predicting the SAD among communities of macroscopic organisms (White et al. 2012). 
-METE often explains more than 90% of observed variation in abundance among species of plant and animal, based on the largest available compilations of ecological community data (White et al. 2012). Yet, despite its success in predicting SADs and attempts to unify other biodiversity patterns through the SAD, METE has yet been tested among the most abundant and taxonomically diverse organisms on Earth, i.e., bacteria and archaea.
+METE has been widely successful in predicting the SAD among communities of macroscopic organisms (White et al. 2012). METE often explains more than 90% of observed variation in abundance among species of plant and animal, based on the largest available compilations of ecological community data (White et al. 2012). Yet, despite its success in predicting SADs and attempts to unify other biodiversity patterns through the SAD, METE has yet been tested among the most abundant and taxonomically diverse organisms on Earth, i.e., bacteria and archaea.
 
 Within natural and host-associated ecosystems, most microbial taxa account for the minority of relative abundance. 
 This seemingly universal pattern of microbial commonness and rarity is known as the microbial "rare biosphere". 
