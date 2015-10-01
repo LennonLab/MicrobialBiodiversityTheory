@@ -1,8 +1,9 @@
 ---
-title: "Why the Maximum Entropy Theory of Ecology fails to predict the species abundance distributio of microorganisms."
+title: Why the Maximum Entropy Theory of Ecology fails to predict the species abundance
+  distribution of microorganisms.
 author: "William R. Shoemaker, Kenneth J. Locey, and Jay T. Lennon"
-date: 
-output: pdf_document
+date: "null"
+output: html_document
 ---
 
 # Introduction
@@ -112,7 +113,7 @@ Table 1.
 | Dataset      | Model | Variable |  $r$   |             p-value    |
 |:------------:|:-----:|:--------:|:------:|:----------------------:|
 |   HMP        |   BS  |     N    |-0.386  | 1.15*10<sup>-159</sup>|
-|   HMP        |  METE |     N    |-0.191  | 2.01*10<sup>-38</sup> |
+|  HMP        |  METE |     N    |-0.191  | 2.01*10<sup>-38</sup> |
 |   HMP        |   BS  |     S    | 0.276  | 2.82*10<sup>-79</sup> |
 |   HMP        |  METE |     S    | 0.314  | 1.44*10<sup>-103</sup>|
 |   HMP        |   BS  |    N/S   |-0.626  | 0.0                   |
