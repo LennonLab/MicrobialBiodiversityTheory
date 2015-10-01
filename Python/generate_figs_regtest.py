@@ -312,8 +312,7 @@ def plot_obs_pred_sad(methods, datasets, data_dir= mydir, radius=2): # TAKEN FRO
     """Multiple obs-predicted plotter"""
     fig = plt.figure()
 
-    #xs = [[60,1], [100,1], [20,1], [60,1], [40,1], [200,1], [800,1.5], [200,1.5]]
-    #rs = ['0.93','0.77','0.84','0.81','0.78','0.83','0.58','0.76']
+
     count = 0
     #ax = fig.add_subplot(111)
     for i, dataset in enumerate(datasets):
@@ -332,23 +331,23 @@ def plot_obs_pred_sad(methods, datasets, data_dir= mydir, radius=2): # TAKEN FRO
             pred = ((obs_pred_data["pred"]))
             axis_min = 0.5 * min(obs)
             axis_max = 2 * max(obs)
-            ax = fig.add_subplot(4, 2, count+1)
+            ax = fig.add_subplot(3, 3, count+1)
             if j == 0:
                 if i == 0:
-                    ax.set_ylabel("HMP", rotation=90, size=8)
+                    ax.set_ylabel("Human Microbiome Project" + "\n" + "(HMP)", rotation=90, size=8)
                 elif i == 1:
-                    ax.set_ylabel("EMP closed", rotation=90, size=8)
+                    ax.set_ylabel("Earth Microbiome Project" + "\n" + "(EMP)", rotation=90, size=8)
                 elif i == 2:
-                    ax.set_ylabel("EMP open", rotation=90, size=8)
-                elif i == 3:
-                    ax.set_ylabel('MGRAST', rotation=90, size=8)
+                    ax.set_ylabel("MG-RAST", rotation=90, size=8)
+                #elif i == 3:
+                #    ax.set_ylabel('MG-RAST', rotation=90, size=12)
             if i == 0 and j == 0:
                 ax.set_title("Broken-stick")
             elif i == 0 and j == 1:
                 ax.set_title("METE")
 
             macroecotools.plot_color_by_pt_dens(pred, obs, radius, loglog=1,
-                            plot_obj=plt.subplot(4,2,count+1))
+                            plot_obj=plt.subplot(3,3,count+1))
 
             plt.plot([axis_min, axis_max],[axis_min, axis_max], 'k-')
             plt.xlim(axis_min, axis_max)
@@ -378,8 +377,8 @@ def plot_obs_pred_sad(methods, datasets, data_dir= mydir, radius=2): # TAKEN FRO
     #ax.set_xlabel(-8,-80,'Rank-abundance at the centre of the feasible set',fontsize=10)
     #ax.set_ylabel(-8.5,500,'Observed rank-abundance',rotation='90',fontsize=10)
     #ax.set_ylabel('Rank-abundance at the centre of the feasible set',rotation='90',fontsize=10)
-    fig.text(0.06, 0.5, 'Observed rank-abundance', ha='center', va='center', rotation='vertical')
-    fig.text(0.5, 0.04, 'Rank-abundance at the centre of the feasible set', ha='center', va='center')
+    fig.text(0.03, 0.5, 'Observed rank-abundance', ha='center', va='center', rotation='vertical')
+    fig.text(0.35, 0.04, 'Predicted rank-abundance', ha='center', va='center')
     #ax.set_xlabel('Observed rank-abundance',fontsize=10)
     plt.savefig('obs_pred_plots.png', dpi=600)#, bbox_inches = 'tight')#, pad_inches=0)
     plt.close()
@@ -391,6 +390,9 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
     fig = plt.figure()
     count  = 0
     test_count = 0
+    #st = fig.suptitle("Broken-stick", fontsize="x-large")
+    #fig.text(0.02, 0.5, r'$r^{2}$', ha='center', va='center', rotation='vertical', size = 'x-large')
+    #fig.text(0.04, 0.5, 'common Y', va='center', rotation='vertical')
     for i, dataset in enumerate(datasets):
         for k, param in enumerate(params):
             for j, method in enumerate(methods):
@@ -413,11 +415,11 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
                 mean = np.mean(y)
                 std_error = sp.stats.sem(y)
                 print method, param, dataset
-                print "mean = " + str(mean)
-                print "standard error = " + str(std_error)
+                #print "mean = " + str(mean)
+                #print "standard error = " + str(std_error)
 
                 #print method, dataset, param
-                ax = fig.add_subplot(3, 8, count+1)
+                ax = fig.add_subplot(3, 2, count+1)
                 if param == "N" or param == "S":
                     x = np.log10(((nsr2_data[param])))
                 else:
@@ -432,7 +434,7 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
                 #elif str(n_or_s).capitalize() == 'S'
                 #x = ((nsr2_data["N"]))
                 macroecotools.plot_color_by_pt_dens(x, y, 0.1, loglog=0,
-                                plot_obj=plt.subplot(3, 8, count+1))
+                                plot_obj=plt.subplot(3, 2, count+1))
                 slope, intercept, r_value, p_value, std_err = stats.linregress(x,y)
                 #if param == 'N/S':
                 #    plt.xlim(np.amin(x), 1000)
@@ -445,10 +447,23 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
                 degrees_of_freedom = len(x) - 2
                 residual_std_error = np.sqrt(np.sum(pred_error**2) / degrees_of_freedom)
                 plt.plot(x, predict_y, 'k-')
-                plt.axhline(linewidth=2, color='lightgray')
+                plt.axhline(linewidth=2, color='darkgrey',ls='--')
+                #plt.hline(0, xmin, xmax, color="0.3", ls='--')
                 plt.subplots_adjust(wspace=0.2, hspace=0.3)
                 # Plotting
                 plt.xlabel(param)
+                if k == 1 and j ==0:
+                    plt.ylabel(r'$r^{2}_{m}$', fontsize = 'xx-large')
+                #if k == 1 and i ==0:
+                #    plt.ylabel(r'$r^{2}_{m}$', fontsize = 'xx-large')
+                #if k == 0 and i ==0 :
+                #    plt.title('HMP', fontsize = 'large')
+                #elif k == 0 and i ==1:
+                #    plt.title('EMP Closed', fontsize = 'large')
+                #elif k == 0 and i ==2:
+                #    plt.title('EMP Open', fontsize = 'large')
+                #elif k == 0 and i ==3:
+                #    plt.title('MG-RAST, 97%', fontsize = 'large')
                 if j == 0 and k == 0:
                     plt.title('Broken-stick', fontsize = 'large')
                 elif j == 1 and k == 0:
@@ -461,14 +476,20 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
                 #plt.text(0, 1, r'$r_{2}$'+ ' = '+str(round(r_value,2)), fontsize=12)
                 #ax.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=14, verticalalignment='top', bbox=props)
                 leg = plt.legend(loc=1,prop={'size':10})
+                ax.tick_params(axis='x', labelsize=6)
+                ax.tick_params(axis='y', labelsize=6)
+                #tick.label.set_fontsize(14)
                 #leg.draw_frame(False)
                 #plt.legend(loc='upper left')
                 print r_value, p_value
 
                 count += 1
     #ax.set_ylabel('common ylabel')
-    plt.tight_layout()
-    fig.text(0.02, 0.5, r'$r^{2}$', ha='center', va='center', rotation='vertical', size = 'medium')
+    plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
+
+    #fig.text(0.02, 0.5, r'$r^{2}$', ha='center', va='center', rotation='vertical', size = 'large')
+    #st.set_y(0.95)
+    fig.subplots_adjust(top=0.85)
     #ax.set_ylabel('common ylabel')
     #fig.text(-8,-80,'Rank-abundance at the centre of the feasible set',fontsize=10)
     #plt.suptitle(-8.5,500,r'$r^{2}$',rotation='90',fontsize=10)
@@ -478,19 +499,19 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
     plt.close()
 
 methods = ['geom', 'mete']
-#geommethods = ['geom']
-#datasets = ['HMP', 'EMPclosed', 'EMPopen', 'MGRAST97']
+#methods = ['geom']
+datasets = ['HMP', 'EMPclosed', '97']
 #datasets = ['EMPclosed', 'EMPopen']
-#datasets = ['MGRAST99']
-datasets = ['MGRAST95']
+#datasets = ['99']
+#datasets = ['HMP']
 
-#params = ['N','S', 'N/S']
-params = ['N/S']
+params = ['N','S', 'N/S']
+#params = ['N/S']
 #get_SADs()
 #generate_obs_pred_data(datasets, methods, 0)
 #empclosed = ['EMPclosed']
 #generate_obs_pred_data(empclosed, geommethods, 500)
-#plot_obs_pred_sad(methods, datasets)
-NSR2_regression(methods, datasets, data_dir= mydir)
+plot_obs_pred_sad(methods, datasets)
+#NSR2_regression(methods, datasets, data_dir= mydir)
 
 #get_SADs_mgrast(mydir, '99')
