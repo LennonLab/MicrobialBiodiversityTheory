@@ -5,6 +5,7 @@ import os
 import pickle
 #sys.path.append(mydir)
 mydir = os.path.expanduser("~/github/MicroMETE/data/")
+import matplotlib.gridspec as gridspec
 
 import scipy as sp
 import  matplotlib.pyplot as plt
@@ -314,6 +315,8 @@ def plot_obs_pred_sad(methods, datasets, data_dir= mydir, radius=2): # TAKEN FRO
 
 
     count = 0
+
+
     #ax = fig.add_subplot(111)
     for i, dataset in enumerate(datasets):
         for j, method in enumerate(methods):
@@ -332,6 +335,7 @@ def plot_obs_pred_sad(methods, datasets, data_dir= mydir, radius=2): # TAKEN FRO
             axis_min = 0.5 * min(obs)
             axis_max = 2 * max(obs)
             ax = fig.add_subplot(3, 3, count+1)
+            ax.set(adjustable='box-forced', aspect='equal')
             if j == 0:
                 if i == 0:
                     ax.set_ylabel("Human Microbiome Project" + "\n" + "(HMP)", rotation=90, size=8)
@@ -374,11 +378,18 @@ def plot_obs_pred_sad(methods, datasets, data_dir= mydir, radius=2): # TAKEN FRO
                 hist_mete_r2(site, np.log10(obs), np.log10(pred))
             plt.setp(axins, xticks=[], yticks=[])
             count += 1
+        count += 1
     #ax.set_xlabel(-8,-80,'Rank-abundance at the centre of the feasible set',fontsize=10)
     #ax.set_ylabel(-8.5,500,'Observed rank-abundance',rotation='90',fontsize=10)
     #ax.set_ylabel('Rank-abundance at the centre of the feasible set',rotation='90',fontsize=10)
-    fig.text(0.03, 0.5, 'Observed rank-abundance', ha='center', va='center', rotation='vertical')
-    fig.text(0.35, 0.04, 'Predicted rank-abundance', ha='center', va='center')
+    #fig.tight_layout()
+    #fig.subplots_adjust(hspace=.5)
+    fig.subplots_adjust(wspace=0.0001, left=0.1)
+
+
+    fig.text(0.05, 0.5, 'Observed rank-abundance', ha='center', va='center', rotation='vertical')
+    #fig.text(0.35, 0.04, 'Predicted rank-abundance', ha='center', va='center')
+    fig.text(0.37, 0.04, 'Predicted rank-abundance', ha='center', va='center')
     #ax.set_xlabel('Observed rank-abundance',fontsize=10)
     plt.savefig('obs_pred_plots.png', dpi=600)#, bbox_inches = 'tight')#, pad_inches=0)
     plt.close()
@@ -502,7 +513,7 @@ methods = ['geom', 'mete']
 #methods = ['geom']
 datasets = ['HMP', 'EMPclosed', '97']
 #datasets = ['EMPclosed', 'EMPopen']
-#datasets = ['99']
+#datasets = ['95', '97','99']
 #datasets = ['HMP']
 
 params = ['N','S', 'N/S']
