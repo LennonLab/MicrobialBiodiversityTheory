@@ -280,24 +280,31 @@ def generate_obs_pred_data(datasets, methods, size):
             #OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred_subset.txt','w+')
             #OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2_subset.txt','w+')
 
-            if dataset == "HMP":
+            if dataset == "HMP" and method != 'zipf':
                 IN = mydir  + dataset + '-Data' + '/' + dataset +'-SADs.txt'
                 num_lines = sum(1 for line in open(IN))
                 OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred.txt','w+')
                 OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2.txt','w+')
-            elif dataset == 'EMPclosed' or dataset == 'EMPpen':
-                IN = mydir  + dataset + '-Data' + '/' + dataset +'-SADs.txt'
-                num_lines = sum(1 for line in open(IN))
-                random_sites = np.random.randint(num_lines,size=size)
-                num_lines = size
-                OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred_subset.txt','w+')
-                OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2_subset.txt','w+')
-                num_lines = sum(1 for line in open(IN))
+            elif method != 'zipf':
+                if dataset == 'EMPclosed' or dataset == 'EMPopen':
+                    IN = mydir  + dataset + '-Data' + '/' + dataset +'-SADs.txt'
+                    num_lines = sum(1 for line in open(IN))
+                    random_sites = np.random.randint(num_lines,size=size)
+                    num_lines = size
+                    OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred_subset.txt','w+')
+                    OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2_subset.txt','w+')
+                    num_lines = sum(1 for line in open(IN))
             elif method == 'zipf':
-                IN = mydir  + dataset + '-Data' + '/' + dataset +'-SADs.txt'
-                num_lines = sum(1 for line in open(IN))
-                OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred_subset.txt','w+')
-                #OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2_subset.txt','w+')
+                if dataset == 'EMPclosed' or dataset == 'EMPopen' or dataset == 'HMP':
+                    IN = mydir  + dataset + '-Data' + '/' + dataset +'-SADs.txt'
+                    num_lines = sum(1 for line in open(IN))
+                    OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred_subset.txt','w+')
+                    #OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2_subset.txt','w+')
+                elif dataset == 'HMP':
+                    IN = mydir  + dataset + '-Data' + '/' + dataset +'-SADs.txt'
+                    num_lines = sum(1 for line in open(IN))
+                    OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred.txt','w+')
+                    OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2.txt','w+')
             else:
                 IN = mydir + 'MGRAST-Data/' + dataset +  '/' + 'MGRAST-' + dataset + '-SADs.txt'
                 num_lines = sum(1 for line in open(IN))
@@ -343,7 +350,7 @@ def generate_obs_pred_data(datasets, methods, size):
                 elif method == 'zipf':
                     #line = map(int, line)
                     # Start the timer. Once 5 seconds are over, a SIGALRM signal is sent.
-                    signal.alarm(3)
+                    signal.alarm(2)
                     # This try/except loop ensures that
                     #   you'll catch TimeoutException when it's sent.
                     try:
@@ -359,35 +366,21 @@ def generate_obs_pred_data(datasets, methods, size):
                         # Reset the alarm
                         signal.alarm(0)
 
-
-                    #p = multiprocessing.Process(target=zipf_class.from_cdf(), name="zipf_class.from_cdf()", args=())
-                    #p.start()
-                    #p.join(10)
-                    # If thread is active
-                    #if p.is_alive():
-                        #print "pred is running... let's kill it..."
-                        # Terminate foo
-                        #p.terminate()
-                        #p.join()
-                    #if pred == 0:
-                    #    print "Skipping"
-                    #    continue
-                    #else:
-                    #    print "count " + str(count)
-                    #    count += 1
-
-
                 r2 = macroecotools.obs_pred_rsquare(np.log10(obs), np.log10(pred))
                 print " r2:", r2
                 if r2 == -float('inf') or r2 == float('inf') or r2 == float('Nan'):
                     print r2 + " is Nan or inf, removing..."
                     continue
-                OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2_subset.txt','a+')
+                if method == 'zipf':
+                    if dataset == 'EMPclosed' or dataset == 'EMPopen' or dataset == 'HMP':
+                        OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2_subset.txt','a+')
+                        print>> OUT2, j, N, S, r2
+                        OUT2.close()
+                else:
+                    print>> OUT2, j, N, S, r2
+                    #print j, N, S, r2
                 #if line_count < 3:
                 #if method == 'zipf':
-                print>> OUT2, j, N, S, r2
-                print j, N, S, r2
-                OUT2.close()
                 # write to file, by cite, observed and expected ranked abundances
                 for i, sp in enumerate(pred):
                     print>> OUT1, j, obs[i], pred[i]
@@ -472,7 +465,10 @@ def plot_obs_pred_sad(methods, datasets, data_dir= mydir, radius=2): # TAKEN FRO
             #if method == 'mete' and dataset == 'EMP': continue
             #obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred_test.txt')
             if str(dataset) == 'EMPclosed' or str(dataset) == 'EMPopen':
-                obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred_subset.txt')
+                if method == 'zipf':
+                    obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred_all.txt')
+                else:
+                    obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred_subset.txt')
             elif str(dataset) == 'HMP':
                 obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred.txt')
             else:
@@ -507,6 +503,8 @@ def plot_obs_pred_sad(methods, datasets, data_dir= mydir, radius=2): # TAKEN FRO
                 ax.set_title("Broken-stick")
             elif i == 0 and j == 1:
                 ax.set_title("METE")
+            elif i == 0 and j == 2:
+                ax.set_title("Zipf")
 
             macroecotools.plot_color_by_pt_dens(pred, obs, radius, loglog=1,
                             plot_obj=plt.subplot(plot_dim,plot_dim,count+1))
@@ -519,18 +517,21 @@ def plot_obs_pred_sad(methods, datasets, data_dir= mydir, radius=2): # TAKEN FRO
             plt.subplots_adjust(wspace=0.5, hspace=0.3)
 
             axins = inset_axes(ax, width="30%", height="30%", loc=4)
-            #if str(dataset) == 'EMPclosed' or str(dataset) == 'EMPopen':
-            #    INh2 = import_NSR2_data(data_dir + 'NSR2/' + method+'_'+dataset+'_NSR2.txt')
-            #    r2s = ((INh2["R2"]))
-            #    hist_r2 = np.histogram(r2s, range=(0, 1))
-            #    xvals = hist_r2[1] + (hist_r2[1][1] - hist_r2[1][0])
-            #    xvals = xvals[0:len(xvals)-1]
-            #    yvals = hist_r2[0]
-            #    plt.plot(xvals, yvals, 'k-', linewidth=2)
-            #    plt.axis([0, 1, 0, 1.1 * max(yvals)])
-            #else:
-            #    hist_mete_r2(site, np.log10(obs), np.log10(pred))
-            #plt.setp(axins, xticks=[], yticks=[])
+            if str(dataset) == 'EMPclosed' or str(dataset) == 'EMPopen':
+                if method == 'zipf':
+                    INh2 = import_NSR2_data(data_dir + 'NSR2/' + method+'_'+dataset+'_NSR2_all.txt')
+                else:
+                    INh2 = import_NSR2_data(data_dir + 'NSR2/' + method+'_'+dataset+'_NSR2.txt')
+                r2s = ((INh2["R2"]))
+                hist_r2 = np.histogram(r2s, range=(0, 1))
+                xvals = hist_r2[1] + (hist_r2[1][1] - hist_r2[1][0])
+                xvals = xvals[0:len(xvals)-1]
+                yvals = hist_r2[0]
+                plt.plot(xvals, yvals, 'k-', linewidth=2)
+                plt.axis([0, 1, 0, 1.1 * max(yvals)])
+            else:
+                hist_mete_r2(site, np.log10(obs), np.log10(pred))
+            plt.setp(axins, xticks=[], yticks=[])
             count += 1
         count += (len(datasets) - len(methods))
     #ax.set_xlabel(-8,-80,'Rank-abundance at the centre of the feasible set',fontsize=10)
@@ -541,7 +542,7 @@ def plot_obs_pred_sad(methods, datasets, data_dir= mydir, radius=2): # TAKEN FRO
     fig.subplots_adjust(wspace=0.0001, left=0.1)
 
     if plot_dim == 3:
-        fig.text(0.37, 0.04, 'Predicted rank-abundance', ha='center', va='center')
+        fig.text(0.5, 0.04, 'Predicted rank-abundance', ha='center', va='center')
     elif plot_dim == 4:
         fig.text(0.30, 0.04, 'Predicted rank-abundance', ha='center', va='center')
     else:
@@ -563,10 +564,16 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
     #st = fig.suptitle("Broken-stick", fontsize="x-large")
     #fig.text(0.02, 0.5, r'$r^{2}$', ha='center', va='center', rotation='vertical', size = 'x-large')
     #fig.text(0.04, 0.5, 'common Y', va='center', rotation='vertical')
+    #plot_dim = max(len(methods), len(datasets))
     for i, dataset in enumerate(datasets):
         for k, param in enumerate(params):
             for j, method in enumerate(methods):
-                nsr2_data = import_NSR2_data(data_dir + 'NSR2/' + method+'_'+dataset+'_NSR2.txt')
+                if method == 'zipf' and (dataset == 'EMPopen' or dataset == 'EMPclosed'):
+                    nsr2_data = import_NSR2_data(data_dir + 'NSR2/' + method+'_'+dataset+'_NSR2_all.txt')
+                elif method == 'zipf' and dataset == 'HMP':
+                    nsr2_data = import_NSR2_data(data_dir + 'NSR2/' + method+'_'+dataset+'_NSR2_subset.txt')
+                else:
+                    nsr2_data = import_NSR2_data(data_dir + 'NSR2/' + method+'_'+dataset+'_NSR2.txt')
 
                 #nsr2_data[[~np.isnan(nsr2_data).any(axis=1)]]
                 #nsr2_data[~np.isinf(nsr2_data).any(axis=1)]
@@ -585,11 +592,12 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
                 mean = np.mean(y)
                 std_error = sp.stats.sem(y)
                 print method, param, dataset
-                #print "mean = " + str(mean)
-                #print "standard error = " + str(std_error)
+                print "mean r2 = " + str(mean)
+                print "r2 standard error = " + str(std_error)
 
                 #print method, dataset, param
-                ax = fig.add_subplot(3, 2, count+1)
+                ax = fig.add_subplot(3, 3, count+1)
+                #ax.set(adjustable='box-forced', aspect='equal')
                 if param == "N" or param == "S":
                     x = np.log10(((nsr2_data[param])))
                 else:
@@ -604,7 +612,7 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
                 #elif str(n_or_s).capitalize() == 'S'
                 #x = ((nsr2_data["N"]))
                 macroecotools.plot_color_by_pt_dens(x, y, 0.1, loglog=0,
-                                plot_obj=plt.subplot(3, 2, count+1))
+                                plot_obj=plt.subplot(3, 3, count+1))
                 slope, intercept, r_value, p_value, std_err = stats.linregress(x,y)
                 #if param == 'N/S':
                 #    plt.xlim(np.amin(x), 1000)
@@ -638,16 +646,13 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
                     plt.title('Broken-stick', fontsize = 'large')
                 elif j == 1 and k == 0:
                     plt.title('METE', fontsize = 'large')
-
-                #plt.ylabel(r'$r^{2}$',fontsize=16)
-                #r_2 = "r2 =" + str(round(r_value,2))
-                #p_s = "p =" + str(round(p_value,2))
-                #plt.text(0, 1, r'$p$'+ ' = '+str(round(p_value,2)), fontsize=12)
-                #plt.text(0, 1, r'$r_{2}$'+ ' = '+str(round(r_value,2)), fontsize=12)
+                elif j == 2 and k == 0:
+                    plt.title('Zipf', fontsize = 'large')
                 #ax.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=14, verticalalignment='top', bbox=props)
                 leg = plt.legend(loc=1,prop={'size':10})
                 ax.tick_params(axis='x', labelsize=6)
                 ax.tick_params(axis='y', labelsize=6)
+
                 #tick.label.set_fontsize(14)
                 #leg.draw_frame(False)
                 #plt.legend(loc='upper left')
@@ -668,20 +673,21 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
     #plt.xscale()
     plt.close()
 
-#methods = ['geom', 'mete']
-methods = ['zipf']
+methods = ['geom', 'mete','zipf']
+#methods = ['zipf']
 #datasets = ['HMP', 'EMPclosed','EMPopen','97']
-#datasets = ['EMPclosed', 'EMPopen']
+#datasets = ['HMP', 'EMPclosed', '97']
 #datasets = ['95', '97','99']
-datasets = ['EMPopen']
+#datasets = ['EMPopen']
+datasets = ['MGRAST99']
 
 params = ['N','S', 'N/S']
 #params = ['N/S']
 #get_SADs()
 #generate_obs_pred_data(datasets, methods, 0)
 #empclosed = ['EMPclosed']
-generate_obs_pred_data(datasets, methods, 0)
+#generate_obs_pred_data(datasets, methods, 0)
 #plot_obs_pred_sad(methods, datasets)
-#NSR2_regression(methods, datasets, data_dir= mydir)
+NSR2_regression(methods, datasets, data_dir= mydir)
 
 #get_SADs_mgrast(mydir, '99')
