@@ -477,8 +477,12 @@ def plot_obs_pred_sad(methods, datasets, data_dir= mydir, radius=2): # TAKEN FRO
             site = ((obs_pred_data["site"]))
             obs = ((obs_pred_data["obs"]))
             pred = ((obs_pred_data["pred"]))
-            axis_min = 0.5 * min(obs)
-            axis_max = 2 * max(obs)
+            if (dataset == '97' or dataset == '95' or dataset == '99') and method == 'zipf':
+                axis_min = 0.5 * min(obs)
+                axis_max = 2  * max(pred)
+            else:
+                axis_min = 0.5 * min(obs)
+                axis_max = 2 * max(obs)
             ax = fig.add_subplot(plot_dim, plot_dim, count+1)
             ax.set(adjustable='box-forced', aspect='equal')
 
@@ -676,10 +680,10 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
 methods = ['geom', 'mete','zipf']
 #methods = ['zipf']
 #datasets = ['HMP', 'EMPclosed','EMPopen','97']
-#datasets = ['HMP', 'EMPclosed', '97']
+datasets = ['HMP', 'EMPclosed', '97']
 #datasets = ['95', '97','99']
 #datasets = ['EMPopen']
-datasets = ['MGRAST99']
+#datasets = ['MGRAST99']
 
 params = ['N','S', 'N/S']
 #params = ['N/S']
@@ -687,7 +691,7 @@ params = ['N','S', 'N/S']
 #generate_obs_pred_data(datasets, methods, 0)
 #empclosed = ['EMPclosed']
 #generate_obs_pred_data(datasets, methods, 0)
-#plot_obs_pred_sad(methods, datasets)
-NSR2_regression(methods, datasets, data_dir= mydir)
+plot_obs_pred_sad(methods, datasets)
+#NSR2_regression(methods, datasets, data_dir= mydir)
 
 #get_SADs_mgrast(mydir, '99')
