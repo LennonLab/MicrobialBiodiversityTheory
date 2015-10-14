@@ -10,7 +10,7 @@ mydir = os.path.expanduser("~/github/MicroMETE/data/")
 import matplotlib.gridspec as gridspec
 import signal
 
-
+import collections
 import scipy as sp
 import  matplotlib.pyplot as plt
 import numpy as np
@@ -27,7 +27,6 @@ from scipy import stats
 repos: METE (https://github.com/weecology/METE) and macroecotools
 (https://github.com/weecology/macroecotools).
 We in no way assume ownership their code"""
-
 
 
 class zipf:
@@ -60,7 +59,7 @@ class zipf:
         for i in range(1, S+1):
             #print rad
             val = (S - i + 0.5)/S
-            print val
+            #print val
             #if val <= 0.9999 and i ==1:
             #    return 0
             #    break
@@ -72,8 +71,10 @@ class zipf:
             #print x
             rad.append(int(x))
 
-
-        return rad
+        point = collections.namedtuple('Rad_and_p', ['x', 'y'])
+        point_return = point(rad, y = p)
+        print point_return.x, point_return.y
+        return point_return
 
 
 
@@ -112,7 +113,7 @@ def get_SADs_mgrast(path, threshold):
         SADdict = {}
         with open(x) as f:
             for d in f:
-                print d
+                #print d
                 #print len(d)
                 if d.strip():
                     d = d.split()
@@ -164,7 +165,7 @@ def get_SADs(path, name, closedref=True):
     with open(DATA) as f:
 
         for d in f:
-            print d
+            #print d
             #print len(d)
 
             if d.strip():
@@ -275,17 +276,7 @@ def generate_obs_pred_data(datasets, methods, size):
             signal.signal(signal.SIGALRM, timeout_handler)
             S_list = []
             N_list = []
-            #OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred.txt','w+')
-            #OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2.txt','w+')
-            #OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred_subset.txt','w+')
-            #OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2_subset.txt','w+')
-
-            if dataset == "HMP" and method != 'zipf':
-                IN = mydir  + dataset + '-Data' + '/' + dataset +'-SADs.txt'
-                num_lines = sum(1 for line in open(IN))
-                OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred.txt','w+')
-                OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2.txt','w+')
-            elif method != 'zipf':
+            if method != 'zipf':
                 if dataset == 'EMPclosed' or dataset == 'EMPopen':
                     IN = mydir  + dataset + '-Data' + '/' + dataset +'-SADs.txt'
                     num_lines = sum(1 for line in open(IN))
@@ -294,22 +285,29 @@ def generate_obs_pred_data(datasets, methods, size):
                     OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred_subset.txt','w+')
                     OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2_subset.txt','w+')
                     num_lines = sum(1 for line in open(IN))
+                elif dataset == "HMP":
+                    IN = mydir  + dataset + '-Data' + '/' + dataset +'-SADs.txt'
+                    num_lines = sum(1 for line in open(IN))
+                    OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred.txt','w+')
+                    OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2.txt','w+')
+                else:
+                    IN = mydir + 'MGRAST-Data/' + dataset +  '/' + 'MGRAST-' + dataset + '-SADs.txt'
+                    num_lines = sum(1 for line in open(IN))
+                    OUT1 = open(mydir + "ObsPred/" + method +'_'+ 'MGRAST' + dataset+'_obs_pred.txt','w+')
+                    OUT2 = open(mydir + "NSR2/" + method +'_'+ 'MGRAST' + dataset+'_NSR2.txt','w+')
+                    #OUT3 = open(mydir + "Values_" + method +'_'+ 'MGRAST' + dataset+'_NSR2.txt','w+')
             elif method == 'zipf':
                 if dataset == 'EMPclosed' or dataset == 'EMPopen' or dataset == 'HMP':
                     IN = mydir  + dataset + '-Data' + '/' + dataset +'-SADs.txt'
                     num_lines = sum(1 for line in open(IN))
                     OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred_subset.txt','w+')
-                    #OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2_subset.txt','w+')
-                elif dataset == 'HMP':
-                    IN = mydir  + dataset + '-Data' + '/' + dataset +'-SADs.txt'
+                    OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2_subset.txt','w+')
+                else:
+                    IN = mydir + 'MGRAST-Data/' + dataset +  '/' + 'MGRAST-' + dataset + '-SADs.txt'
                     num_lines = sum(1 for line in open(IN))
-                    OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred.txt','w+')
-                    OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2.txt','w+')
-            else:
-                IN = mydir + 'MGRAST-Data/' + dataset +  '/' + 'MGRAST-' + dataset + '-SADs.txt'
-                num_lines = sum(1 for line in open(IN))
-                OUT1 = open(mydir + "ObsPred/" + method +'_'+ 'MGRAST' + dataset+'_obs_pred.txt','w+')
-                OUT2 = open(mydir + "NSR2/" + method +'_'+ 'MGRAST' + dataset+'_NSR2.txt','w+')
+                    OUT1 = open(mydir + "ObsPred/" + method +'_'+ 'MGRAST' + dataset+'_obs_pred.txt','w+')
+                    OUT2 = open(mydir + "NSR2/" + method +'_'+ 'MGRAST' + dataset+'_NSR2.txt','w+')
+                    #OUT3 = open(mydir + "Values_" + method +'_'+ 'MGRAST' + dataset+'_NSR2.txt','w+')
             line_count = 0
             for j,line in enumerate(open(IN)):
                 if dataset == "HMP":
@@ -326,10 +324,11 @@ def generate_obs_pred_data(datasets, methods, size):
 
                 N = sum(obs)
                 S = len(obs)
+                Nmax = np.amax(obs)
                 #S_list.append(S)
                 #N_list.append(N)
 
-                print j
+                #print j
 
                 if S < 10 or N <= S:
                     num_lines += 1
@@ -349,7 +348,7 @@ def generate_obs_pred_data(datasets, methods, size):
                     pred = logSeries[0]
                 elif method == 'zipf':
                     #line = map(int, line)
-                    # Start the timer. Once 5 seconds are over, a SIGALRM signal is sent.
+                    # Start the timer. Once 1 second is over, a SIGALRM signal is sent.
                     signal.alarm(2)
                     # This try/except loop ensures that
                     #   you'll catch TimeoutException when it's sent.
@@ -359,7 +358,9 @@ def generate_obs_pred_data(datasets, methods, size):
                         # use S
                         rv = stats.zipf(Zipf_solve_line)
                         zipf_class = zipf(obs)
-                        pred = zipf_class.from_cdf()
+                        pred_tuple = zipf_class.from_cdf()
+                        pred = pred_tuple[0]
+                        gamma = pred_tuple[1]
                     except TimeoutException:
                         continue # continue the for loop if function takes more than 10 second
                     else:
@@ -374,13 +375,15 @@ def generate_obs_pred_data(datasets, methods, size):
                 if method == 'zipf':
                     if dataset == 'EMPclosed' or dataset == 'EMPopen' or dataset == 'HMP':
                         OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2_subset.txt','a+')
-                        print>> OUT2, j, N, S, r2
+                        print>> OUT2, j, N, S, Nmax, gamma, r2
                         OUT2.close()
+                    else:
+                        print>> OUT2, j, N, S, Nmax, gamma, r2
+                        #print>> OUT3, j, N, S, r2, rv, zipf_class
                 else:
                     print>> OUT2, j, N, S, r2
                     #print j, N, S, r2
                 #if line_count < 3:
-                #if method == 'zipf':
                 # write to file, by cite, observed and expected ranked abundances
                 for i, sp in enumerate(pred):
                     print>> OUT1, j, obs[i], pred[i]
@@ -402,8 +405,8 @@ def generate_obs_pred_data(datasets, methods, size):
             #print min(S_list), max(S_list)
 
             OUT1.close()
-            #OUT2.close()
-        print dataset
+            OUT2.close()
+        #print dataset
 
 
 
@@ -445,7 +448,13 @@ def obs_pred_r2_multi(methods, datasets, data_dir= mydir): # TAKEN FROM THE mete
             print method, dataset,' ',macroecotools.obs_pred_rsquare(np.log10(obs), np.log10(pred))
 
 def import_NSR2_data(input_filename):   # TAKEN FROM THE mete_sads.py script used for White et al. (2012)
-    data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8", names = ['site','N','S', 'R2'], delimiter = " ")
+    input_filename_split = str(input_filename).split('_')
+    NSR2_method = input_filename_split[-4]
+    method = str(NSR2_method.split('/')[1])
+    if method == 'zipf':
+        data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8", names = ['site','N','S', 'Nmax','gamma','R2'], delimiter = " ")
+    else:
+        data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8", names = ['site','N','S', 'R2'], delimiter = " ")
     #test = data[0:5000]
     #return test
     return data
@@ -477,9 +486,9 @@ def plot_obs_pred_sad(methods, datasets, data_dir= mydir, radius=2): # TAKEN FRO
             site = ((obs_pred_data["site"]))
             obs = ((obs_pred_data["obs"]))
             pred = ((obs_pred_data["pred"]))
-            if (dataset == '97' or dataset == '95' or dataset == '99') and method == 'zipf':
-                axis_min = 0.5 * min(obs)
-                axis_max = 2  * max(pred)
+            if method == 'zipf':
+                axis_min = 0.5 * min(pred)
+                axis_max = 10  * max(pred)
             else:
                 axis_min = 0.5 * min(obs)
                 axis_max = 2 * max(obs)
@@ -677,21 +686,19 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
     #plt.xscale()
     plt.close()
 
-methods = ['geom', 'mete','zipf']
-#methods = ['zipf']
+#methods = ['geom', 'mete','zipf']
+methods = ['zipf']
 #datasets = ['HMP', 'EMPclosed','EMPopen','97']
-datasets = ['HMP', 'EMPclosed', '97']
+datasets = [ 'EMPclosed','EMPopen','95', '97','99']
+#datasets = ['HMP', 'EMPclosed', '97']
 #datasets = ['95', '97','99']
 #datasets = ['EMPopen']
-#datasets = ['MGRAST99']
+#datasets = ['97']
 
-params = ['N','S', 'N/S']
+#params = ['N','S', 'N/S']
 #params = ['N/S']
-#get_SADs()
-#generate_obs_pred_data(datasets, methods, 0)
-#empclosed = ['EMPclosed']
-#generate_obs_pred_data(datasets, methods, 0)
-plot_obs_pred_sad(methods, datasets)
+generate_obs_pred_data(datasets, methods, 0)
+#plot_obs_pred_sad(methods, datasets)
 #NSR2_regression(methods, datasets, data_dir= mydir)
 
 #get_SADs_mgrast(mydir, '99')

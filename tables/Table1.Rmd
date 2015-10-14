@@ -3,7 +3,7 @@ output: pdf_document
 ---
 
 
-| $$\mathbf{Dataset}$$ | $$\mathbf{Model}$$ | $$\overline{r^{2}_{m}}$$ | $$\sigma_{\bar{r^{2}_{m}}}$$ | $$\overline{N}$$ | $$\overline{S}$$ |
+| $$\mathbf{Dataset}$$ | $$\mathbf{Model}$$ | $$\overline{r^{2}_{m}}$$ | $$\sigma_{\bar{r^{2}_{m}}}$$ | $$\overline{N_{0}}$$ | $$\overline{S_{0}}$$ |
 |:--------:|:-----:|:-------:|:------:|:----:|:-----:|
 |  $$\mathrm{HMP}$$     |  $$\mathrm{BS}$$ | $$-0.543$$  | $$0.0170$$  | $$5050$$ | $$78$$ |
 |      |  $$\mathrm{METE}$$   | $$0.520$$   | $$0.00846$$ ||
