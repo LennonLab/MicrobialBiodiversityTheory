@@ -64,16 +64,4 @@ Wang, J., et al. (2014). Phylogenetic beta diversity in bacterial assemblages ac
 
 Welch, D. B. M., & Huse, S. M. (2006). Microbial Diversity in the Deep Sea and the Underexplored “Rare Biosphere.” Proceedings of the National Academy of Sciences, 103(32), 12115–12120.
 
-White, E. P., Thibault, K. M., & Xiao, X. (2012). Characterizing species abundance distributions across taxa and ecosystems using a simple maximum entropy model R eports. Ecology, 93(8), 1772–1778.
-
-Whitman, W. B., Coleman, D. C., Wiebe, W. J. (1998). Prokaryotes: The unseen majority. Proc 	Natl Acad Sci USA 95, 6578–6583 
-
-Wilson, J. B. (1993). Would We Recognize a Broken-Stick Community if we Found One? Oikos, 67(1), 181–183.
-
-Woodcock, S., et al. (2007). Neutral assembly of bacterial communities. FEMS Microbiol Ecol., 62(2), 171-80. 
-
-Xiao, X., McGlinn, D. J., & White, E. P. (2015). A strong test of the Maximum Entropy Theory of Ecology. The American Naturalist, 185(3), 70–80. 
-
-Yatsunenko, T. et al. (2012). Human gut microbiome viewed across age and geography. Nature 486, 	222-227 
-
-Zipf, G.K. (1949). Human Behavior and the Principle of Least Effort. Cambridge, Massachusetts: Addison-Wesley. p. 1.
+White, E. P., Thibault, K. M., & Xiao, X. (2012). Characterizing species abundance distributions across taxa and ecosystems using a simple maximum entropy model R eports. Ecology, 93(8), 17
