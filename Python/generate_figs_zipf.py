@@ -24,11 +24,16 @@ import mete
 
 """This code was written using MIT liscenced code from the following Weecology
 repos: METE (https://github.com/weecology/METE) and macroecotools
-(https://github.com/weecology/macroecotools).
-We in no way assume ownership their code"""
+(https://github.com/weecology/macroecotools). """
 
-#sys.path.append(mydir)
 mydir = os.path.expanduser("~/github/MicroMETE/data/")
+
+
+class TimeoutException(Exception):   # Custom exception class
+    pass
+
+def timeout_handler(signum, frame):   # Custom signal handler
+    raise TimeoutException
 
 
 class zipf:
@@ -56,21 +61,10 @@ class zipf:
         p = md.zipf_solver(self.obs)
         S = len(self.obs)
         rv = stats.zipf(a=p)
-        #print rv
         rad = []
         for i in range(1, S+1):
-            #print rad
             val = (S - i + 0.5)/S
-            #print val
-            #if val <= 0.9999 and i ==1:
-            #    return 0
-            #    break
-
-            #    val = val
-
-            # rounding off to deal with percision error
             x = rv.ppf(val)
-            #print x
             rad.append(int(x))
 
         point = collections.namedtuple('Rad_and_p', ['x', 'y'])
@@ -133,9 +127,6 @@ def get_SADs(path, name, closedref=True):
     with open(DATA) as f:
 
         for d in f:
-            #print d
-            #print len(d)
-
             if d.strip():
                 d = d.split()
 
@@ -146,8 +137,6 @@ def get_SADs(path, name, closedref=True):
 
                 else:
                     site = d[0]
-                    #year = d[1]
-
                     if closedref == True:
                         for i in d:
                             if 'unclassified' in i:
@@ -190,9 +179,7 @@ def EMP_SADs(path, name, mgrast):
     with open(IN) as f:
 
         for d in f:
-
             n -= 1
-
             if d.strip():
 
                 d = d.split()
@@ -201,29 +188,22 @@ def EMP_SADs(path, name, mgrast):
                 abundance = float(d[2])
 
                 if abundance > 0:
-                    if sample not in SiteDict:
 
+                    if sample not in SiteDict:
                         SiteDict[sample] = [abundance]
 
                     else:
                         SiteDict[sample].append(abundance)
 
-
     SADs = SiteDict.values()
     filteredSADs = []
+
     for sad in SADs:
         if len(sad) >= minS:
             filteredSADs.append(sad)
 
     return filteredSADs
 
-
-
-class TimeoutException(Exception):   # Custom exception class
-    pass
-
-def timeout_handler(signum, frame):   # Custom signal handler
-    raise TimeoutException
 
 
 
@@ -238,6 +218,7 @@ def get_GeomSeries(N,S,zeros):
     return abd
 
 
+
 def generate_obs_pred_data(datasets, methods, size):
 
     for method in methods:
@@ -246,37 +227,37 @@ def generate_obs_pred_data(datasets, methods, size):
             signal.signal(signal.SIGALRM, timeout_handler)
 
             if method != 'zipf':
+
                 if dataset == 'EMPclosed' or dataset == 'EMPopen':
                     IN = mydir  + dataset + '-Data' + '/' + dataset +'-SADs.txt'
-                    num_lines = sum(1 for line in open(IN))
-                    random_sites = np.random.randint(num_lines,size=size)
-                    num_lines = size
                     OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred_subset.txt','w+')
                     OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2_subset.txt','w+')
-                    num_lines = sum(1 for line in open(IN))
+
                 elif dataset == "HMP":
                     IN = mydir  + dataset + '-Data' + '/' + dataset +'-SADs.txt'
-                    num_lines = sum(1 for line in open(IN))
                     OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred.txt','w+')
                     OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2.txt','w+')
+
                 else:
                     IN = mydir + 'MGRAST-Data/' + dataset +  '/' + 'MGRAST-' + dataset + '-SADs.txt'
-                    num_lines = sum(1 for line in open(IN))
                     OUT1 = open(mydir + "ObsPred/" + method +'_'+ 'MGRAST' + dataset+'_obs_pred.txt','w+')
                     OUT2 = open(mydir + "NSR2/" + method +'_'+ 'MGRAST' + dataset+'_NSR2.txt','w+')
-                    #OUT3 = open(mydir + "Values_" + method +'_'+ 'MGRAST' + dataset+'_NSR2.txt','w+')
+
             elif method == 'zipf':
+
                 if dataset == 'EMPclosed' or dataset == 'EMPopen' or dataset == 'HMP':
                     IN = mydir  + dataset + '-Data' + '/' + dataset +'-SADs.txt'
-                    num_lines = sum(1 for line in open(IN))
                     OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred_subset.txt','w+')
                     OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2_subset.txt','w+')
+
                 else:
                     IN = mydir + 'MGRAST-Data/' + dataset +  '/' + 'MGRAST-' + dataset + '-SADs.txt'
-                    num_lines = sum(1 for line in open(IN))
                     OUT1 = open(mydir + "ObsPred/" + method +'_'+ 'MGRAST' + dataset+'_obs_pred.txt','w+')
                     OUT2 = open(mydir + "NSR2/" + method +'_'+ 'MGRAST' + dataset+'_NSR2.txt','w+')
-                    #OUT3 = open(mydir + "Values_" + method +'_'+ 'MGRAST' + dataset+'_NSR2.txt','w+')
+
+            num_lines = sum(1 for line in open(IN))
+            random_sites = np.random.randint(num_lines, size=size)
+
             line_count = 0
             for j,line in enumerate(open(IN)):
                 if dataset == "HMP":
@@ -287,24 +268,18 @@ def generate_obs_pred_data(datasets, methods, size):
                     line = eval(line)
                     if j not in random_sites:
                         continue
-                #line.strip("[]")
-                #line.split()
-                obs = map(int, line)
 
+                obs = map(int, line)
                 N = sum(obs)
                 S = len(obs)
                 Nmax = np.amax(obs)
-                #S_list.append(S)
-                #N_list.append(N)
-
-                #print j
 
                 if S < 10 or N <= S:
-                    num_lines += 1
+                    num_lines -= 1
                     continue
-                #if S < 500:
-                #    num_lines += 1
-                #    continue
+
+                num_lines -= 1
+
                 obs.sort()
                 obs.reverse()
                 print method, dataset, N, S, ' countdown: ', num_lines,
@@ -331,7 +306,7 @@ def generate_obs_pred_data(datasets, methods, size):
                         pred = pred_tuple[0]
                         gamma = pred_tuple[1]
                     except TimeoutException:
-                        continue # continue the for loop if function takes more than 10 second
+                        continue # continue the for loop if function takes more than x seconds
                     else:
                         # Reset the alarm
                         signal.alarm(0)
@@ -353,21 +328,11 @@ def generate_obs_pred_data(datasets, methods, size):
                     print>> OUT2, j, N, S, r2
                     #print j, N, S, r2
 
-                #if line_count < 3:
-                # write to file, by cite, observed and expected ranked abundances
 
                 for i, sp in enumerate(pred):
                     print>> OUT1, j, obs[i], pred[i]
                     line_count += 1
-                #else:
-                #    OUT2.close()
-                #    OUT1.close()
-                #    break
-                #print line_count
 
-
-
-                num_lines -= 1
             #avgN = sum(N_list) / len(N_list)
             #avgS =sum(S_list) / len(S_list)
             #print 'average n' + str(avgN)
@@ -434,39 +399,61 @@ def import_NSR2_data(input_filename):   # TAKEN FROM THE mete_sads.py script use
     return data
 
 
-def plot_obs_pred_sad(methods, datasets, data_dir= mydir, radius=2): # TAKEN FROM THE mete_sads.py script used for White et al. (2012)
+def plot_obs_pred_sad(methods, datasets, n, data_dir=mydir, radius=2): # TAKEN FROM THE mete_sads.py script used for White et al. (2012)
     # Used for Figure 3 Locey and White (2013)        ########################################################################################
     """Multiple obs-predicted plotter"""
+
+
     fig = plt.figure()
-
-
     count = 0
 
     plot_dim = len(datasets)
-    #ax = fig.add_subplot(111)
     for i, dataset in enumerate(datasets):
         for j, method in enumerate(methods):
-            #if method == 'mete' and dataset == 'EMP': continue
-            #obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred_test.txt')
+
             if str(dataset) == 'EMPclosed' or str(dataset) == 'EMPopen':
-                if method == 'zipf':
-                    obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred_all.txt')
-                else:
-                    obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred_subset.txt')
+                obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred.txt')
+
             elif str(dataset) == 'HMP':
                 obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred.txt')
+
             else:
                 obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method + '_' + 'MGRAST' + dataset +'_obs_pred.txt')
+
             print method, dataset
+
             site = ((obs_pred_data["site"]))
-            obs = ((obs_pred_data["obs"]))
-            pred = ((obs_pred_data["pred"]))
+            obs = list(((obs_pred_data["obs"])))
+            pred = list(((obs_pred_data["pred"])))
+            obs2 = []
+            pred2 = []
+            site2 = []
+
+            if n == 'all':
+                obs2 = list(obs)
+                pred2 = list(pred)
+                site2 = list(site)
+                pass
+
+            else:
+                if len(obs) > n:
+                    inds = np.random.choice(range(len(obs)), size=n, replace=False)
+                    for ind in inds:
+                        obs2.append(obs[ind])
+	                pred2.append(pred[ind])
+	                site2.append(site[ind])
+
+            obs = list(obs2)
+            pred = list(pred2)
+            site = list(site2)
+
             if method == 'zipf':
                 axis_min = 0.5 * min(pred)
                 axis_max = 10  * max(pred)
             else:
                 axis_min = 0.5 * min(obs)
                 axis_max = 2 * max(obs)
+
             ax = fig.add_subplot(plot_dim, plot_dim, count+1)
             ax.set(adjustable='box-forced', aspect='equal')
 
@@ -514,10 +501,7 @@ def plot_obs_pred_sad(methods, datasets, data_dir= mydir, radius=2): # TAKEN FRO
 
             axins = inset_axes(ax, width="30%", height="30%", loc=4)
             if str(dataset) == 'EMPclosed' or str(dataset) == 'EMPopen':
-                if method == 'zipf':
-                    INh2 = import_NSR2_data(data_dir + 'NSR2/' + method+'_'+dataset+'_NSR2_all.txt')
-                else:
-                    INh2 = import_NSR2_data(data_dir + 'NSR2/' + method+'_'+dataset+'_NSR2.txt')
+                INh2 = import_NSR2_data(data_dir + 'NSR2/' + method+'_'+dataset+'_NSR2.txt')
                 r2s = ((INh2["R2"]))
                 hist_r2 = np.histogram(r2s, range=(0, 1))
                 xvals = hist_r2[1] + (hist_r2[1][1] - hist_r2[1][0])
@@ -530,11 +514,8 @@ def plot_obs_pred_sad(methods, datasets, data_dir= mydir, radius=2): # TAKEN FRO
             plt.setp(axins, xticks=[], yticks=[])
             count += 1
         count += (len(datasets) - len(methods))
-    #ax.set_xlabel(-8,-80,'Rank-abundance at the centre of the feasible set',fontsize=10)
+
     #ax.set_ylabel(-8.5,500,'Observed rank-abundance',rotation='90',fontsize=10)
-    #ax.set_ylabel('Rank-abundance at the centre of the feasible set',rotation='90',fontsize=10)
-    #fig.tight_layout()
-    #fig.subplots_adjust(hspace=.5)
     fig.subplots_adjust(wspace=0.0001, left=0.1)
 
     if plot_dim == 3:
@@ -543,11 +524,12 @@ def plot_obs_pred_sad(methods, datasets, data_dir= mydir, radius=2): # TAKEN FRO
         fig.text(0.30, 0.04, 'Predicted rank-abundance', ha='center', va='center')
     else:
         fig.text(0.37, 0.04, 'Predicted rank-abundance', ha='center', va='center')
+
     fig.text(0.05, 0.5, 'Observed rank-abundance', ha='center', va='center', rotation='vertical')
     #fig.text(0.35, 0.04, 'Predicted rank-abundance', ha='center', va='center')
-
     #ax.set_xlabel('Observed rank-abundance',fontsize=10)
-    plt.savefig('obs_pred_plots.png', dpi=600)#, bbox_inches = 'tight')#, pad_inches=0)
+
+    plt.savefig('obs_pred_plots_Test.png', dpi=600)#, bbox_inches = 'tight')#, pad_inches=0)
     plt.close()
 
 
@@ -561,13 +543,17 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
     #fig.text(0.02, 0.5, r'$r^{2}$', ha='center', va='center', rotation='vertical', size = 'x-large')
     #fig.text(0.04, 0.5, 'common Y', va='center', rotation='vertical')
     #plot_dim = max(len(methods), len(datasets))
+
     for i, dataset in enumerate(datasets):
         for k, param in enumerate(params):
             for j, method in enumerate(methods):
+
                 if (dataset == 'EMPopen' or dataset == 'EMPclosed'):
                     nsr2_data = import_NSR2_data(data_dir + 'NSR2/' + method+'_'+dataset+'_NSR2.txt')
+
                 elif dataset == 'HMP':
                     nsr2_data = import_NSR2_data(data_dir + 'NSR2/' + method+'_'+dataset+'_NSR2.txt')
+
                 else:
                     nsr2_data = import_NSR2_data(data_dir + 'NSR2/' + method+'_MGRAST'+dataset+'_NSR2.txt')
 
@@ -625,6 +611,7 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
 
                 if k == 1 and j ==0:
                     plt.ylabel(r'$r^{2}_{m}$', fontsize = 'xx-large')
+
                 #if k == 0 and i ==0 :
                 #    plt.title('HMP', fontsize = 'large')
                 #elif k == 0 and i ==1:
@@ -633,6 +620,7 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
                 #    plt.title('EMP Open', fontsize = 'large')
                 #elif k == 0 and i ==3:
                 #    plt.title('MG-RAST, 97%', fontsize = 'large')
+
                 if j == 0 and k == 0:
                     #plt.title(r'\textbf{Broken-stick}', fontsize = 'large')
                     plt.title('Broken-stick', fontsize = 13)
@@ -648,9 +636,10 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
                 #tick.label.set_fontsize(14)
                 #leg.draw_frame(False)
                 #plt.legend(loc='upper left')
-                print r_value, p_value
 
+                print r_value, p_value
                 count += 1
+
     if '97' in datasets:
         title = "MG-RAST 97%"
         fig.suptitle(title, x = 0.54, y = 1.05, fontsize=16)
@@ -682,14 +671,13 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
     #plt.xscale()
     plt.close()
 
+
 def zipf_mle_plots(data_dir= mydir):
         fig = plt.figure()
 
         count  = 0
         datasets = ['HMP', 'EMPclosed','97']
-        method = zipf
         plot_dim = len(datasets)
-        print plot_dim
 
         for i, dataset in enumerate(datasets):
             if  (dataset == 'EMPopen' or dataset == 'EMPclosed'):
@@ -698,12 +686,14 @@ def zipf_mle_plots(data_dir= mydir):
                 zipf_data = import_NSR2_data(data_dir + 'NSR2/zipf_' + dataset+'_NSR2.txt')
             else:
                 zipf_data = import_NSR2_data(data_dir + 'NSR2/zipf_MGRAST' + dataset+'_NSR2.txt')
+
             N =  np.log10(((zipf_data["N"])))
             y = ((zipf_data["gamma"])) * -1
             x = np.log10(((zipf_data["Nmax"])))
             ax = fig.add_subplot(plot_dim, plot_dim, count+1)
             mean = np.mean(x)
             std_error = sp.stats.sem(x)
+
             print dataset
             print "mean gamma = " + str(mean)
             print "gamma standard error = " + str(std_error)
@@ -722,7 +712,7 @@ def zipf_mle_plots(data_dir= mydir):
                 #plt.ylabel(r'$HMP$', rotation=90, fontsize = 12)
                 ax.set_ylabel(r'HMP' '\n' r'$\alpha$', rotation=90, size=12)
 
-            elif dataset == 'EMPclosed' or method == 'EMPopen':
+            elif dataset == 'EMPclosed' or dataset == 'EMPopen':
                 #ax.set_ylabel("EMP", rotation=90, size=12)
                 ax.set_ylabel(r'EMP' '\n' r'$\alpha$', rotation=90, size=12)
                 #plt.ylabel(r'$EMP$', rotation=90, fontsize = 12)
@@ -757,7 +747,7 @@ def zipf_mle_plots(data_dir= mydir):
             predict_y = intercept + slope * x
             pred_error = y - predict_y
             degrees_of_freedom = len(x) - 2
-            residual_std_error = np.sqrt(np.sum(pred_error**2) / degrees_of_freedom)
+            #residual_std_error = np.sqrt(np.sum(pred_error**2) / degrees_of_freedom)
 
             plt.plot(x, predict_y, 'k-')
             plt.axhline(linewidth=2, color='darkgrey',ls='--')
@@ -798,20 +788,28 @@ def zipf_mle_plots(data_dir= mydir):
         plt.close()
 
 
+#params = ['N','S', 'N/S']
+#params = ['N/S']
+
+#datasets = ['HMP', 'EMPclosed','EMPopen','97']
+#datasets = [ 'EMPclosed','EMPopen','95', '97','99']
+datasets = ['HMP', 'EMPclosed', '97']
+#datasets = ['95', '97','99']
+#datasets = ['EMPopen']
+#datasets = ['95']
+#datasets = ['MGRAST']
 
 methods = ['geom', 'mete','zipf']
 #methods = ['zipf']
-#datasets = ['HMP', 'EMPclosed','EMPopen','97']
-#datasets = [ 'EMPclosed','EMPopen','95', '97','99']
-#datasets = ['HMP', 'EMPclosed', '97']
-datasets = ['95', '97','99']
-#datasets = ['EMPopen']
-#datasets = ['95']
-#params = ['N','S', 'N/S']
 
-#params = ['N/S']
 #generate_obs_pred_data(datasets, methods, 0)
-#plot_obs_pred_sad(methods, datasets)
+
+size = 1000 # number of obs_pred datapoints to plot (HMP has ~352899)
+#size = 'all' # use this if plotting all the data
+plot_obs_pred_sad(methods, datasets, size)
+
 #NSR2_regression(methods, datasets, data_dir= mydir)
+
 #zipf_mle_plots(data_dir= mydir)
-get_SADs_mgrast(mydir, datasets)
+
+#get_SADs_mgrast(mydir, datasets)
