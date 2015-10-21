@@ -21,6 +21,8 @@ import macroeco_distributions as md
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn import linear_model
 from scipy import stats
+from scipy.stats import gaussian_kde
+from sklearn.neighbors import KernelDensity
 
 
 """This code was written using MIT liscenced code from the following Weecology
@@ -448,10 +450,10 @@ def obs_pred_r2_multi(methods, datasets, data_dir= mydir): # TAKEN FROM THE mete
             print method, dataset,' ',macroecotools.obs_pred_rsquare(np.log10(obs), np.log10(pred))
 
 def import_NSR2_data(input_filename):   # TAKEN FROM THE mete_sads.py script used for White et al. (2012)
-    input_filename_split = str(input_filename).split('_')
-    NSR2_method = input_filename_split[-4]
-    method = str(NSR2_method.split('/')[1])
-    if method == 'zipf':
+    input_filename_str = str(input_filename)
+    #NSR2_method = input_filename_split[-4]
+    #method = str(NSR2_method.split('/')[1])
+    if 'zipf' in input_filename_str:
         data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8", names = ['site','N','S', 'Nmax','gamma','R2'], delimiter = " ")
     else:
         data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8", names = ['site','N','S', 'R2'], delimiter = " ")
@@ -505,6 +507,13 @@ def plot_obs_pred_sad(methods, datasets, data_dir= mydir, radius=2): # TAKEN FRO
                         ax.set_ylabel("EMP Open", rotation=90, size=12)
                     elif dataset == '97':
                         ax.set_ylabel("MG-RAST", rotation=90, size=12)
+                if all(x in datasets for x in ['95', '97', '99']) == True:
+                    if dataset == '95':
+                        ax.set_ylabel("MG-RAST 95%", rotation=90, size=12)
+                    elif dataset == '97':
+                        ax.set_ylabel("MG-RAST 97%", rotation=90, size=12)
+                    elif dataset == '99':
+                        ax.set_ylabel("MG-RAST 99%", rotation=90, size=12)
                 else:
                     if dataset == 'HMP':
                         ax.set_ylabel("HMP", rotation=90, size=12)
@@ -518,6 +527,7 @@ def plot_obs_pred_sad(methods, datasets, data_dir= mydir, radius=2): # TAKEN FRO
                 ax.set_title("METE")
             elif i == 0 and j == 2:
                 ax.set_title("Zipf")
+
 
             macroecotools.plot_color_by_pt_dens(pred, obs, radius, loglog=1,
                             plot_obj=plt.subplot(plot_dim,plot_dim,count+1))
@@ -574,6 +584,7 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
     fig = plt.figure()
     count  = 0
     test_count = 0
+    params = ['N','S', 'N/S']
     #st = fig.suptitle("Broken-stick", fontsize="x-large")
     #fig.text(0.02, 0.5, r'$r^{2}$', ha='center', va='center', rotation='vertical', size = 'x-large')
     #fig.text(0.04, 0.5, 'common Y', va='center', rotation='vertical')
@@ -581,24 +592,14 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
     for i, dataset in enumerate(datasets):
         for k, param in enumerate(params):
             for j, method in enumerate(methods):
-                if method == 'zipf' and (dataset == 'EMPopen' or dataset == 'EMPclosed'):
-                    nsr2_data = import_NSR2_data(data_dir + 'NSR2/' + method+'_'+dataset+'_NSR2_all.txt')
-                elif method == 'zipf' and dataset == 'HMP':
-                    nsr2_data = import_NSR2_data(data_dir + 'NSR2/' + method+'_'+dataset+'_NSR2_subset.txt')
-                else:
+                if (dataset == 'EMPopen' or dataset == 'EMPclosed'):
                     nsr2_data = import_NSR2_data(data_dir + 'NSR2/' + method+'_'+dataset+'_NSR2.txt')
+                elif dataset == 'HMP':
+                    nsr2_data = import_NSR2_data(data_dir + 'NSR2/' + method+'_'+dataset+'_NSR2.txt')
+                else:
+                    nsr2_data = import_NSR2_data(data_dir + 'NSR2/' + method+'_MGRAST'+dataset+'_NSR2.txt')
 
-                #nsr2_data[[~np.isnan(nsr2_data).any(axis=1)]]
-                #nsr2_data[~np.isinf(nsr2_data).any(axis=1)]
-                #nsr2_data[~np.isnan(nsr2_data).any(1)]
                 list = ['nan', 'NAN', '-inf', 'inf']
-                #for x in nsr2_data:
-                #    print type(x)
-                #    value = str(x[3])
-
-                #if np.isinf(x[3]) == True:
-                #    print "infinity"
-                #mask = np.all(np.isinf(nsr2_data), axis=1)
 
 
                 y = ((nsr2_data["R2"]))
@@ -642,11 +643,15 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
                 #plt.hline(0, xmin, xmax, color="0.3", ls='--')
                 plt.subplots_adjust(wspace=0.2, hspace=0.3)
                 # Plotting
-                plt.xlabel(param)
+                if k == 0:
+                    plt.xlabel(r'$N_{0}$', fontsize = 12)
+                elif k == 1:
+                    plt.xlabel(r'$S_{0}$', fontsize = 12)
+                elif k == 2:
+                    plt.xlabel(r'$N_{0}/S_{0}$', fontsize = 12)
+
                 if k == 1 and j ==0:
                     plt.ylabel(r'$r^{2}_{m}$', fontsize = 'xx-large')
-                #if k == 1 and i ==0:
-                #    plt.ylabel(r'$r^{2}_{m}$', fontsize = 'xx-large')
                 #if k == 0 and i ==0 :
                 #    plt.title('HMP', fontsize = 'large')
                 #elif k == 0 and i ==1:
@@ -656,11 +661,12 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
                 #elif k == 0 and i ==3:
                 #    plt.title('MG-RAST, 97%', fontsize = 'large')
                 if j == 0 and k == 0:
-                    plt.title('Broken-stick', fontsize = 'large')
+                    #plt.title(r'\textbf{Broken-stick}', fontsize = 'large')
+                    plt.title('Broken-stick', fontsize = 13)
                 elif j == 1 and k == 0:
-                    plt.title('METE', fontsize = 'large')
+                    plt.title('METE', fontsize = 13)
                 elif j == 2 and k == 0:
-                    plt.title('Zipf', fontsize = 'large')
+                    plt.title('Zipf', fontsize = 13)
                 #ax.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=14, verticalalignment='top', bbox=props)
                 leg = plt.legend(loc=1,prop={'size':10})
                 ax.tick_params(axis='x', labelsize=6)
@@ -672,33 +678,156 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
                 print r_value, p_value
 
                 count += 1
-    #ax.set_ylabel('common ylabel')
-    plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
+    if '97' in datasets:
+        title = "MG-RAST 97%"
+        fig.suptitle(title, x = 0.54, y = 1.05, fontsize=16)
+    elif '95' in datasets:
+        title = "MG-RAST 95%"
+        fig.suptitle(title, x = 0.54, y = 1.05, fontsize=16)
+    elif '99' in datasets:
+        title = "MG-RAST 99%"
+        fig.suptitle(title, x = 0.54, y = 1.05, fontsize=16)
+    elif 'HMP' in datasets:
+        fig.suptitle("HMP", x = 0.54, y = 1.05, fontsize=16)
+    elif 'EMPclosed' in datasets:
+        fig.suptitle("EMP Closed", x = 0.54, y = 1.05, fontsize=16)
+    elif 'EMPopen' in datasets:
+        fig.suptitle("EMP Open", x = 0.54, y = 1.05, fontsize=16)
+
+    fig.subplots_adjust(wspace = 0.2, hspace = 0.2, top=0.70)
+
+    plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=0.5)
 
     #fig.text(0.02, 0.5, r'$r^{2}$', ha='center', va='center', rotation='vertical', size = 'large')
     #st.set_y(0.95)
-    fig.subplots_adjust(top=0.85)
+    #fig.subplots_adjust(top=0.85)
     #ax.set_ylabel('common ylabel')
     #fig.text(-8,-80,'Rank-abundance at the centre of the feasible set',fontsize=10)
     #plt.suptitle(-8.5,500,r'$r^{2}$',rotation='90',fontsize=10)
     fig_name = 'NSR2_GeomMete' + str(dataset) + '.png'
-    plt.savefig(fig_name)
+    plt.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
     #plt.xscale()
     plt.close()
 
-#methods = ['geom', 'mete','zipf']
-methods = ['zipf']
+def zipf_mle_plots(data_dir= mydir):
+        fig = plt.figure()
+        count  = 0
+        test_count = 0
+        datasets = ['HMP', 'EMPclosed','97']
+        method = zipf
+        plot_dim = len(datasets)
+        print plot_dim
+        for i, dataset in enumerate(datasets):
+            if  (dataset == 'EMPopen' or dataset == 'EMPclosed'):
+                zipf_data = import_NSR2_data(data_dir + 'NSR2/zipf_'+ dataset+'_NSR2.txt')
+            elif dataset == 'HMP':
+                zipf_data = import_NSR2_data(data_dir + 'NSR2/zipf_' + dataset+'_NSR2.txt')
+            else:
+                zipf_data = import_NSR2_data(data_dir + 'NSR2/zipf_MGRAST' + dataset+'_NSR2.txt')
+            N =  np.log10(((zipf_data["N"])))
+            y = ((zipf_data["gamma"])) * -1
+            x = np.log10(((zipf_data["Nmax"])))
+            ax = fig.add_subplot(plot_dim, plot_dim, count+1)
+            mean = np.mean(x)
+            std_error = sp.stats.sem(x)
+            print dataset
+            print "mean gamma = " + str(mean)
+            print "gamma standard error = " + str(std_error)
+            # Plot 1
+            macroecotools.plot_color_by_pt_dens(N, y, 0.1, loglog=0,
+                        plot_obj=plt.subplot(plot_dim, plot_dim, count+1))
+            slope, intercept, r_value, p_value, std_err = stats.linregress(N,y)
+            plt.xlim(np.amin(N), np.amax(N))
+            plt.ylim(np.amin(y),0)
+            plt.xticks(fontsize = 8) # work on current fig
+            plt.yticks(fontsize = 8)
+            if dataset == 'HMP':
+                #ax.set_ylabel("HMP", rotation=90, size=12)
+                #plt.ylabel(r'$HMP$', rotation=90, fontsize = 12)
+                ax.set_ylabel(r'HMP' '\n' r'$\alpha$', rotation=90, size=12)
+            elif dataset == 'EMPclosed' or method == 'EMPopen':
+                #ax.set_ylabel("EMP", rotation=90, size=12)
+                ax.set_ylabel(r'EMP' '\n' r'$\alpha$', rotation=90, size=12)
+                #plt.ylabel(r'$EMP$', rotation=90, fontsize = 12)
+            elif dataset == '97':
+                #ax.set_ylabel("MG-RAST", rotation=90, size=12)
+
+                ax.set_ylabel(r'MG-RAST' '\n' r'$\alpha$', rotation=90, size=12)
+                #plt.ylabel(r'$MG-RAST$', rotation=90, fontsize = 12)
+            if i == 2:
+                plt.xlabel(r'$N_{0}$', fontsize = 12)
+                #ax.set_xlabel("N", rotation=0, size=12)
+            predict_y = intercept + slope * N
+            pred_error = y - predict_y
+            degrees_of_freedom = len(x) - 2
+            residual_std_error = np.sqrt(np.sum(pred_error**2) / degrees_of_freedom)
+            plt.plot(N, predict_y, 'k-')
+            plt.axhline(linewidth=2, color='darkgrey',ls='--')
+            #plt.hline(0, xmin, xmax, color="0.3", ls='--')
+            plt.subplots_adjust(wspace=0.2, hspace=0.3)
+            # Plot 2
+            macroecotools.plot_color_by_pt_dens(x, y, 0.1, loglog=0,
+                        plot_obj=plt.subplot(plot_dim, plot_dim, count+2))
+            slope, intercept, r_value, p_value, std_err = stats.linregress(x,y)
+            plt.xlim(np.amin(x), np.amax(x))
+            plt.ylim(np.amin(y),0)
+            plt.xticks(fontsize = 8) # work on current fig
+            plt.yticks(fontsize = 8)
+            predict_y = intercept + slope * x
+            pred_error = y - predict_y
+            degrees_of_freedom = len(x) - 2
+            residual_std_error = np.sqrt(np.sum(pred_error**2) / degrees_of_freedom)
+            plt.plot(x, predict_y, 'k-')
+            plt.axhline(linewidth=2, color='darkgrey',ls='--')
+            if i == 2:
+                plt.xlabel(r"$N_{max}$", fontsize = 12)
+            #plt.hline(0, xmin, xmax, color="0.3", ls='--')
+            plt.ylabel(r'$\alpha$', fontsize = 12)
+
+            plt.subplots_adjust(wspace=0.2, hspace=0.3)
+            # Plotting
+            # Plot 3
+            density = gaussian_kde(y)
+            ys = np.linspace(-6,0,200)
+            density.covariance_factor = lambda : .25
+            density._compute_covariance()
+            plt.subplot(plot_dim, plot_dim, count+3)
+            plt.plot(ys,density(ys))
+
+            plt.xticks(fontsize = 8) # work on current fig
+            plt.yticks(fontsize = 8)
+            if i == 2:
+                plt.xlabel(r'$\alpha$', fontsize = 12)
+            plt.ylabel('Probability Density', fontsize = 9)
+            #plt.legend(loc='best')
+            count += plot_dim
+
+        plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
+
+        #fig.text(0.02, 0.5, r'$r^{2}$', ha='center', va='center', rotation='vertical', size = 'large')
+        #st.set_y(0.95)
+        fig.subplots_adjust(wspace = 0.4, hspace = 0.35, top=0.85)
+        #ax.set_ylabel('common ylabel')
+        fig_name = 'zipf_mle_plots.png'
+        #ax.set_aspect('equal')
+        plt.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
+        #plt.xscale()
+        plt.close()
+
+
+methods = ['geom', 'mete','zipf']
+#methods = ['zipf']
 #datasets = ['HMP', 'EMPclosed','EMPopen','97']
-datasets = [ 'EMPclosed','EMPopen','95', '97','99']
+#datasets = [ 'EMPclosed','EMPopen','95', '97','99']
 #datasets = ['HMP', 'EMPclosed', '97']
-#datasets = ['95', '97','99']
+datasets = ['95', '97','99']
 #datasets = ['EMPopen']
-#datasets = ['97']
-
+#datasets = ['95']
 #params = ['N','S', 'N/S']
-#params = ['N/S']
-generate_obs_pred_data(datasets, methods, 0)
-#plot_obs_pred_sad(methods, datasets)
-#NSR2_regression(methods, datasets, data_dir= mydir)
 
+#params = ['N/S']
+#generate_obs_pred_data(datasets, methods, 0)
+plot_obs_pred_sad(methods, datasets)
+#NSR2_regression(methods, datasets, data_dir= mydir)
+#zipf_mle_plots(data_dir= mydir)
 #get_SADs_mgrast(mydir, '99')
