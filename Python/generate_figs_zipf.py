@@ -1,34 +1,34 @@
-#!/usr/bin/env sage -python
 from __future__ import division
-import sys
 import os
-import pickle
-import multiprocessing
-import time
-#sys.path.append(mydir)
-mydir = os.path.expanduser("~/github/MicroMETE/data/")
-import matplotlib.gridspec as gridspec
+import sys
 import signal
-
 import collections
 import scipy as sp
 import  matplotlib.pyplot as plt
 import numpy as np
-from mpl_toolkits.axes_grid.inset_locator import inset_axes
-import macroecotools
-import mete
-import macroeco_distributions as md
-from sklearn.preprocessing import PolynomialFeatures
-from sklearn import linear_model
 from scipy import stats
 from scipy.stats import gaussian_kde
-from sklearn.neighbors import KernelDensity
+from mpl_toolkits.axes_grid.inset_locator import inset_axes
+
+
+macroeco = os.path.expanduser("~/GitHub/macroecotools")
+sys.path.append(macroeco + "/macroeco_distributions")
+sys.path.append(macroeco + "/macroecotools")
+import macroeco_distributions as md
+import macroecotools
+
+mete = os.path.expanduser("~/GitHub/METE/mete")
+sys.path.append(mete)
+import mete
 
 
 """This code was written using MIT liscenced code from the following Weecology
 repos: METE (https://github.com/weecology/METE) and macroecotools
 (https://github.com/weecology/macroecotools).
 We in no way assume ownership their code"""
+
+#sys.path.append(mydir)
+mydir = os.path.expanduser("~/github/MicroMETE/data/")
 
 
 class zipf:
@@ -80,83 +80,49 @@ class zipf:
 
 
 
-    def from_glm(self):
+def get_SADs_mgrast(path, thresholds):
 
-        """ Fit the Zipf distribution to the observed vector of integer values
-        using a generalized linear model.
+    datasets = ['BOVINE', 'CATLIN', 'CHU', 'HYDRO', 'LAUB']
 
-        Note: This is a fitted curve; not an actual form of the Zipf distribution
-
-        This method was inspired by the vegan
-        package's open source code on vegan's public GitHub repository:
-        https://github.com/vegandevs/vegan/blob/master/R/rad.zipf.R
-        on Thursday, 19 Marth 2015 """
-
-        ranks = np.log(range(1, len(self.obs)+1))
-        off = [np.log(sum(self.obs))] * len(self.obs)
-
-        d = pd.DataFrame({'ranks': ranks, 'off': off, 'x':self.obs})
-
-        lm = smf.glm(formula='x ~ ranks', data = d, family = sm.families.Poisson()).fit()
-        pred = lm.predict()
-
-        return pred
-
-
-def get_SADs_mgrast(path, threshold):
-    path_list = []
-    path  = path + 'MGRAST-data/' + threshold + '/'
-    for subdir, dirs, files in os.walk(path):
-        for file in files:
-            file_path = os.path.join(subdir, file)
-            if file_path.endswith("-data.txt"):
-                path_list.append(file_path)
-    for x in path_list:
+    for t in thresholds:
         SADdict = {}
-        with open(x) as f:
-            for d in f:
-                #print d
-                #print len(d)
-                if d.strip():
-                    d = d.split()
-                    if 'BOVINE' in x:
+
+        for d in datasets:
+            name = d+t
+
+            print name
+
+            filepath  = path + 'MGRAST-Data/'+t+'/'+name+'/'+name+'-data.txt'
+
+            with open(filepath) as f:
+
+                for d in f:
+
+                    if d.strip():
+                        d = d.split()
+
                         site = d[0]
-                        #species = d[1] # Dataset name plus species identifier
-                        abundance = float(d[-1])
+                        abundance = int(d[-1])
 
-                    else:
-                        site = d[0]
-                        #year = d[1]
-                        #if closedref == True:
-                        #    for i in d:
-                        #        if 'unclassified' in i:
-                        #            #print 'unclassified'
-                        #            continue
-                        #        elif 'unidentified' in i:
-                        #            #print 'unidentified'
-                        #            continue
+                        if abundance > 0:
+                            if site in SADdict:
+                                SADdict[site].append(abundance)
+                            else:
+                                SADdict[site] = [abundance]
 
-                        abundance = float(d[-1])
+        SADs = SADdict.values()
+        filteredSADs = []
 
+        for sad in SADs:
+            if len(sad) >= 10:
+                filteredSADs.append(sad)
 
-                    if abundance > 0:
-                        if site in SADdict:
-                            SADdict[site].append(abundance)
-                        else:
-                            SADdict[site] = [abundance]
-    SADs = SADdict.values()
-    filteredSADs = []
-    for sad in SADs:
-        if len(sad) >= 10:
-            filteredSADs.append(sad)
-    OUT =  open(path + 'MGRAST-' + threshold + '-SADs.txt', 'w')
-    #with open(OUT,'wb') as f:
-    #    pickle.dump(f,OUT)
-    #print >> OUT, filteredSADs
-    #return filteredSADs
-    SAD_nested_list = list(SADdict.values())
-    for SAD in SAD_nested_list:
-        print>> OUT, SAD
+        print t, len(filteredSADs)
+
+        OUT =  open(path+'MGRAST-Data/'+t+'/MGRAST-'+t+'-SADs.txt', 'w')
+
+        for sad in SADs:
+            print>> OUT, sad
 
 
 def get_SADs(path, name, closedref=True):
@@ -271,13 +237,14 @@ def get_GeomSeries(N,S,zeros):
         abd = md.trunc_geom.ppf(np.array(cdf), SNratio, N)
     return abd
 
+
 def generate_obs_pred_data(datasets, methods, size):
-    count = 0
+
     for method in methods:
         for dataset in datasets:
+
             signal.signal(signal.SIGALRM, timeout_handler)
-            S_list = []
-            N_list = []
+
             if method != 'zipf':
                 if dataset == 'EMPclosed' or dataset == 'EMPopen':
                     IN = mydir  + dataset + '-Data' + '/' + dataset +'-SADs.txt'
@@ -385,8 +352,10 @@ def generate_obs_pred_data(datasets, methods, size):
                 else:
                     print>> OUT2, j, N, S, r2
                     #print j, N, S, r2
+
                 #if line_count < 3:
                 # write to file, by cite, observed and expected ranked abundances
+
                 for i, sp in enumerate(pred):
                     print>> OUT1, j, obs[i], pred[i]
                     line_count += 1
@@ -438,6 +407,8 @@ def hist_mete_r2(sites, obs, pred):  # TAKEN FROM Macroecotools or the mete_sads
     plt.plot(xvals, yvals, 'k-', linewidth=2)
     plt.axis([0, 1, 0, 1.1 * max(yvals)])
 
+
+
 def obs_pred_r2_multi(methods, datasets, data_dir= mydir): # TAKEN FROM THE mete_sads.py script
     print 'generating 1:1 line R-square values for dataset(s)'
 
@@ -448,6 +419,7 @@ def obs_pred_r2_multi(methods, datasets, data_dir= mydir): # TAKEN FROM THE mete
             obs = ((obs_pred_data["obs"]))
             pred = ((obs_pred_data["pred"]))
             print method, dataset,' ',macroecotools.obs_pred_rsquare(np.log10(obs), np.log10(pred))
+
 
 def import_NSR2_data(input_filename):   # TAKEN FROM THE mete_sads.py script used for White et al. (2012)
     input_filename_str = str(input_filename)
@@ -460,6 +432,7 @@ def import_NSR2_data(input_filename):   # TAKEN FROM THE mete_sads.py script use
     #test = data[0:5000]
     #return test
     return data
+
 
 def plot_obs_pred_sad(methods, datasets, data_dir= mydir, radius=2): # TAKEN FROM THE mete_sads.py script used for White et al. (2012)
     # Used for Figure 3 Locey and White (2013)        ########################################################################################
@@ -583,7 +556,6 @@ def plot_obs_pred_sad(methods, datasets, data_dir= mydir, radius=2): # TAKEN FRO
 def NSR2_regression(methods, datasets, data_dir= mydir):
     fig = plt.figure()
     count  = 0
-    test_count = 0
     params = ['N','S', 'N/S']
     #st = fig.suptitle("Broken-stick", fontsize="x-large")
     #fig.text(0.02, 0.5, r'$r^{2}$', ha='center', va='center', rotation='vertical', size = 'x-large')
@@ -599,8 +571,7 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
                 else:
                     nsr2_data = import_NSR2_data(data_dir + 'NSR2/' + method+'_MGRAST'+dataset+'_NSR2.txt')
 
-                list = ['nan', 'NAN', '-inf', 'inf']
-
+                #list = ['nan', 'NAN', '-inf', 'inf']
 
                 y = ((nsr2_data["R2"]))
                 mean = np.mean(y)
@@ -640,8 +611,10 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
                 residual_std_error = np.sqrt(np.sum(pred_error**2) / degrees_of_freedom)
                 plt.plot(x, predict_y, 'k-')
                 plt.axhline(linewidth=2, color='darkgrey',ls='--')
+
                 #plt.hline(0, xmin, xmax, color="0.3", ls='--')
                 plt.subplots_adjust(wspace=0.2, hspace=0.3)
+
                 # Plotting
                 if k == 0:
                     plt.xlabel(r'$N_{0}$', fontsize = 12)
@@ -711,12 +684,13 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
 
 def zipf_mle_plots(data_dir= mydir):
         fig = plt.figure()
+
         count  = 0
-        test_count = 0
         datasets = ['HMP', 'EMPclosed','97']
         method = zipf
         plot_dim = len(datasets)
         print plot_dim
+
         for i, dataset in enumerate(datasets):
             if  (dataset == 'EMPopen' or dataset == 'EMPclosed'):
                 zipf_data = import_NSR2_data(data_dir + 'NSR2/zipf_'+ dataset+'_NSR2.txt')
@@ -733,6 +707,7 @@ def zipf_mle_plots(data_dir= mydir):
             print dataset
             print "mean gamma = " + str(mean)
             print "gamma standard error = " + str(std_error)
+
             # Plot 1
             macroecotools.plot_color_by_pt_dens(N, y, 0.1, loglog=0,
                         plot_obj=plt.subplot(plot_dim, plot_dim, count+1))
@@ -741,19 +716,23 @@ def zipf_mle_plots(data_dir= mydir):
             plt.ylim(np.amin(y),0)
             plt.xticks(fontsize = 8) # work on current fig
             plt.yticks(fontsize = 8)
+
             if dataset == 'HMP':
                 #ax.set_ylabel("HMP", rotation=90, size=12)
                 #plt.ylabel(r'$HMP$', rotation=90, fontsize = 12)
                 ax.set_ylabel(r'HMP' '\n' r'$\alpha$', rotation=90, size=12)
+
             elif dataset == 'EMPclosed' or method == 'EMPopen':
                 #ax.set_ylabel("EMP", rotation=90, size=12)
                 ax.set_ylabel(r'EMP' '\n' r'$\alpha$', rotation=90, size=12)
                 #plt.ylabel(r'$EMP$', rotation=90, fontsize = 12)
+
             elif dataset == '97':
                 #ax.set_ylabel("MG-RAST", rotation=90, size=12)
 
                 ax.set_ylabel(r'MG-RAST' '\n' r'$\alpha$', rotation=90, size=12)
                 #plt.ylabel(r'$MG-RAST$', rotation=90, fontsize = 12)
+
             if i == 2:
                 plt.xlabel(r'$N_{0}$', fontsize = 12)
                 #ax.set_xlabel("N", rotation=0, size=12)
@@ -765,9 +744,11 @@ def zipf_mle_plots(data_dir= mydir):
             plt.axhline(linewidth=2, color='darkgrey',ls='--')
             #plt.hline(0, xmin, xmax, color="0.3", ls='--')
             plt.subplots_adjust(wspace=0.2, hspace=0.3)
+
             # Plot 2
             macroecotools.plot_color_by_pt_dens(x, y, 0.1, loglog=0,
                         plot_obj=plt.subplot(plot_dim, plot_dim, count+2))
+
             slope, intercept, r_value, p_value, std_err = stats.linregress(x,y)
             plt.xlim(np.amin(x), np.amax(x))
             plt.ylim(np.amin(y),0)
@@ -777,8 +758,10 @@ def zipf_mle_plots(data_dir= mydir):
             pred_error = y - predict_y
             degrees_of_freedom = len(x) - 2
             residual_std_error = np.sqrt(np.sum(pred_error**2) / degrees_of_freedom)
+
             plt.plot(x, predict_y, 'k-')
             plt.axhline(linewidth=2, color='darkgrey',ls='--')
+
             if i == 2:
                 plt.xlabel(r"$N_{max}$", fontsize = 12)
             #plt.hline(0, xmin, xmax, color="0.3", ls='--')
@@ -815,6 +798,7 @@ def zipf_mle_plots(data_dir= mydir):
         plt.close()
 
 
+
 methods = ['geom', 'mete','zipf']
 #methods = ['zipf']
 #datasets = ['HMP', 'EMPclosed','EMPopen','97']
@@ -827,7 +811,7 @@ datasets = ['95', '97','99']
 
 #params = ['N/S']
 #generate_obs_pred_data(datasets, methods, 0)
-plot_obs_pred_sad(methods, datasets)
+#plot_obs_pred_sad(methods, datasets)
 #NSR2_regression(methods, datasets, data_dir= mydir)
 #zipf_mle_plots(data_dir= mydir)
-#get_SADs_mgrast(mydir, '99')
+get_SADs_mgrast(mydir, datasets)
