@@ -429,11 +429,10 @@ def plot_obs_pred_sad(methods, datasets, n, data_dir=mydir, radius=2): # TAKEN F
             pred2 = []
             site2 = []
 
-            if n == 'all':
+            if n == 'all' or len(obs) <= n:
                 obs2 = list(obs)
                 pred2 = list(pred)
                 site2 = list(site)
-                pass
 
             else:
                 if len(obs) > n:
@@ -442,6 +441,7 @@ def plot_obs_pred_sad(methods, datasets, n, data_dir=mydir, radius=2): # TAKEN F
                         obs2.append(obs[ind])
 	                pred2.append(pred[ind])
 	                site2.append(site[ind])
+
 
             obs = list(obs2)
             pred = list(pred2)
@@ -529,7 +529,7 @@ def plot_obs_pred_sad(methods, datasets, n, data_dir=mydir, radius=2): # TAKEN F
     #fig.text(0.35, 0.04, 'Predicted rank-abundance', ha='center', va='center')
     #ax.set_xlabel('Observed rank-abundance',fontsize=10)
 
-    plt.savefig('obs_pred_plots_Test.png', dpi=600)#, bbox_inches = 'tight')#, pad_inches=0)
+    plt.savefig('obs_pred_plots.png', dpi=600)#, bbox_inches = 'tight')#, pad_inches=0)
     plt.close()
 
 
@@ -804,7 +804,7 @@ methods = ['geom', 'mete','zipf']
 
 #generate_obs_pred_data(datasets, methods, 0)
 
-size = 1000 # number of obs_pred datapoints to plot (HMP has ~352899)
+size = 10000 # number of obs_pred datapoints to plot ( HMP has ~352899 )
 #size = 'all' # use this if plotting all the data
 plot_obs_pred_sad(methods, datasets, size)
 
