@@ -11,14 +11,14 @@ from scipy.stats import gaussian_kde
 from mpl_toolkits.axes_grid.inset_locator import inset_axes
 
 
-macroeco = os.path.expanduser("~/GitHub/macroecotools")
-sys.path.append(macroeco + "/macroeco_distributions")
-sys.path.append(macroeco + "/macroecotools")
+#macroeco = os.path.expanduser("~/GitHub/macroecotools")
+#sys.path.append(macroeco + "/macroeco_distributions")
+#sys.path.append(macroeco + "/macroecotools")
 import macroeco_distributions as md
 import macroecotools
 
-mete = os.path.expanduser("~/GitHub/METE/mete")
-sys.path.append(mete)
+#mete = os.path.expanduser("~/GitHub/METE/mete")
+#sys.path.append(mete)
 import mete
 
 
@@ -114,6 +114,39 @@ def get_SADs_mgrast(path, thresholds):
         print t, len(filteredSADs)
 
         OUT =  open(path+'MGRAST-Data/'+t+'/MGRAST-'+t+'-SADs.txt', 'w')
+
+        for sad in SADs:
+            print>> OUT, sad
+
+
+def get_SADs_mgrast_test(path):
+    SADdict = {}
+    fungi_list = map(str,np.arange(4484945.3, 4485075.3,1))
+    filepath  = path + 'MGRAST-Data/MGRAST/MGRAST-data.txt'
+    with open(filepath, 'r') as f:
+        for d in f:
+            if d.strip():
+                d = d.split()
+                site = d[0]
+                abundance = d[-1]
+                if ('-' in str(site))  or (str(site) in fungi_list):
+                     continue
+                abundance = int(abundance)
+                if abundance > 0:
+                    if site in SADdict:
+                        SADdict[site].append(abundance)
+                    else:
+                        SADdict[site] = [abundance]
+        SADs = SADdict.values()
+        filteredSADs = []
+
+        for sad in SADs:
+            if len(sad) >= 10:
+                filteredSADs.append(sad)
+
+        print  len(filteredSADs)
+
+        OUT =  open(path+'MGRAST-Data/MGRAST/MGRAST-SADs.txt', 'w')
 
         for sad in SADs:
             print>> OUT, sad
@@ -226,7 +259,7 @@ def generate_obs_pred_data(datasets, methods, size):
 
             signal.signal(signal.SIGALRM, timeout_handler)
 
-            if method != 'zipf':
+            if (method != 'zipf' and dataset != 'MGRAST'):
 
                 if dataset == 'EMPclosed' or dataset == 'EMPopen':
                     IN = mydir  + dataset + '-Data' + '/' + dataset +'-SADs.txt'
@@ -243,7 +276,7 @@ def generate_obs_pred_data(datasets, methods, size):
                     OUT1 = open(mydir + "ObsPred/" + method +'_'+ 'MGRAST' + dataset+'_obs_pred.txt','w+')
                     OUT2 = open(mydir + "NSR2/" + method +'_'+ 'MGRAST' + dataset+'_NSR2.txt','w+')
 
-            elif method == 'zipf':
+            elif (method == 'zipf' and dataset != 'MGRAST'):
 
                 if dataset == 'EMPclosed' or dataset == 'EMPopen' or dataset == 'HMP':
                     IN = mydir  + dataset + '-Data' + '/' + dataset +'-SADs.txt'
@@ -254,6 +287,10 @@ def generate_obs_pred_data(datasets, methods, size):
                     IN = mydir + 'MGRAST-Data/' + dataset +  '/' + 'MGRAST-' + dataset + '-SADs.txt'
                     OUT1 = open(mydir + "ObsPred/" + method +'_'+ 'MGRAST' + dataset+'_obs_pred.txt','w+')
                     OUT2 = open(mydir + "NSR2/" + method +'_'+ 'MGRAST' + dataset+'_NSR2.txt','w+')
+            elif dataset == 'MGRAST':
+                IN = mydir + 'MGRAST-Data/MGRAST/MGRAST-SADs.txt'
+                OUT1 = open(mydir + "ObsPred/" + method +'_'+ 'MGRAST_obs_pred.txt','w+')
+                OUT2 = open(mydir + "NSR2/" + method +'_'+ 'MGRAST_NSR2.txt','w+')
 
             num_lines = sum(1 for line in open(IN))
             random_sites = np.random.randint(num_lines, size=size)
@@ -410,19 +447,24 @@ def plot_obs_pred_sad(methods, datasets, n, data_dir=mydir, radius=2): # TAKEN F
     plot_dim = len(datasets)
     for i, dataset in enumerate(datasets):
         for j, method in enumerate(methods):
-
-            if str(dataset) == 'EMPclosed' or str(dataset) == 'EMPopen':
+            if str(dataset) == 'EMPopen' and method != 'zipf':
+                obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred_subset.txt')
+            elif str(dataset) == 'EMPopen' and method == 'zipf':
                 obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred.txt')
-
+            elif str(dataset) == 'EMPclosed':
+                obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred.txt')
             elif str(dataset) == 'HMP':
                 obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred.txt')
-
+            elif str(dataset) == 'MGRAST':
+                obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method + '_' + 'MGRAST_obs_pred.txt')
             else:
                 obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method + '_' + 'MGRAST' + dataset +'_obs_pred.txt')
 
             print method, dataset
 
             site = ((obs_pred_data["site"]))
+            print "Dataset " + str(dataset) + " for method " + str(method) + " has "+ str(len(set(site))) + " sites"
+
             obs = list(((obs_pred_data["obs"])))
             pred = list(((obs_pred_data["pred"])))
             obs2 = []
@@ -443,10 +485,13 @@ def plot_obs_pred_sad(methods, datasets, n, data_dir=mydir, radius=2): # TAKEN F
 	                site2.append(site[ind])
 
 
-            obs = list(obs2)
-            pred = list(pred2)
-            site = list(site2)
-
+            #obs = list(obs2)
+            #pred = list(pred2)
+            #site = list(site2)
+            obs = np.asarray(obs2)
+            pred = np.asarray(pred2)
+            site =  np.asarray(site2)
+            #obs_array = np.asarray(mylist)
             if method == 'zipf':
                 axis_min = 0.5 * min(pred)
                 axis_max = 10  * max(pred)
@@ -462,9 +507,9 @@ def plot_obs_pred_sad(methods, datasets, n, data_dir=mydir, radius=2): # TAKEN F
                     if dataset == 'HMP':
                         ax.set_ylabel("HMP", rotation=90, size=12)
                     elif dataset == 'EMPclosed':
-                        ax.set_ylabel("EMP Closed", rotation=90, size=12)
+                        ax.set_ylabel("EMP (closed)", rotation=90, size=12)
                     elif  dataset == 'EMPopen':
-                        ax.set_ylabel("EMP Open", rotation=90, size=12)
+                        ax.set_ylabel("EMP (open)", rotation=90, size=12)
                     elif dataset == '97':
                         ax.set_ylabel("MG-RAST", rotation=90, size=12)
                 if all(x in datasets for x in ['95', '97', '99']) == True:
@@ -479,7 +524,13 @@ def plot_obs_pred_sad(methods, datasets, n, data_dir=mydir, radius=2): # TAKEN F
                         ax.set_ylabel("HMP", rotation=90, size=12)
                     elif dataset == 'EMPclosed' or method == 'EMPopen':
                         ax.set_ylabel("EMP", rotation=90, size=12)
+                    #elif dataset == 'EMPclosed':
+                    #    ax.set_ylabel("EMP (closed)", rotation=90, size=12)
+                    #elif dataset == 'EMPopen':
+                    #       ax.set_ylabel("EMP (open)", rotation=90, size=12)
                     elif dataset == '97':
+                        ax.set_ylabel("MG-RAST", rotation=90, size=12)
+                    elif dataset == 'MGRAST':
                         ax.set_ylabel("MG-RAST", rotation=90, size=12)
             if i == 0 and j == 0:
                 ax.set_title("Broken-stick")
@@ -488,7 +539,8 @@ def plot_obs_pred_sad(methods, datasets, n, data_dir=mydir, radius=2): # TAKEN F
             elif i == 0 and j == 2:
                 ax.set_title("Zipf")
 
-
+            print len(obs), len(pred)
+            print obs[:10]
             macroecotools.plot_color_by_pt_dens(pred, obs, radius, loglog=1,
                             plot_obj=plt.subplot(plot_dim,plot_dim,count+1))
 
@@ -496,7 +548,7 @@ def plot_obs_pred_sad(methods, datasets, n, data_dir=mydir, radius=2): # TAKEN F
             plt.xlim(axis_min, axis_max)
             plt.ylim(axis_min, axis_max)
 
-            plt.tick_params(axis='both', which='major', labelsize=8)
+            plt.tick_params(axis='both', which='major', labelsize=7)
             plt.subplots_adjust(wspace=0.5, hspace=0.3)
 
             axins = inset_axes(ax, width="30%", height="30%", loc=4)
@@ -513,7 +565,8 @@ def plot_obs_pred_sad(methods, datasets, n, data_dir=mydir, radius=2): # TAKEN F
                 hist_mete_r2(site, np.log10(obs), np.log10(pred))
             plt.setp(axins, xticks=[], yticks=[])
             count += 1
-        count += (len(datasets) - len(methods))
+        #count += (len(datasets) - len(methods))
+        #count += 1
 
     #ax.set_ylabel(-8.5,500,'Observed rank-abundance',rotation='90',fontsize=10)
     fig.subplots_adjust(wspace=0.0001, left=0.1)
@@ -553,7 +606,8 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
 
                 elif dataset == 'HMP':
                     nsr2_data = import_NSR2_data(data_dir + 'NSR2/' + method+'_'+dataset+'_NSR2.txt')
-
+                elif dataset == 'MGRAST':
+                    nsr2_data = import_NSR2_data(data_dir + 'NSR2/' + method+'_MGRAST_NSR2.txt')
                 else:
                     nsr2_data = import_NSR2_data(data_dir + 'NSR2/' + method+'_MGRAST'+dataset+'_NSR2.txt')
 
@@ -563,8 +617,8 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
                 mean = np.mean(y)
                 std_error = sp.stats.sem(y)
                 print method, param, dataset
-                print "mean r2 = " + str(mean)
-                print "r2 standard error = " + str(std_error)
+                print "mean modified r2 = " + str(mean)
+                print "modified r2 standard error = " + str(std_error)
 
                 #print method, dataset, param
                 ax = fig.add_subplot(3, 3, count+1)
@@ -585,6 +639,8 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
                 macroecotools.plot_color_by_pt_dens(x, y, 0.1, loglog=0,
                                 plot_obj=plt.subplot(3, 3, count+1))
                 slope, intercept, r_value, p_value, std_err = stats.linregress(x,y)
+                print "r-value is " + str(r_value)
+                print "p-value is " + str(p_value)
                 #if param == 'N/S':
                 #    plt.xlim(np.amin(x), 1000)
                 #else:
@@ -637,7 +693,6 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
                 #leg.draw_frame(False)
                 #plt.legend(loc='upper left')
 
-                print r_value, p_value
                 count += 1
 
     if '97' in datasets:
@@ -649,12 +704,15 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
     elif '99' in datasets:
         title = "MG-RAST 99%"
         fig.suptitle(title, x = 0.54, y = 1.05, fontsize=16)
+    elif 'MGRAST' in datasets:
+        title = "MG-RAST"
+        fig.suptitle(title, x = 0.54, y = 1.05, fontsize=16)
     elif 'HMP' in datasets:
         fig.suptitle("HMP", x = 0.54, y = 1.05, fontsize=16)
     elif 'EMPclosed' in datasets:
-        fig.suptitle("EMP Closed", x = 0.54, y = 1.05, fontsize=16)
+        fig.suptitle("EMP (closed)", x = 0.54, y = 1.05, fontsize=16)
     elif 'EMPopen' in datasets:
-        fig.suptitle("EMP Open", x = 0.54, y = 1.05, fontsize=16)
+        fig.suptitle("EMP (open)", x = 0.54, y = 1.05, fontsize=16)
 
     fig.subplots_adjust(wspace = 0.2, hspace = 0.2, top=0.70)
 
@@ -684,6 +742,8 @@ def zipf_mle_plots(data_dir= mydir):
                 zipf_data = import_NSR2_data(data_dir + 'NSR2/zipf_'+ dataset+'_NSR2.txt')
             elif dataset == 'HMP':
                 zipf_data = import_NSR2_data(data_dir + 'NSR2/zipf_' + dataset+'_NSR2.txt')
+            elif dataset == 'MGRAST':
+                zipf_data = import_NSR2_data(data_dir + 'NSR2/zipf_' + dataset+'_NSR2.txt')
             else:
                 zipf_data = import_NSR2_data(data_dir + 'NSR2/zipf_MGRAST' + dataset+'_NSR2.txt')
 
@@ -712,9 +772,9 @@ def zipf_mle_plots(data_dir= mydir):
                 #plt.ylabel(r'$HMP$', rotation=90, fontsize = 12)
                 ax.set_ylabel(r'HMP' '\n' r'$\alpha$', rotation=90, size=12)
 
-            elif dataset == 'EMPclosed' or dataset == 'EMPopen':
+            elif dataset == 'EMPclosed':
                 #ax.set_ylabel("EMP", rotation=90, size=12)
-                ax.set_ylabel(r'EMP' '\n' r'$\alpha$', rotation=90, size=12)
+                ax.set_ylabel(r'EMP (closed)' '\n' r'$\alpha$', rotation=90, size=12)
                 #plt.ylabel(r'$EMP$', rotation=90, fontsize = 12)
 
             elif dataset == '97':
@@ -722,6 +782,8 @@ def zipf_mle_plots(data_dir= mydir):
 
                 ax.set_ylabel(r'MG-RAST' '\n' r'$\alpha$', rotation=90, size=12)
                 #plt.ylabel(r'$MG-RAST$', rotation=90, fontsize = 12)
+            elif dataset == 'MGRAST':
+                ax.set_ylabel(r'MG-RAST' '\n' r'$\alpha$', rotation=90, size=12)
 
             if i == 2:
                 plt.xlabel(r'$N_{0}$', fontsize = 12)
@@ -788,28 +850,29 @@ def zipf_mle_plots(data_dir= mydir):
         plt.close()
 
 
-#params = ['N','S', 'N/S']
+params = ['N','S', 'N/S']
 #params = ['N/S']
 
-#datasets = ['HMP', 'EMPclosed','EMPopen','97']
-#datasets = [ 'EMPclosed','EMPopen','95', '97','99']
-datasets = ['HMP', 'EMPclosed', '97']
+datasets = ['HMP', 'EMPclosed','MGRAST']
+#datasets = ['HMP', 'EMPclosed','EMPopen']
+#datasets = ['HMP', 'EMPclosed', '97']
 #datasets = ['95', '97','99']
+#datasets = ['EMPclosed']
 #datasets = ['EMPopen']
-#datasets = ['95']
-#datasets = ['MGRAST']
 
 methods = ['geom', 'mete','zipf']
 #methods = ['zipf']
 
 #generate_obs_pred_data(datasets, methods, 0)
 
-size = 10000 # number of obs_pred datapoints to plot ( HMP has ~352899 )
+size = 352899 # number of obs_pred datapoints to plot ( HMP has ~352899 )
 #size = 'all' # use this if plotting all the data
-plot_obs_pred_sad(methods, datasets, size)
+#plot_obs_pred_sad(methods, datasets, size)
 
 #NSR2_regression(methods, datasets, data_dir= mydir)
 
-#zipf_mle_plots(data_dir= mydir)
+zipf_mle_plots(data_dir= mydir)
 
 #get_SADs_mgrast(mydir, datasets)
+
+#get_SADs_mgrast_test(mydir)
