@@ -853,8 +853,8 @@ def zipf_mle_plots(data_dir= mydir):
 params = ['N','S', 'N/S']
 #params = ['N/S']
 
-datasets = ['HMP', 'EMPclosed','MGRAST']
-#datasets = ['HMP', 'EMPclosed','EMPopen']
+#datasets = ['HMP', 'EMPclosed','MGRAST']
+datasets = ['HMP', 'EMPclosed','EMPopen']
 #datasets = ['HMP', 'EMPclosed', '97']
 #datasets = ['HMP', 'EMPclosed','EMPopen','97']
 #datasets = [ 'EMPclosed','EMPopen','95', '97','99']
@@ -867,16 +867,15 @@ datasets = ['HMP', 'EMPclosed','MGRAST']
 methods = ['geom', 'mete','zipf']
 #methods = ['zipf']
 
-generate_obs_pred_data(datasets, methods, 0)
 
 size = 352899 # number of obs_pred datapoints to plot ( HMP has ~352899 )
 #size = 10000 # number of obs_pred datapoints to plot ( HMP has ~352899 )
 #size = 'all' # use this if plotting all the data
-#plot_obs_pred_sad(methods, datasets, size)
+plot_obs_pred_sad(methods, datasets, size)
 
 #NSR2_regression(methods, datasets, data_dir= mydir)
 
-zipf_mle_plots(data_dir= mydir)
+#zipf_mle_plots(data_dir= mydir)
 
 #get_SADs_mgrast(mydir, datasets)
 
