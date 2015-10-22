@@ -734,7 +734,8 @@ def zipf_mle_plots(data_dir= mydir):
         fig = plt.figure()
 
         count  = 0
-        datasets = ['HMP', 'EMPclosed','97']
+        datasets = ['HMP', 'EMPclosed','EMPopen', 'MGRAST']
+        #datasets = ['95','97','99']
         plot_dim = len(datasets)
 
         for i, dataset in enumerate(datasets):
@@ -771,16 +772,25 @@ def zipf_mle_plots(data_dir= mydir):
                 #ax.set_ylabel("HMP", rotation=90, size=12)
                 #plt.ylabel(r'$HMP$', rotation=90, fontsize = 12)
                 ax.set_ylabel(r'HMP' '\n' r'$\alpha$', rotation=90, size=12)
-
+            elif dataset == 'EMPopen':
+                #ax.set_ylabel("EMP", rotation=90, size=12)
+                ax.set_ylabel(r'EMP (open)' '\n' r'$\alpha$', rotation=90, size=12)
             elif dataset == 'EMPclosed':
                 #ax.set_ylabel("EMP", rotation=90, size=12)
                 ax.set_ylabel(r'EMP (closed)' '\n' r'$\alpha$', rotation=90, size=12)
                 #plt.ylabel(r'$EMP$', rotation=90, fontsize = 12)
+            elif dataset == '95':
+                #ax.set_ylabel("MG-RAST", rotation=90, size=12)
 
+                ax.set_ylabel(r'MG-RAST 95%' '\n' r'$\alpha$', rotation=90, size=12)
             elif dataset == '97':
                 #ax.set_ylabel("MG-RAST", rotation=90, size=12)
 
-                ax.set_ylabel(r'MG-RAST' '\n' r'$\alpha$', rotation=90, size=12)
+                ax.set_ylabel(r'MG-RAST 97%' '\n' r'$\alpha$', rotation=90, size=12)
+            elif dataset == '99':
+                #ax.set_ylabel("MG-RAST", rotation=90, size=12)
+
+                ax.set_ylabel(r'MG-RAST 99%' '\n' r'$\alpha$', rotation=90, size=12)
                 #plt.ylabel(r'$MG-RAST$', rotation=90, fontsize = 12)
             elif dataset == 'MGRAST':
                 ax.set_ylabel(r'MG-RAST' '\n' r'$\alpha$', rotation=90, size=12)
@@ -806,6 +816,7 @@ def zipf_mle_plots(data_dir= mydir):
             plt.ylim(np.amin(y),0)
             plt.xticks(fontsize = 8) # work on current fig
             plt.yticks(fontsize = 8)
+            plt.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.1'))
             predict_y = intercept + slope * x
             pred_error = y - predict_y
             degrees_of_freedom = len(x) - 2
@@ -854,15 +865,15 @@ params = ['N','S', 'N/S']
 #params = ['N/S']
 
 #datasets = ['HMP', 'EMPclosed','MGRAST']
-datasets = ['HMP', 'EMPclosed','EMPopen']
+#datasets = ['HMP', 'EMPclosed','EMPopen']
 #datasets = ['HMP', 'EMPclosed', '97']
 #datasets = ['HMP', 'EMPclosed','EMPopen','97']
 #datasets = [ 'EMPclosed','EMPopen','95', '97','99']
 #datasets = ['HMP', 'EMPclosed', '97']
 #datasets = ['MCDB', 'BBS', 'GENTRY']
-#datasets = ['95', '97','99']
+datasets = ['95', '97','99']
 #datasets = ['EMPclosed']
-#datasets = ['EMPopen']
+#datasets = ['MGRAST']
 
 methods = ['geom', 'mete','zipf']
 #methods = ['zipf']
@@ -871,11 +882,11 @@ methods = ['geom', 'mete','zipf']
 size = 352899 # number of obs_pred datapoints to plot ( HMP has ~352899 )
 #size = 10000 # number of obs_pred datapoints to plot ( HMP has ~352899 )
 #size = 'all' # use this if plotting all the data
-plot_obs_pred_sad(methods, datasets, size)
+#plot_obs_pred_sad(methods, datasets, size)
 
 #NSR2_regression(methods, datasets, data_dir= mydir)
 
-#zipf_mle_plots(data_dir= mydir)
+zipf_mle_plots(data_dir= mydir)
 
 #get_SADs_mgrast(mydir, datasets)
 
