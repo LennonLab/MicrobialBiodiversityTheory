@@ -737,7 +737,6 @@ def zipf_mle_plots(data_dir= mydir):
         datasets = ['HMP', 'EMPclosed','EMPopen', 'MGRAST']
         #datasets = ['95','97','99']
         plot_dim = len(datasets)
-
         for i, dataset in enumerate(datasets):
             if  (dataset == 'EMPopen' or dataset == 'EMPclosed'):
                 zipf_data = import_NSR2_data(data_dir + 'NSR2/zipf_'+ dataset+'_NSR2.txt')
@@ -765,9 +764,8 @@ def zipf_mle_plots(data_dir= mydir):
             slope, intercept, r_value, p_value, std_err = stats.linregress(N,y)
             plt.xlim(np.amin(N), np.amax(N))
             plt.ylim(np.amin(y),0)
-            plt.xticks(fontsize = 8) # work on current fig
-            plt.yticks(fontsize = 8)
-
+            plt.xticks(fontsize = 6) # work on current fig
+            plt.yticks(fontsize = 6)
             if dataset == 'HMP':
                 #ax.set_ylabel("HMP", rotation=90, size=12)
                 #plt.ylabel(r'$HMP$', rotation=90, fontsize = 12)
@@ -795,7 +793,7 @@ def zipf_mle_plots(data_dir= mydir):
             elif dataset == 'MGRAST':
                 ax.set_ylabel(r'MG-RAST' '\n' r'$\alpha$', rotation=90, size=12)
 
-            if i == 2:
+            if i == plot_dim-1:
                 plt.xlabel(r'$N_{0}$', fontsize = 12)
                 #ax.set_xlabel("N", rotation=0, size=12)
             predict_y = intercept + slope * N
@@ -814,9 +812,8 @@ def zipf_mle_plots(data_dir= mydir):
             slope, intercept, r_value, p_value, std_err = stats.linregress(x,y)
             plt.xlim(np.amin(x), np.amax(x))
             plt.ylim(np.amin(y),0)
-            plt.xticks(fontsize = 8) # work on current fig
-            plt.yticks(fontsize = 8)
-            plt.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.1'))
+            plt.xticks(fontsize = 6) # work on current fig
+            plt.yticks(fontsize = 6)
             predict_y = intercept + slope * x
             pred_error = y - predict_y
             degrees_of_freedom = len(x) - 2
@@ -825,7 +822,7 @@ def zipf_mle_plots(data_dir= mydir):
             plt.plot(x, predict_y, 'k-')
             plt.axhline(linewidth=2, color='darkgrey',ls='--')
 
-            if i == 2:
+            if i == plot_dim-1:
                 plt.xlabel(r"$N_{max}$", fontsize = 12)
             #plt.hline(0, xmin, xmax, color="0.3", ls='--')
             plt.ylabel(r'$\alpha$', fontsize = 12)
@@ -840,11 +837,11 @@ def zipf_mle_plots(data_dir= mydir):
             plt.subplot(plot_dim, plot_dim, count+3)
             plt.plot(ys,density(ys))
 
-            plt.xticks(fontsize = 8) # work on current fig
-            plt.yticks(fontsize = 8)
-            if i == 2:
+            plt.xticks(fontsize = 6) # work on current fig
+            plt.yticks(fontsize = 6)
+            if i == plot_dim-1:
                 plt.xlabel(r'$\alpha$', fontsize = 12)
-            plt.ylabel('Probability Density', fontsize = 9)
+            plt.ylabel('Probability Density', fontsize = 7)
             #plt.legend(loc='best')
             count += plot_dim
 
@@ -867,11 +864,10 @@ params = ['N','S', 'N/S']
 #datasets = ['HMP', 'EMPclosed','MGRAST']
 #datasets = ['HMP', 'EMPclosed','EMPopen']
 #datasets = ['HMP', 'EMPclosed', '97']
-#datasets = ['HMP', 'EMPclosed','EMPopen','97']
-#datasets = [ 'EMPclosed','EMPopen','95', '97','99']
+datasets = [ 'EMPclosed','EMPopen','MGRAST']
 #datasets = ['HMP', 'EMPclosed', '97']
 #datasets = ['MCDB', 'BBS', 'GENTRY']
-datasets = ['95', '97','99']
+#datasets = ['95', '97','99']
 #datasets = ['EMPclosed']
 #datasets = ['MGRAST']
 
