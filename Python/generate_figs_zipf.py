@@ -15,7 +15,8 @@ from sys import argv
 
 
 import macroeco_distributions as md
-import macroecotools
+import size
+
 
 import mete
 
