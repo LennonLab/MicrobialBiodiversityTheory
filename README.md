@@ -2,20 +2,57 @@
 Project repository for data and Python code associated with the testing of maximum entropy theory in microbial ecology. 
 
 
-###To do's:
-**Ken:**  
-- [x] MG-RAST data for 95% and 99%  
-- [x] Start lit cited.
+## Re-running the Analyses/ Generating the Figures
+The code accepts arguments from the user. 
 
-**Will:**  
-- [x] Figures  
-- [x] Finish table 1  
-- [x] Refine/finish lit cited.  
-- [x] Edit and revise main body.	
-- [x] Add average N and S to Table 1.  
-- [x] Create draft using RMarkdown.   
-- [x] Fix Markdown tables  
-- [x] Complete Zipf analysis
+**Flags**
+
+**-f:** If the data is already in the file path, a figure will be generated using this argument. The argument specifies which figure is generated. 
+
+| Argument |          Figure         |
+|:--------:|:-----------------------:|
+|     1    |         Figure 1        |
+|     2    |         Figure 2        |
+|    S1    |  Supplementary figure 1 |
+|    S2    |  Supplementary figure 2 |
+|    S3    |  Supplementary figure 3 |
+|    S4    |  Supplementary figure 4 |
+|    S5    |  Supplementary figure 5 |
+| S6       | Supplementary figure 6  |
+| S7       | Supplementary figure 7  |
+| S8       | Supplementary figure 8  |
+| S9       | Supplementary figure 9  |
+| S10      | Supplementary figure 10 |
+
+ 
+**-a:**  Argument for rerunning the analysis used to generate the observed vs. predicted file and NSR2 file for a given figure. Inputs are 'Yes' or 'No.' Default is 'No.'
+
+
+**-r:** Run all analyses and generate all figures used in the main body and supplement of the paper.  
+
+
+
+**Ex:** To generate the analysis and figure for supplemental figure 7, the script would be run with the following arguments.  
+
+	python generate_figs_zipf.py -a yes -f S7
+
+## Dependencies
+
+Python version 2.7.10-2 is used. 
+
+The following Python modules are used in this analysis.
+
++ numpy 1.10.1-py27_0
+
++ matplotlib 1.4.2-np19py27_0
+
++ scipy 0.16.0
+
++ [macroeco_distributions](https://github.com/weecology/macroecotools)
+
++ [macroecotools](https://github.com/weecology/macroecotools)
+
++ [mete](https://github.com/weecology/METE)
 
 ## The MIT License (MIT)
 
