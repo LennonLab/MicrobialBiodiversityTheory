@@ -3,7 +3,10 @@ Project repository for data and Python code associated with the testing of maxim
 
 
 ## Re-running the Analyses/ Generating the Figures
-The code accepts arguments from the user. 
+
+Files in the data folder ending with ".zip" will have to be unzipped before the code can be run.
+
+The code accepts the following arguments from the user. 
 
 **Flags**
 
