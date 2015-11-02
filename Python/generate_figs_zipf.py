@@ -17,6 +17,7 @@ from sys import argv
 import macroeco_distributions as md
 import macroecotools
 
+
 import mete
 
 #mydir = os.path.expanduser("~/github/MicroMETE/data/")
@@ -294,6 +295,7 @@ def generate_obs_pred_data(datasets, methods, size):
                 OUT2 = open(mydir + "NSR2/" + method +'_'+ 'MGRAST_NSR2.txt','w+')
 
             num_lines = sum(1 for line in open(IN))
+
             random_sites = np.random.randint(num_lines, size=size)
 
             line_count = 0
@@ -442,7 +444,7 @@ def plot_obs_pred_sad(methods, datasets, n, data_dir=mydir, radius=2): # TAKEN F
     for i, dataset in enumerate(datasets):
         for j, method in enumerate(methods):
             if str(dataset) == 'EMPopen' and method != 'zipf':
-                obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred_subset.txt')
+                obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred.txt')
             elif str(dataset) == 'EMPopen' and method == 'zipf':
                 obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred.txt')
             elif str(dataset) == 'EMPclosed':
@@ -825,7 +827,8 @@ if __name__ == '__main__':
     generate_data = input_options.a.lower()
     generate_fig = input_options.f.upper()
     generate_all = input_options.r.lower()
-    size = 352899 # number of obs_pred datapoints to plot ( HMP has ~352899 )
+    data_points = 352899 # number of obs_pred datapoints to plot ( HMP has ~352899 )
+    size = 0
     methods = ['geom', 'mete','zipf']
     params = ['N','S', 'N/S']
 
@@ -835,13 +838,13 @@ if __name__ == '__main__':
             datasets = [ 'HMP','EMPclosed','EMPopen','MGRAST','95', '97','99']
             generate_obs_pred_data(datasets_all, methods, size)
             datasets1 = [ 'HMP','EMPclosed','MGRAST']
-            plot_obs_pred_sad(methods, datasets1, size)
+            plot_obs_pred_sad(methods, datasets1, data_points)
             datasets2 = ['HMP']
             NSR2_regression(methods, datasets2, data_dir= mydir)
             datasetsS1 = [ 'HMP','EMPclosed','EMPopen']
-            plot_obs_pred_sad(methods, datasetsS1, size)
+            plot_obs_pred_sad(methods, datasetsS1, data_points)
             datasetsS2 = ['95', '97','99']
-            plot_obs_pred_sad(methods, datasetsS2, size)
+            plot_obs_pred_sad(methods, datasetsS2, data_points)
             datasetsS3 = ['EMPopen']
             NSR2_regression(methods, datasetsS3, data_dir= mydir)
             datasetsS4 = ['HMP']
@@ -864,7 +867,7 @@ if __name__ == '__main__':
             if generate_fig == '1':
                 datasets = [ 'HMP','EMPclosed','MGRAST']
                 generate_obs_pred_data(datasets, methods, size)
-                plot_obs_pred_sad(methods, datasets, size)
+                plot_obs_pred_sad(methods, datasets, data_points)
             elif generate_fig == '2':
                 datasets = ['HMP']
                 generate_obs_pred_data(datasets, methods, size)
@@ -872,11 +875,11 @@ if __name__ == '__main__':
             elif generate_fig == 'S1':
                 datasets = [ 'HMP','EMPclosed','EMPopen']
                 generate_obs_pred_data(datasets, methods, size)
-                plot_obs_pred_sad(methods, datasets, size)
+                plot_obs_pred_sad(methods, datasets, data_points)
             elif generate_fig == 'S2':
                 datasets = ['95', '97','99']
                 generate_obs_pred_data(datasets, methods, size)
-                plot_obs_pred_sad(methods, datasets, size)
+                plot_obs_pred_sad(methods, datasets, data_points)
             elif generate_fig == 'S3':
                 datasets = ['EMPopen']
                 generate_obs_pred_data(datasets, methods, size)
@@ -915,16 +918,16 @@ if __name__ == '__main__':
         elif generate_data == 'no':
             if generate_fig == '1':
                 datasets = [ 'HMP','EMPclosed','MGRAST']
-                plot_obs_pred_sad(methods, datasets, size)
+                plot_obs_pred_sad(methods, datasets, data_points)
             elif generate_fig == '2':
                 datasets = ['HMP']
                 NSR2_regression(methods, datasets, data_dir= mydir)
             elif generate_fig == 'S1':
                 datasets = [ 'HMP','EMPclosed','EMPopen']
-                plot_obs_pred_sad(methods, datasets, size)
+                plot_obs_pred_sad(methods, datasets, data_points)
             elif generate_fig == 'S2':
                 datasets = ['95', '97','99']
-                plot_obs_pred_sad(methods, datasets, size)
+                plot_obs_pred_sad(methods, datasets, data_points)
             elif generate_fig == 'S3':
                 datasets = ['EMPopen']
                 NSR2_regression(methods, datasets, data_dir= mydir)
