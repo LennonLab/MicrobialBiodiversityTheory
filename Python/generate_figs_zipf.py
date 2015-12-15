@@ -13,6 +13,8 @@ import argparse
 import optparse
 from sys import argv
 
+from sklearn.grid_search import GridSearchCV
+from sklearn.neighbors import KernelDensity
 
 import macroeco_distributions as md
 import macroecotools
@@ -816,6 +818,22 @@ def zipf_mle_plots(datasets, data_dir):
         plt.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
         #plt.xscale()
         plt.close()
+
+
+def CV_KDE(x):
+    # remove +/- inf
+    x = x[np.logical_not(np.isnan(x))]
+    grid = GridSearchCV(KernelDensity(),
+                    {'bandwidth': np.logspace(0.1, 5.0, 30)},
+                    cv=20) # 20-fold cross-validation
+    grid.fit(x[:, None])
+    x_grid = np.linspace(np.amin(x), np.amax(x), 10000)
+    kde = grid.best_estimator_
+    print kde.bandwidth
+    pdf = np.exp(kde.score_samples(x_grid[:, None]))
+    # returns grod for x-axis,  pdf, and bandwidth
+    return_tuple = (x_grid, pdf, kde.bandwidth)
+    return return_tuple
 
 
 if __name__ == '__main__':
