@@ -61,8 +61,13 @@ def N_r2_KDE(datasets, methods):
             IN2 = gf.import_NSR2_data(mydir + 'NSR2/' + method+'_'+dataset+'_NSR2.txt')
             r2s = ((IN2["R2"]))
             #r2s = r2s[(r2s >= -1) & (r2s <= 1)]
-            #plt.hist(r2s, bins, alpha=0.5, label = method, color = colors[j])
-            plt.plot(IN1.Grid, IN1.PDF, linewidth=2, alpha=0.5, color =colors[j])
+            if j == 0:
+                ax.plot(IN1.Grid, IN1.PDF, linewidth=2, alpha=0.5, color =colors[j], label='Broken-stick')
+            elif j == 1:
+                ax.plot(IN1.Grid, IN1.PDF, linewidth=2, alpha=0.5, color =colors[j], label='METE')
+            elif j == 2:
+                ax.plot(IN1.Grid, IN1.PDF, linewidth=2, alpha=0.5, color =colors[j], label='Zipf')
+
             #plt.hist(r2s, 30, stacked = True, color = colors[j],   alpha=0.3, normed= True)
             #ax.hist(r2s, 50,color = colors[j],  alpha=0.3)
             #n, bins, patches = plt.hist(r2s, 50, normed=1, facecolor='green', alpha=0.75)
@@ -73,11 +78,41 @@ def N_r2_KDE(datasets, methods):
         print np.min(IN1.PDF)
         figure_name = '../figures/' + str(dataset) + '_KDE.png'
         plt.grid(True)
+        ax.legend(loc='upper left', shadow=False)
         plt.xlabel(r'$r^{2}_{m}$', fontsize = 14)
         plt.ylabel(r'$probability$', fontsize = 14)
+        if i == 0:
+            plt.title('HMP', fontsize = 18)
+        if i == 1:
+            plt.title('EMP', fontsize = 18)
+        if i == 2:
+            plt.title('MG-RAST', fontsize = 18)
         plt.xlim(-7, 1)
         plt.savefig(figure_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
         plt.close()
+
+#def N0_vs_r2(datasets, methods):
+#    for i, dataset in enumerate(datasets):
+#        fig, ax = plt.subplots()
+#        max_x = 0
+#        min_x = 0
+#        for j, method in enumerate(methods):
+#            IN = gf.import_NSR2_data(mydir + 'NSR2/' + method+'_'+dataset+'_NSR2.txt')
+#            r2s = ((IN["R2"]))
+#            N = ((IN["N"]))
+#            ax.scatter(N, r2s, linewidth=2, alpha=0.5, color =colors[j])
+#        figure_name = '../figures/' + str(dataset) + '_N0_vs_r2.png'
+#        plt.grid(True)
+        #ax.legend(loc='upper left', shadow=False)
+        #plt.xlabel(r'$r^{2}_{m}$', fontsize = 14)
+        #plt.ylabel(r'$probability$', fontsize = 14)
+        #plt.xlim(-7, 1)
+#        plt.savefig(figure_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
+#        plt.close()
+
+
+### Next: code tp randomly resample
+
 
 
 #generate_kde_to_file(datasets, methods)
