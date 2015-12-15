@@ -829,7 +829,7 @@ def CV_KDE(x):
     grid.fit(x[:, None])
     x_grid = np.linspace(np.amin(x), np.amax(x), 10000)
     kde = grid.best_estimator_
-    print kde.bandwidth
+    print "bandwidth is " + str(kde.bandwidth)
     pdf = np.exp(kde.score_samples(x_grid[:, None]))
     # returns grod for x-axis,  pdf, and bandwidth
     return_tuple = (x_grid, pdf, kde.bandwidth)
