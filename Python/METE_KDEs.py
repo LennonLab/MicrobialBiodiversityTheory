@@ -9,20 +9,32 @@ import matplotlib
 import random
 from sklearn.neighbors import KernelDensity
 
+
+from scipy.stats import gaussian_kde
+from sklearn.grid_search import GridSearchCV
+from sklearn.neighbors import KernelDensity
+
+
 mydir = os.path.dirname(os.path.realpath(__file__))
 mydir = str(mydir[:-6]) + 'data/'
 
-#datasets = [ 'HMP','EMPclosed','MGRAST']
-datasets = ['HMP', 'EMPclosed']
-#datasets = [ 'EMPclosed']
-
-#methods = ['geom', 'mete','zipf']
-methods = ['zipf',]
-#params = ['N','S', 'N/S']
-colors = ['red', 'green', 'blue']
-
 
 #import_NSR2_data(data_dir + 'NSR2/' + method+'_'+dataset+'_NSR2.txt')
+
+def CV_KDE(x):
+    # remove +/- inf
+    x = x[np.logical_not(np.isnan(x))]
+    grid = GridSearchCV(KernelDensity(),
+                    {'bandwidth': np.logspace(0.1, 5.0, 30)},
+                    cv=20) # 20-fold cross-validation
+    grid.fit(x[:, None])
+    x_grid = np.linspace(np.min(x), np.max(x), len(x))
+    kde = grid.best_estimator_
+    print "bandwidth is " + str(kde.bandwidth)
+    pdf = np.exp(kde.score_samples(x_grid[:, None]))
+    # returns grod for x-axis,  pdf, and bandwidth
+    return_tuple = (x_grid, pdf, kde.bandwidth)
+    return return_tuple
 
 
 
@@ -32,7 +44,7 @@ def generate_kde_to_file(datasets, methods):
             IN = gf.import_NSR2_data(mydir + 'NSR2/' + method+'_'+dataset+'_NSR2.txt')
             r2s = ((IN["R2"]))
             #r2s = r2s[(r2s >= -1) & (r2s <= 1)]
-            r2_kde = gf.CV_KDE(r2s)
+            r2_kde = CV_KDE(r2s)
             r2_kde_table = pd.DataFrame({'Grid':r2_kde[0], 'PDF':r2_kde[1]})
             OUT_name = method + '_' + dataset + '_KDEs.txt'
             OUT_dir = mydir + 'KDEs/'
@@ -51,7 +63,7 @@ def to_percent(y, position):
         return s + '%'
 
 
-def N_r2_KDE(datasets, methods):
+def r2_KDE(datasets, methods):
     bins = np.linspace(-1, 1, 100)
     #fig = plt.figure()
     for i, dataset in enumerate(datasets):
@@ -80,7 +92,7 @@ def N_r2_KDE(datasets, methods):
             if np.min(IN1.PDF) < min_x:
                 min_x = np.min(IN1.PDF)
         print np.min(IN1.PDF)
-        figure_name = '../figures/' + str(dataset) + '_KDE.png'
+        figure_name = '../figures/KDEs/' + str(dataset) + '_KDE.png'
         plt.grid(True)
         ax.legend(loc='upper left', shadow=False)
         plt.xlabel(r'$r^{2}_{m}$', fontsize = 14)
@@ -121,20 +133,45 @@ def random_lines(datasets, methods, sample_size, iterations):
     print df.shape
 
 
+#########################
+#### r2_kde is Deprecated
+#########################
 
-def r2_random_sample_kde(datasets):
+def r2_kde(datasets):
     path = mydir + 'Mean_R2_Random_Sample.txt'
     IN1 = pd.read_csv(path, sep='\t')
     for x in datasets:
         figure_name = str(x) + '.png'
         fig = plt.figure()
         ax = fig.add_subplot(111)
-        if x == 'EMPclosed':
+        x_zipf = str(x) + '_zipf'
+        x_mete = str(x) + '_mete'
+        x_geom = str(x) + '_geom'
+        zipf = IN1[x_zipf].values
+        mete = IN1[x_mete].values
+        geom = IN1[x_geom].values
+        #n, bins, rectangles = ax.hist(zipf, 50, linewidth=2, normed=1, color='blue',alpha=0.5)
+        #fig.canvas.draw()
+        #weights = np.ones_like(zipf)/len(zipf)
+        #print weights
+        #ax.hist(zipf, 50, linewidth=2, normed=1, color='blue',alpha=0.5, density=True)
+        #ax.hist(mete, 15, linewidth=2, normed=True, color='green',alpha=0.5)
+        #ax.hist(geom, 15, linewidth=2, normed=True, color='red',alpha=0.5)
+        #plt.savefig(figure_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
+        #zipf_kde = CV_KDE(zipf)
+        zipf_mete = CV_KDE(mete)
+        #zipf_geom = CV_KDE(geom)
 
-            EMPclosed_zipf = IN1['EMPclosed_zipf'].values
-            EMPclosed_mete = IN1['EMPclosed_mete'].values
-            EMPclosed_geom = IN1['EMPclosed_geom'].values
+        #ax.plot(zipf_kde[0], zipf_kde[1], linewidth=2, alpha=0.5, color = 'blue', label='Zipf')
+        ax.plot(zipf_mete[0], zipf_mete[1], linewidth=2, alpha=0.5, color = 'green', label='METE')
+        #ax.plot(zipf_geom[0], zipf_geom[1], linewidth=2, alpha=0.5, color = 'red', label='Broken-stick')
 
+        plt.savefig(figure_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
+
+            #EMPclosed_zipf = IN1['EMPclosed_zipf'].values
+            #EMPclosed_mete = IN1['EMPclosed_mete'].values
+            #EMPclosed_geom = IN1['EMPclosed_geom'].values
+            #print EMPclosed_geom
             #EMPclosed_zipf_kde = gf.CV_KDE(EMPclosed_zipf)
             #EMPclosed_mete_kde = gf.CV_KDE(EMPclosed_mete)
             #EMPclosed_geom_kde = gf.CV_KDE(EMPclosed_geom)
@@ -142,7 +179,7 @@ def r2_random_sample_kde(datasets):
             #ax.plot(EMPclosed_zipf_kde[0], EMPclosed_zipf_kde[1], linewidth=2, alpha=0.5, color = 'blue', label='Zipf')
             #ax.plot(EMPclosed_mete_kde[0], EMPclosed_mete_kde[1], linewidth=2, alpha=0.5, color = 'green', label='METE')
             #ax.plot(EMPclosed_geom_kde[0], EMPclosed_geom_kde[1], linewidth=2, alpha=0.5, color = 'red', label='Broken-stick')
-            
+
             #kde = KernelDensity(kernel='gaussian', bandwidth=0.2).fit(X.ravel()[:, None])
             #log_dens = kde.score_samples(X_plot)  # evaluate the density model on the data.
             #plt.plot(np.exp(log_dens))
@@ -151,7 +188,6 @@ def r2_random_sample_kde(datasets):
             #ax.hist(EMPclosed_mete, 15, linewidth=2, normed=True, color='green',alpha=0.5)
             #ax.hist(EMPclosed_geom, 15, linewidth=2, normed=True, color='red',alpha=0.5)
 
-            plt.savefig(figure_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
 
         #elif x == 'HMP':
         #    HMP_zipf = IN1['HMP_zipf'].values
@@ -163,14 +199,18 @@ def r2_random_sample_kde(datasets):
 
         #    plt.savefig(figure_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
 
+datasets = [ 'HMP','EMPclosed','MGRAST']
+#datasets = ['HMP']
+#datasets = [ 'EMPclosed']
 
-
-
+methods = ['geom', 'mete','zipf']
+#methods = ['zipf',]
+#params = ['N','S', 'N/S']
+colors = ['red', 'green', 'blue']
 
 #generate_kde_to_file(datasets, methods)
 #N_r2_KDE(datasets, methods)
 sample_size = 1000
 iterations = 10000
 #random_lines(datasets, methods, sample_size, iterations)
-
-r2_random_sample_kde(datasets)
+r2_KDE(datasets, methods)
