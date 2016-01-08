@@ -123,6 +123,7 @@ def get_SADs_mgrast(path, thresholds):
             print>> OUT, sad
 
 
+
 def get_SADs_mgrast_test(path):
     SADdict = {}
     fungi_list = map(str,np.arange(4484945.3, 4485075.3,1))
@@ -154,6 +155,41 @@ def get_SADs_mgrast_test(path):
 
         for sad in SADs:
             print>> OUT, sad
+
+
+def get_SADs_HMP(path):
+
+        IN = path + 'HMP-Data/HMPsparseSbyS_noTimeseries.txt'
+        SADdict = {}
+        with open(IN) as f:
+            for d in f:
+                if d.strip():
+                    d = d.split()
+                    site = d[0]
+                    abundance = int(d[-1])
+
+                    if abundance > 0:
+                        if site not in SADdict:
+                            SADdict[site].append(abundance)
+                        else:
+                            SADdict[site] = [abundance]
+
+        #SADs = SADdict.values()
+        #filteredSADs = {}
+        #filteredSiteNames = []
+        for key, value in SADdict:
+            if len(value) < 10:
+                SADdict.pop(key, None)
+
+        print "You have " + str(len(SADdict)) + " sites"
+
+        OUT1 =  open(path+'HMP-Data/' + 'HMP-SADs.txt', 'w')
+        OUT2 =  open(path+'HMP-Data/' + 'HMP-SADs_site_names.txt', 'w')
+
+        for key, value in SADdict:
+            print>> OUT1, value
+            print>> OUT2, key
+
 
 
 def get_SADs(path, name, closedref=True):
