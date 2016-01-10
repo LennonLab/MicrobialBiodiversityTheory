@@ -8,7 +8,11 @@ from matplotlib.ticker import FuncFormatter
 import matplotlib
 import random
 from sklearn.neighbors import KernelDensity
-
+import signal
+import mete
+import macroecotools
+import macroeco_distributions as md
+from scipy import stats
 
 from scipy.stats import gaussian_kde
 from sklearn.grid_search import GridSearchCV
@@ -107,7 +111,159 @@ def r2_KDE(datasets, methods):
         plt.savefig(figure_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
         plt.close()
 
+
+def get_GeomSeries(N,S,zeros):
+
+    rank = range(1,S+1)
+    cdf = [(S-i+0.5)/S for i in rank]
+    SNratio = S/N
+    if zeros == False:
+        abd = md.trunc_geom.ppf(np.array(cdf), SNratio, N)
+    return abd
+
+
+class TimeoutException(Exception):   # Custom exception class
+    pass
+
+def timeout_handler(signum, frame):   # Custom signal handler
+    raise TimeoutException
+
+
+
+def sample_lines(datasets, methods, iterations):
+    percents = [1.0, 0.50, 0.25, 0.125, 0.0625, 0.03125, 0.015625]
+    # testing percents
+    percent = 0.25
+    #df = pd.DataFrame( range(iterations))
+    for i, dataset in enumerate(datasets):
+        if dataset == 'MGRAST':
+            IN = mydir  + dataset + '-Data' + '/MGRAST-SADs.txt'
+        else:
+            IN = mydir  + dataset + '-Data' + '/' + dataset +'-SADs.txt'
+        OUT = open(mydir + 'SubSampled-Data' + '/' + dataset + '-SubSampled-Data.txt', 'w+')
+        num_lines = sum(1 for line in open(IN))
+        # add percents later, first thing to run, I think
+        #for percent in percents:
+        #    samples = []
+        for j,line in enumerate(open(IN)):
+            if dataset == "HMP":
+                line = line.strip().split(',')
+                line = [x.strip(' ') for x in line]
+                line = [x.strip('[]') for x in line]
+                site_name = line[0]
+                #line.pop(0)
+                line.pop(0)
+            else:
+                line = eval(line)
+            obs = map(int, line)
+            # Calculate relative abundance of each OTU
+            # Use that as weights
+            N_0 = sum(obs)
+            S_0 = len(obs)
+            N_max = max(obs)
+            if S_0 < 10 or N_0 <= S_0:
+                continue
+            # Calculate relative abundance of each OTU
+            # Use that as weights
+            line_ra = map(lambda x: x/N_0, obs)
+            #Nmax = np.amax(obs)
+            sample_size = round(percent * N_0)
+            if sample_size <= 10:
+                continue
+            iteration_count = iterations
+            N_max_list = []
+            N_0_list = []
+            S_0_list = []
+            r2_list_BS = []
+            r2_list_METE = []
+            r2_list_zipf = []
+            gamma_list = []
+            print dataset, N_0, S_0, ' countdown: ', num_lines
+            while iteration_count > 0:
+                sample_k = np.random.multinomial(sample_size, line_ra, size = None)
+                sample_k = sample_k[sample_k != 0]
+                sample_k[::-1].sort()
+                N_k = sum(sample_k)
+                S_k = sample_k.size
+                if S_k < 10 or N_k <= S_k:
+                    continue
+                N_max_k = max(sample_k)
+                # This try/except loop ensures that
+                #   you'll catch TimeoutException when it's sent.
+
+                # ignoring zipf right now  because python alarm isn't working
+
+                #signal.alarm(2)
+                #try:
+                    # Whatever your function that might hang
+                    #Zipf_solve_line = md.zipf_solver(sample_k)
+                    # use S
+                    #rv = stats.zipf(Zipf_solve_line)
+                    #zipf_class = gf.zipf(sample_k)
+                    #pred_tuple = zipf_class.from_cdf()
+                    #pred_zipf = pred_tuple[0]
+                    #gamma = pred_tuple[1]
+                #except TimeoutException:
+                #    continue # continue the while loop if function takes more than x seconds
+                #else:
+                    # Reset the alarm
+                #    signal.alarm(0)
+                #print len(pred_zipf)
+                #r2_zipf = macroecotools.obs_pred_rsquare(np.log10(sample_k), np.log10(pred_zipf))
+                logSeries = mete.get_mete_rad(S_k, N_k)
+                pred_mete = logSeries[0]
+                r2_mete = macroecotools.obs_pred_rsquare(np.log10(sample_k), np.log10(pred_mete))
+                pred_BS = get_GeomSeries(N_k, S_k, False) # False mean no zeros allowed
+                r2_BS = macroecotools.obs_pred_rsquare(np.log10(sample_k), np.log10(pred_BS))
+                #r2_list = [r2_zipf, r2_mete, r2_BS]
+                r2_list = [r2_mete, r2_BS]
+
+                if any( (r2 == -float('inf') ) or (r2 == float('inf') ) or (r2 == float('Nan') ) for r2 in r2_list):
+                    continue
+                N_max_list.append(N_max_k)
+                N_0_list.append(N_k)
+                S_0_list.append(S_k)
+                r2_list_BS.append(r2_BS)
+                r2_list_METE.append(r2_mete)
+                #r2_list_zipf.append(r2_zipf)
+                #gamma_list.append(gamma)
+
+                iteration_count -= 1
+            N_max_mean = np.mean(N_max_list)
+            #N_max_std = np.std(N_max_list)
+
+            N_0_mean = np.mean(N_0_list)
+            #N_0_std = np.std(N_0_list)
+
+            S_0_mean = np.mean(S_0_list)
+            #S_0_std = np.std(S_0_list)
+
+            r2_BS_mean = np.mean(r2_list_BS)
+            #r2_BS_std = np.std(r2_list_BS)
+
+            r2_METE_mean = np.mean(r2_list_METE)
+            #r2_METE_std = np.std(r2_list_METE)
+
+            #r2_zipf_mean = np.mean(r2_list_zipf)
+            #r2_zipf_std = np.std(r2_list_zipf)
+
+            #gamma_mean = np.mean(gamma_list)
+            #gamma_std = np.std(gamma_list)
+            print>> OUT, j, N_0, S_0, N_max, N_max_mean, \
+            N_0_mean, S_0_mean, r2_BS_mean, r2_METE_mean
+            #gamma_mean -= 1
+        OUT.close()
+        print dataset
+
+
+
+
+
+####################################
+##### random_lines is Deprecated####
+####################################
 def random_lines(datasets, methods, sample_size, iterations):
+    '''This piece of code is deprecated.'''
     df = pd.DataFrame( range(iterations))
     for i, dataset in enumerate(datasets):
         if (dataset != 'HMP') or (dataset != 'EMPclose'):
@@ -199,11 +355,13 @@ def r2_kde(datasets):
 
         #    plt.savefig(figure_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
 
-datasets = [ 'HMP','EMPclosed','MGRAST']
-#datasets = ['HMP']
+#datasets = [ 'HMP','EMPclosed','MGRAST']
+datasets = ['HMP']
 #datasets = [ 'EMPclosed']
 
-methods = ['geom', 'mete','zipf']
+
+#methods = ['geom', 'mete','zipf']
+methods = ['geom']
 #methods = ['zipf',]
 #params = ['N','S', 'N/S']
 colors = ['red', 'green', 'blue']
@@ -211,6 +369,7 @@ colors = ['red', 'green', 'blue']
 #generate_kde_to_file(datasets, methods)
 #N_r2_KDE(datasets, methods)
 sample_size = 1000
-iterations = 10000
+#iterations = 10000
 #random_lines(datasets, methods, sample_size, iterations)
-r2_KDE(datasets, methods)
+#r2_KDE(datasets, methods)
+sample_lines(datasets, methods, 20)

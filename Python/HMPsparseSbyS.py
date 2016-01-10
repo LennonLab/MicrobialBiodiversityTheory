@@ -1,10 +1,12 @@
 import pandas as pd
 import numpy as np
 import os
+import generate_figs_zipf as gf
 # Get sample labels of interest.
 
 mydir = os.path.dirname(os.path.realpath(__file__))
 mydir = str(mydir[:-6]) + 'data/'
+
 
 #metadata = pd.read_table('~/github/MicroMETE/data/HMP-Data/ppAll_V35_map.txt', sep='\t', index_col=False)
 #metadata[['VisitNo']] = metadata[['VisitNo']].astype(float)
@@ -22,9 +24,11 @@ def HMP_OTU_to_sparese_SbyS():
     sparsesbys.to_csv("../data/HMP-Data/HMPsparseSbyS.txt", sep='\t', index=False)
 
 def Remove_Time_Series_SADs():
-    metadata = pd.read_table('~/github/MicroMETE/data/HMP-Data/ppAll_V35_map.txt', sep='\t', index_col=False)
+    IN = mydir + 'HMP-Data/ppAll_V35_map.txt'
+    metadata = pd.read_table(IN, sep='\t', index_col=False)
     metadata[['VisitNo']] = metadata[['VisitNo']].astype(float)
     metadata = metadata.loc[metadata['VisitNo'] == float(1)]
+    print metadata.shape
     metadata = metadata[np.isfinite(metadata['NAP'])]
     metadata[['NAP']] = metadata[['NAP']].astype(str)
     metadata.drop_duplicates(cols='NAP', take_last=True)
@@ -88,7 +92,11 @@ def get_SADs_HMP(path):
         # site name filtered out in generate obs pred data
         for key, value in filtered_SADdict.iteritems():
             output = value.insert(0,key)
+            #value = ", ".join(value)
             print>> OUT1, value
             #print>> OUT2, key
-#Remove_Time_Series_SADs()
-get_SADs_HMP(mydir)
+Remove_Time_Series_SADs()
+#get_SADs_HMP(mydir)
+#datasets = ['HMP']
+#methods = ['geom', 'mete','zipf']
+#gf.generate_obs_pred_data()
