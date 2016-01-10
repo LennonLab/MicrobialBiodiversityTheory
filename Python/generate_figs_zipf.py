@@ -70,7 +70,6 @@ class zipf:
             val = (S - i + 0.5)/S
             x = rv.ppf(val)
             rad.append(int(x))
-
         point = collections.namedtuple('Rad_and_p', ['x', 'y'])
         point_return = point(rad, y = p)
         print point_return.x, point_return.y
@@ -156,7 +155,6 @@ def get_SADs_mgrast_test(path):
         for sad in SADs:
             print>> OUT, sad
 
-
 def get_SADs_HMP(path):
 
         IN = path + 'HMP-Data/HMPsparseSbyS_noTimeseries.txt'
@@ -167,29 +165,27 @@ def get_SADs_HMP(path):
                     d = d.split()
                     site = d[0]
                     abundance = int(d[-1])
-
                     if abundance > 0:
                         if site not in SADdict:
-                            SADdict[site].append(abundance)
-                        else:
+                            #SADdict[site] = [abundance]
                             SADdict[site] = [abundance]
+                        else:
+                            SADdict[site].append(abundance)
 
-        #SADs = SADdict.values()
-        #filteredSADs = {}
-        #filteredSiteNames = []
-        for key, value in SADdict:
-            if len(value) < 10:
-                SADdict.pop(key, None)
+        filtered_SADdict = {}
+
+        for key, value in SADdict.iteritems():
+            if len(value) >= 10:
+                filtered_SADdict[key] = value
 
         print "You have " + str(len(SADdict)) + " sites"
 
-        OUT1 =  open(path+'HMP-Data/' + 'HMP-SADs.txt', 'w')
-        OUT2 =  open(path+'HMP-Data/' + 'HMP-SADs_site_names.txt', 'w')
-
-        for key, value in SADdict:
+        OUT1 =  open(path+'HMP-Data/' + 'HMP-SADs.txt', 'w+')
+        # first value of the line is the site name, rest is SAD
+        # site name filtered out in generate obs pred data
+        for key, value in filtered_SADdict.iteritems():
+            output = value.insert(0,key)
             print>> OUT1, value
-            print>> OUT2, key
-
 
 
 def get_SADs(path, name, closedref=True):
@@ -339,14 +335,19 @@ def generate_obs_pred_data(datasets, methods, size):
             line_count = 0
             for j,line in enumerate(open(IN)):
                 if dataset == "HMP":
-                    line = line.split()
+                    #line = line.split()
+                    line = line.strip().split(',')
+                    line = [x.strip(' ') for x in line]
+                    line = [x.strip('[]') for x in line]
+                    site_name = line[0]
+                    #line.pop(0)
+                    line.pop(0)
                 elif size == 0:
                     line = eval(line)
                 else:
                     line = eval(line)
                     if j not in random_sites:
                         continue
-
                 obs = map(int, line)
                 N = sum(obs)
                 S = len(obs)
@@ -360,7 +361,10 @@ def generate_obs_pred_data(datasets, methods, size):
 
                 obs.sort()
                 obs.reverse()
-                print method, dataset, N, S, ' countdown: ', num_lines,
+                if dataset == "HMP":
+                    print method, dataset, N, S, site_name, ' countdown: ', num_lines
+                else:
+                    print method, dataset, N, S, ' countdown: ', num_lines
 
                 if method == 'geom': # Predicted geometric series
                     pred = get_GeomSeries(N, S, False) # False mean no zeros allowed
@@ -397,13 +401,19 @@ def generate_obs_pred_data(datasets, methods, size):
                 if method == 'zipf':
                     if dataset == 'EMPclosed' or dataset == 'EMPopen' or dataset == 'HMP':
                         OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2_subset.txt','a+')
-                        print>> OUT2, j, N, S, Nmax, gamma, r2
+                        if dataset == 'HMP':
+                            print>> OUT2, j, N, S, Nmax, gamma, r2, site_name
+                        else:
+                            print>> OUT2, j, N, S, Nmax, gamma, r2
                         OUT2.close()
                     else:
                         print>> OUT2, j, N, S, Nmax, gamma, r2
                         #print>> OUT3, j, N, S, r2, rv, zipf_class
                 else:
-                    print>> OUT2, j, N, S, r2
+                    if dataset == 'HMP':
+                        print>> OUT2, j, N, S, Nmax, r2, site_name
+                    else:
+                        print>> OUT2, j, N, S, Nmax, r2
                     #print j, N, S, r2
 
 
@@ -461,10 +471,20 @@ def import_NSR2_data(input_filename):   # TAKEN FROM THE mete_sads.py script use
     input_filename_str = str(input_filename)
     #NSR2_method = input_filename_split[-4]
     #method = str(NSR2_method.split('/')[1])
-    if 'zipf' in input_filename_str:
-        data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8", names = ['site','N','S', 'Nmax','gamma','R2'], delimiter = " ")
+    if 'HMP' in input_filename_str:
+        if 'zipf' in input_filename_str:
+            data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8", \
+            names = ['site','N','S', 'Nmax','gamma','R2', 'NAP'], delimiter = " ")
+        else:
+            data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8", \
+            names = ['site','N','S', 'Nmax','R2', 'NAP'], delimiter = " ")
     else:
-        data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8", names = ['site','N','S', 'R2'], delimiter = " ")
+        if 'zipf' in input_filename_str:
+            data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8", \
+            names = ['site','N','S', 'Nmax','gamma','R2'], delimiter = " ")
+        else:
+            data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8", \
+            names = ['site','N','S','Nmax','R2'], delimiter = " ")
     #test = data[0:5000]
     #return test
     return data
