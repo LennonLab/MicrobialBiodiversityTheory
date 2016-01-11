@@ -13,6 +13,7 @@ import mete
 import macroecotools
 import macroeco_distributions as md
 from scipy import stats
+import random
 
 from scipy.stats import gaussian_kde
 from sklearn.grid_search import GridSearchCV
@@ -131,129 +132,157 @@ def timeout_handler(signum, frame):   # Custom signal handler
 
 
 def sample_lines(datasets, methods, iterations):
-    percents = [1.0, 0.50, 0.25, 0.125, 0.0625, 0.03125, 0.015625]
+    percents = [0.500000, 0.250000, 0.125000, 0.062500, 0.031250, 0.015625]
     # testing percents
-    percent = 0.25
+    #percent = 0.25
     #df = pd.DataFrame( range(iterations))
     for i, dataset in enumerate(datasets):
         if dataset == 'MGRAST':
-            IN = mydir  + dataset + '-Data' + '/MGRAST-SADs.txt'
+            IN = mydir  + dataset + '-Data' + '/MGRAST/MGRAST-SADs.txt'
         else:
             IN = mydir  + dataset + '-Data' + '/' + dataset +'-SADs.txt'
-        OUT = open(mydir + 'SubSampled-Data' + '/' + dataset + '-SubSampled-Data.txt', 'w+')
-        num_lines = sum(1 for line in open(IN))
         # add percents later, first thing to run, I think
-        #for percent in percents:
-        #    samples = []
-        for j,line in enumerate(open(IN)):
-            if dataset == "HMP":
-                line = line.strip().split(',')
-                line = [x.strip(' ') for x in line]
-                line = [x.strip('[]') for x in line]
-                site_name = line[0]
-                #line.pop(0)
-                line.pop(0)
-            else:
-                line = eval(line)
-            obs = map(int, line)
-            # Calculate relative abundance of each OTU
-            # Use that as weights
-            N_0 = sum(obs)
-            S_0 = len(obs)
-            N_max = max(obs)
-            if S_0 < 10 or N_0 <= S_0:
-                continue
-            # Calculate relative abundance of each OTU
-            # Use that as weights
-            line_ra = map(lambda x: x/N_0, obs)
-            #Nmax = np.amax(obs)
-            sample_size = round(percent * N_0)
-            if sample_size <= 10:
-                continue
-            iteration_count = iterations
-            N_max_list = []
-            N_0_list = []
-            S_0_list = []
-            r2_list_BS = []
-            r2_list_METE = []
-            r2_list_zipf = []
-            gamma_list = []
-            print dataset, N_0, S_0, ' countdown: ', num_lines
-            while iteration_count > 0:
-                sample_k = np.random.multinomial(sample_size, line_ra, size = None)
-                sample_k = sample_k[sample_k != 0]
-                sample_k[::-1].sort()
-                N_k = sum(sample_k)
-                S_k = sample_k.size
-                if S_k < 10 or N_k <= S_k:
+        for percent in percents:
+            OUT = open(mydir + 'SubSampled-Data' + '/' + dataset + '_' + str(percent) + '_SubSampled_Data.txt', 'w+')
+            #samples = []
+            num_lines = sum(1 for line in open(IN))
+            #done = False
+            for j,line in enumerate(open(IN)):
+                if dataset == "HMP":
+                    line = line.strip().split(',')
+                    line = [x.strip(' ') for x in line]
+                    line = [x.strip('[]') for x in line]
+                    site_name = line[0]
+                    #line.pop(0)
+                    line.pop(0)
+                else:
+                    line = eval(line)
+                obs = map(int, line)
+                # Calculate relative abundance of each OTU
+                # Use that as weights
+                N_0 = sum(obs)
+                S_0 = len(obs)
+                N_max = max(obs)
+                if S_0 < 10 or N_0 <= S_0:
                     continue
-                N_max_k = max(sample_k)
-                # This try/except loop ensures that
-                #   you'll catch TimeoutException when it's sent.
-
-                # ignoring zipf right now  because python alarm isn't working
-
-                #signal.alarm(2)
-                #try:
-                    # Whatever your function that might hang
-                    #Zipf_solve_line = md.zipf_solver(sample_k)
-                    # use S
-                    #rv = stats.zipf(Zipf_solve_line)
-                    #zipf_class = gf.zipf(sample_k)
-                    #pred_tuple = zipf_class.from_cdf()
-                    #pred_zipf = pred_tuple[0]
-                    #gamma = pred_tuple[1]
-                #except TimeoutException:
-                #    continue # continue the while loop if function takes more than x seconds
-                #else:
-                    # Reset the alarm
-                #    signal.alarm(0)
-                #print len(pred_zipf)
-                #r2_zipf = macroecotools.obs_pred_rsquare(np.log10(sample_k), np.log10(pred_zipf))
-                logSeries = mete.get_mete_rad(S_k, N_k)
-                pred_mete = logSeries[0]
-                r2_mete = macroecotools.obs_pred_rsquare(np.log10(sample_k), np.log10(pred_mete))
-                pred_BS = get_GeomSeries(N_k, S_k, False) # False mean no zeros allowed
-                r2_BS = macroecotools.obs_pred_rsquare(np.log10(sample_k), np.log10(pred_BS))
-                #r2_list = [r2_zipf, r2_mete, r2_BS]
-                r2_list = [r2_mete, r2_BS]
-
-                if any( (r2 == -float('inf') ) or (r2 == float('inf') ) or (r2 == float('Nan') ) for r2 in r2_list):
+                # Calculate relative abundance of each OTU
+                # Use that as weights
+                line_ra = map(lambda x: x/N_0, obs)
+                #Nmax = np.amax(obs)
+                sample_size = round(percent * N_0)
+                if sample_size <= 10:
                     continue
-                N_max_list.append(N_max_k)
-                N_0_list.append(N_k)
-                S_0_list.append(S_k)
-                r2_list_BS.append(r2_BS)
-                r2_list_METE.append(r2_mete)
-                #r2_list_zipf.append(r2_zipf)
-                #gamma_list.append(gamma)
+                iterations_wanted = iterations
+                zipf_count = iterations * 2
+                N_max_list = []
+                N_0_list = []
+                S_0_list = []
+                r2_list_BS = []
+                r2_list_METE = []
+                r2_list_zipf = []
+                gamma_list = []
+                print dataset, N_0, S_0, ' countdown: ', num_lines
+                signal.signal(signal.SIGALRM, timeout_handler)
+                #while (iterations_wanted > 0) and (zipf_count <= (iterations * 2) ):
+                bad_zipf_count = 0
+                bad_zipf_count_threshold = round(0.01 * iterations)
+                total_iterations = iterations + bad_zipf_count_threshold
+                while (total_iterations > 0 ) :
+                    sample_k = np.random.multinomial(sample_size, line_ra, size = None)
+                    sample_k = sample_k[sample_k != 0]
+                    sample_k[::-1].sort()
+                    N_k = sum(sample_k)
+                    S_k = sample_k.size
+                    if S_k < 10 or N_k <= S_k:
+                        continue
+                    N_max_k = max(sample_k)
+                    #print iteration_count
+                    # This try/except loop ensures that
+                    #   you'll catch TimeoutException when it's sent.
 
-                iteration_count -= 1
-            N_max_mean = np.mean(N_max_list)
-            #N_max_std = np.std(N_max_list)
+                    signal.alarm(2)
+                    if bad_zipf_count <= bad_zipf_count_threshold:
+                        try:
+                            zipf_count -= 1
+                            # Whatever your function that might hang
+                            Zipf_solve_line = md.zipf_solver(sample_k)
+                            # use S
+                            rv = stats.zipf(Zipf_solve_line)
+                            zipf_class = gf.zipf(sample_k)
+                            pred_tuple = zipf_class.from_cdf()
+                            pred_zipf = pred_tuple[0]
+                            gamma = pred_tuple[1]
+                            r2_zipf = macroecotools.obs_pred_rsquare(np.log10(sample_k), np.log10(pred_zipf))
+                            if (r2_zipf == -float('inf') ) or (r2_zipf == float('inf') ) or (r2_zipf == float('Nan') ):
+                                continue
+                            else:
+                                r2_list_zipf.append(r2_zipf)
+                                gamma_list.append(gamma)
+                        except TimeoutException:
+                            #continue # continue the while loop if function takes more than x seconds
+                            bad_zipf_count += 1
+                            pass # rest of script happens as normal
+                        else:
+                            # Reset the alarm
+                            signal.alarm(0)
+                    else:
+                        pass
+                    #print len(pred_zipf)
+                    if total_iterations <= bad_zipf_count_threshold:
+                        continue
+                    logSeries = mete.get_mete_rad(S_k, N_k)
+                    pred_mete = logSeries[0]
+                    r2_mete = macroecotools.obs_pred_rsquare(np.log10(sample_k), np.log10(pred_mete))
+                    pred_BS = get_GeomSeries(N_k, S_k, False) # False mean no zeros allowed
+                    r2_BS = macroecotools.obs_pred_rsquare(np.log10(sample_k), np.log10(pred_BS))
+                    #r2_list = [r2_zipf, r2_mete, r2_BS]
+                    r2_list = [r2_mete, r2_BS]
 
-            N_0_mean = np.mean(N_0_list)
-            #N_0_std = np.std(N_0_list)
+                    if any( (r2 == -float('inf') ) or (r2 == float('inf') ) or (r2 == float('Nan') ) for r2 in r2_list):
+                        continue
+                    N_max_list.append(N_max_k)
+                    N_0_list.append(N_k)
+                    S_0_list.append(S_k)
+                    r2_list_BS.append(r2_BS)
+                    r2_list_METE.append(r2_mete)
+                    #if iteration_count >= 20000:
+                    #    done = True
+                    total_iterations -= 1
 
-            S_0_mean = np.mean(S_0_list)
-            #S_0_std = np.std(S_0_list)
+                #if done:
+                #    break
+                num_lines -= 1
+                #if any(len(item) !=  for item in items)
+                N_max_mean = np.mean(N_max_list)
+                #N_max_std = np.std(N_max_list)
 
-            r2_BS_mean = np.mean(r2_list_BS)
-            #r2_BS_std = np.std(r2_list_BS)
+                N_0_mean = np.mean(N_0_list)
+                #N_0_std = np.std(N_0_list)
 
-            r2_METE_mean = np.mean(r2_list_METE)
-            #r2_METE_std = np.std(r2_list_METE)
+                S_0_mean = np.mean(S_0_list)
+                #S_0_std = np.std(S_0_list)
 
-            #r2_zipf_mean = np.mean(r2_list_zipf)
-            #r2_zipf_std = np.std(r2_list_zipf)
+                r2_BS_mean = np.mean(r2_list_BS)
+                #r2_BS_std = np.std(r2_list_BS)
 
-            #gamma_mean = np.mean(gamma_list)
-            #gamma_std = np.std(gamma_list)
-            print>> OUT, j, N_0, S_0, N_max, N_max_mean, \
-            N_0_mean, S_0_mean, r2_BS_mean, r2_METE_mean
-            #gamma_mean -= 1
-        OUT.close()
-        print dataset
+                r2_METE_mean = np.mean(r2_list_METE)
+                #r2_METE_std = np.std(r2_list_METE)
+                if ( len(r2_list_zipf) >= iterations ) or  ( len(gamma_list) >= iterations ):
+                    random.shuffle(r2_list_zipf)
+                    random.shuffle(gamma_list)
+                    r2_zipf_mean = np.mean(r2_list_zipf[0:iterations])
+                    #r2_zipf_std = np.std(r2_list_zipf)
+                    gamma_mean = np.mean(gamma_list[0:iterations])
+                    #gamma_std = np.std(gamma_list)
+                    print>> OUT, j, N_0, S_0, N_max, N_max_mean, \
+                    N_0_mean, S_0_mean, r2_BS_mean, r2_METE_mean, \
+                    r2_zipf_mean, gamma_mean
+                else:
+                    print>> OUT, j, N_0, S_0, N_max, N_max_mean, \
+                    N_0_mean, S_0_mean, r2_BS_mean, r2_METE_mean
+                print "N0 and S0 are " + str(r2_BS_mean) + " "  + str(S_0)
+            OUT.close()
+            print dataset, percent
 
 
 
@@ -372,4 +401,4 @@ sample_size = 1000
 #iterations = 10000
 #random_lines(datasets, methods, sample_size, iterations)
 #r2_KDE(datasets, methods)
-sample_lines(datasets, methods, 20)
+sample_lines(datasets, methods, 10000)
