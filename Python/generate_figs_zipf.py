@@ -6,7 +6,7 @@ import collections
 import scipy as sp
 import  matplotlib.pyplot as plt
 import numpy as np
-from scipy import stats
+from scipy import stats, optimize
 from scipy.stats import gaussian_kde
 from mpl_toolkits.axes_grid.inset_locator import inset_axes
 import argparse
@@ -49,6 +49,19 @@ class zipf:
     def __init__(self, obs):
         self.obs = obs
 
+    def zipf_ll(self, ab, a):
+        """Log-likelihood of the Zipf distribution with x_min = 1."""
+        return sum(stats.zipf.logpmf(ab, a))
+
+    def zipf_solver(self, ab):
+        #ab = self.obs
+        """Obtain the MLE parameter for a Zipf distribution with x_min = 1."""
+        par0 = 1 + len(ab) / (sum(np.log(2 * np.array(ab))))
+        def zipf_func(x):
+            return -self.zipf_ll(ab, x)
+        par = optimize.fmin(zipf_func, x0 = par0, disp=False)[0]
+        return par
+
 
     def from_cdf(self):
         """ Obtain the maximum likelihood form of the Zipf distribution, given
@@ -61,8 +74,9 @@ class zipf:
         This is an actual form of the Zipf distribution, obtained from getting
         the mle for the shape parameter.
         """
+        #print len(self.obs)
 
-        p = md.zipf_solver(self.obs)
+        p = self.zipf_solver(self.obs)
         S = len(self.obs)
         rv = stats.zipf(a=p)
         rad = []
@@ -72,7 +86,7 @@ class zipf:
             rad.append(int(x))
         point = collections.namedtuple('Rad_and_p', ['x', 'y'])
         point_return = point(rad, y = p)
-        print point_return.x, point_return.y
+        #print point_return.x, point_return.y
         return point_return
 
 
@@ -155,37 +169,44 @@ def get_SADs_mgrast_test(path):
         for sad in SADs:
             print>> OUT, sad
 
-def get_SADs_HMP(path):
+def get_SADs_HMP(path, timeseries):
+    timeseries = bool(timeseries)
+    if timeseries == True:
+        IN = path + 'HMP-Data/HMPsparseSbyS_NAP.txt'
+        OUT =  open(path+'HMP-Data/' + 'HMP-SADs_NAP.txt', 'w+')
+    else:
+        IN = path + 'HMP-Data/HMPsparseSbyS_NAP_noTimeseries.txt'
+        OUT =  open(path+'HMP-Data/' + 'HMP-SADs_NAP_noTimeseries.txt', 'w+')
+    SADdict = {}
+    with open(IN) as f:
+        for d in f:
+            if d.strip():
+                d = d.split()
+                site = d[0]
+                abundance = int(d[-1])
+                if abundance > 0:
+                    if site not in SADdict:
+                        #SADdict[site] = [abundance]
+                        SADdict[site] = [abundance]
+                    else:
+                        SADdict[site].append(abundance)
 
-        IN = path + 'HMP-Data/HMPsparseSbyS_noTimeseries.txt'
-        SADdict = {}
-        with open(IN) as f:
-            for d in f:
-                if d.strip():
-                    d = d.split()
-                    site = d[0]
-                    abundance = int(d[-1])
-                    if abundance > 0:
-                        if site not in SADdict:
-                            #SADdict[site] = [abundance]
-                            SADdict[site] = [abundance]
-                        else:
-                            SADdict[site].append(abundance)
+    #SADs = SADdict.values()
+    filtered_SADdict = {}
+    #filteredSiteNames = []
 
-        filtered_SADdict = {}
+    for key, value in SADdict.iteritems():
+        if len(value) >= 10:
+            filtered_SADdict[key] = value
 
-        for key, value in SADdict.iteritems():
-            if len(value) >= 10:
-                filtered_SADdict[key] = value
+    print "You have " + str(len(SADdict)) + " sites"
 
-        print "You have " + str(len(SADdict)) + " sites"
-
-        OUT1 =  open(path+'HMP-Data/' + 'HMP-SADs.txt', 'w+')
-        # first value of the line is the site name, rest is SAD
-        # site name filtered out in generate obs pred data
-        for key, value in filtered_SADdict.iteritems():
-            output = value.insert(0,key)
-            print>> OUT1, value
+    # first value of the line is the site name, rest is SAD
+    # site name filtered out in generate obs pred data
+    for key, value in filtered_SADdict.iteritems():
+        output = value.insert(0,key)
+        #value = ", ".join(value)
+        print>> OUT, value
 
 
 def get_SADs(path, name, closedref=True):
@@ -297,13 +318,13 @@ def generate_obs_pred_data(datasets, methods, size):
 
             if (method != 'zipf' and dataset != 'MGRAST'):
 
-                if dataset == 'EMPclosed' or dataset == 'EMPopen':
+                if dataset == 'EMPclosed' or dataset == 'EMPopen' :
                     IN = mydir  + dataset + '-Data' + '/' + dataset +'-SADs.txt'
-                    OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred_subset.txt','w+')
-                    OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2_subset.txt','w+')
+                    OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred.txt','w+')
+                    OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2.txt','w+')
 
                 elif dataset == "HMP":
-                    IN = mydir  + dataset + '-Data' + '/' + dataset +'-SADs.txt'
+                    IN = mydir  + dataset + '-Data' + '/' + dataset +'-SADs_NAP.txt'
                     OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred.txt','w+')
                     OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2.txt','w+')
 
@@ -316,8 +337,8 @@ def generate_obs_pred_data(datasets, methods, size):
 
                 if dataset == 'EMPclosed' or dataset == 'EMPopen' or dataset == 'HMP':
                     IN = mydir  + dataset + '-Data' + '/' + dataset +'-SADs.txt'
-                    OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred_subset.txt','w+')
-                    OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2_subset.txt','w+')
+                    OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred.txt','w+')
+                    OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2.txt','w+')
 
                 else:
                     IN = mydir + 'MGRAST-Data/' + dataset +  '/' + 'MGRAST-' + dataset + '-SADs.txt'
@@ -340,7 +361,6 @@ def generate_obs_pred_data(datasets, methods, size):
                     line = [x.strip(' ') for x in line]
                     line = [x.strip('[]') for x in line]
                     site_name = line[0]
-                    #line.pop(0)
                     line.pop(0)
                 elif size == 0:
                     line = eval(line)
@@ -400,7 +420,7 @@ def generate_obs_pred_data(datasets, methods, size):
                     continue
                 if method == 'zipf':
                     if dataset == 'EMPclosed' or dataset == 'EMPopen' or dataset == 'HMP':
-                        OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2_subset.txt','a+')
+                        OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2.txt','a+')
                         if dataset == 'HMP':
                             print>> OUT2, j, N, S, Nmax, gamma, r2, site_name
                         else:
@@ -472,12 +492,12 @@ def import_NSR2_data(input_filename):   # TAKEN FROM THE mete_sads.py script use
     #NSR2_method = input_filename_split[-4]
     #method = str(NSR2_method.split('/')[1])
     if 'HMP' in input_filename_str:
-        if 'zipf' in input_filename_str:
+        if ('zipf' in input_filename_str) :
             data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8", \
             names = ['site','N','S', 'Nmax','gamma','R2', 'NAP'], delimiter = " ")
         else:
             data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8", \
-            names = ['site','N','S', 'Nmax','R2', 'NAP'], delimiter = " ")
+            names = ['site','N','S', 'Nmax','R2','NAP'], delimiter = " ")
     else:
         if 'zipf' in input_filename_str:
             data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8", \
@@ -874,144 +894,3 @@ def zipf_mle_plots(datasets, data_dir):
         plt.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
         #plt.xscale()
         plt.close()
-
-
-
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description = "Run analyses and generate figures for Broken-stick, METE, and Zipf.")
-    parser.add_argument('-a', type = str, default = "no", help = "Do you want to run the full analysis for the figure?")
-    parser.add_argument('-f', type = str, default = "1", help = "Which figure do you wnat to generate?")
-    parser.add_argument('-r', type = str, default = "no", help = "Do you want to rerun all the analyses and generate all the figures?")
-    input_options = parser.parse_args()
-    generate_data = input_options.a.lower()
-    generate_fig = input_options.f.upper()
-    generate_all = input_options.r.lower()
-    data_points = 352899 # number of obs_pred datapoints to plot ( HMP has ~352899 )
-    size = 0
-    methods = ['geom', 'mete','zipf']
-    params = ['N','S', 'N/S']
-
-    #mydir = os.path.expanduser("~/github/MicroMETE/data/")
-    #mydir = os.path.dirname(os.path.realpath(__file__))
-    if generate_all == 'yes':
-            datasets = [ 'HMP','EMPclosed','EMPopen','MGRAST','95', '97','99']
-            generate_obs_pred_data(datasets_all, methods, size)
-            datasets1 = [ 'HMP','EMPclosed','MGRAST']
-            plot_obs_pred_sad(methods, datasets1, data_points)
-            datasets2 = ['HMP']
-            NSR2_regression(methods, datasets2, data_dir= mydir)
-            datasetsS1 = [ 'HMP','EMPclosed','EMPopen']
-            plot_obs_pred_sad(methods, datasetsS1, data_points)
-            datasetsS2 = ['95', '97','99']
-            plot_obs_pred_sad(methods, datasetsS2, data_points)
-            datasetsS3 = ['EMPopen']
-            NSR2_regression(methods, datasetsS3, data_dir= mydir)
-            datasetsS4 = ['HMP']
-            NSR2_regression(methods, datasetsS4, data_dir= mydir)
-            datasetsS5 = ['MGRAST']
-            NSR2_regression(methods, datasetsS5, data_dir= mydir)
-            datasetsS6 = ['95']
-            NSR2_regression(methods, datasetsS6, data_dir= mydir)
-            datasetsS7 = ['97']
-            NSR2_regression(methods, datasetsS7, data_dir= mydir)
-            datasetsS8 = ['99']
-            NSR2_regression(methods, datasetsS8, data_dir= mydir)
-            datasetsS9 = [ 'HMP','EMPclosed','EMPopen', 'MGRAST']
-            zipf_mle_plots(datasetsS9, data_dir= mydir)
-            datasetsS10 = ['95', '97','99']
-            zipf_mle_plots(datasetsS10, data_dir= mydir)
-
-    else:
-        if generate_data == 'yes':
-            if generate_fig == '1':
-                datasets = [ 'HMP','EMPclosed','MGRAST']
-                generate_obs_pred_data(datasets, methods, size)
-                plot_obs_pred_sad(methods, datasets, data_points)
-            elif generate_fig == '2':
-                datasets = ['HMP']
-                generate_obs_pred_data(datasets, methods, size)
-                NSR2_regression(methods, datasets, data_dir= mydir)
-            elif generate_fig == 'S1':
-                datasets = [ 'HMP','EMPclosed','EMPopen']
-                generate_obs_pred_data(datasets, methods, size)
-                plot_obs_pred_sad(methods, datasets, data_points)
-            elif generate_fig == 'S2':
-                datasets = ['95', '97','99']
-                generate_obs_pred_data(datasets, methods, size)
-                plot_obs_pred_sad(methods, datasets, data_points)
-            elif generate_fig == 'S3':
-                datasets = ['EMPopen']
-                generate_obs_pred_data(datasets, methods, size)
-                NSR2_regression(methods, datasets, data_dir= mydir)
-            elif generate_fig == 'S4':
-                datasets = ['HMP']
-                generate_obs_pred_data(datasets, methods, size)
-                NSR2_regression(methods, datasets, data_dir= mydir)
-            elif generate_fig == 'S5':
-                datasets = ['MGRAST']
-                generate_obs_pred_data(datasets, methods, size)
-                NSR2_regression(methods, datasets, data_dir= mydir)
-            elif generate_fig == 'S6':
-                datasets = ['95']
-                generate_obs_pred_data(datasets, methods, size)
-                NSR2_regression(methods, datasets, data_dir= mydir)
-            elif generate_fig == 'S7':
-                datasets = ['97']
-                generate_obs_pred_data(datasets, methods, size)
-                NSR2_regression(methods, datasets, data_dir= mydir)
-            elif generate_fig == 'S8':
-                datasets = ['99']
-                generate_obs_pred_data(datasets, methods, size)
-                NSR2_regression(methods, datasets, data_dir= mydir)
-            elif generate_fig == 'S9':
-                datasets = [ 'HMP','EMPclosed','EMPopen', 'MGRAST']
-                generate_obs_pred_data(datasets, methods, size)
-                zipf_mle_plots(datasets, data_dir= mydir)
-            elif generate_fig == 'S10':
-                datasets = ['95', '97','99']
-                generate_obs_pred_data(datasets, methods, size)
-                zipf_mle_plots(datasets, data_dir= mydir)
-            else:
-                print "Input not valid."
-
-        elif generate_data == 'no':
-            if generate_fig == '1':
-                datasets = [ 'HMP','EMPclosed','MGRAST']
-                plot_obs_pred_sad(methods, datasets, data_points)
-            elif generate_fig == '2':
-                datasets = ['HMP']
-                NSR2_regression(methods, datasets, data_dir= mydir)
-            elif generate_fig == 'S1':
-                datasets = [ 'HMP','EMPclosed','EMPopen']
-                plot_obs_pred_sad(methods, datasets, data_points)
-            elif generate_fig == 'S2':
-                datasets = ['95', '97','99']
-                plot_obs_pred_sad(methods, datasets, data_points)
-            elif generate_fig == 'S3':
-                datasets = ['EMPopen']
-                NSR2_regression(methods, datasets, data_dir= mydir)
-            elif generate_fig == 'S4':
-                datasets = ['HMP']
-                NSR2_regression(methods, datasets, data_dir= mydir)
-            elif generate_fig == 'S5':
-                datasets = ['MGRAST']
-                NSR2_regression(methods, datasets, data_dir= mydir)
-            elif generate_fig == 'S6':
-                datasets = ['95']
-                NSR2_regression(methods, datasets, data_dir= mydir)
-            elif generate_fig == 'S7':
-                datasets = ['97']
-                NSR2_regression(methods, datasets, data_dir= mydir)
-            elif generate_fig == 'S8':
-                datasets = ['99']
-                NSR2_regression(methods, datasets, data_dir= mydir)
-            elif generate_fig == 'S9':
-                datasets = [ 'HMP','EMPclosed','EMPopen', 'MGRAST']
-                zipf_mle_plots(datasets, data_dir= mydir)
-            elif generate_fig == 'S10':
-                datasets = ['95', '97','99']
-                zipf_mle_plots(datasets, data_dir= mydir)
-            else:
-                print "Input not valid."

@@ -23,24 +23,30 @@ def HMP_OTU_to_sparese_SbyS():
     sparsesbys.columns = ['Sample', 'OTU', 'Count']
     sparsesbys.to_csv("../data/HMP-Data/HMPsparseSbyS.txt", sep='\t', index=False)
 
-def Remove_Time_Series_SADs():
+def Match_NAP_to_sparse_SbyS(timeseries):
     IN = mydir + 'HMP-Data/ppAll_V35_map.txt'
     metadata = pd.read_table(IN, sep='\t', index_col=False)
-    metadata[['VisitNo']] = metadata[['VisitNo']].astype(float)
-    metadata = metadata.loc[metadata['VisitNo'] == float(1)]
-    print metadata.shape
+    timeseries = bool(timeseries)
     metadata = metadata[np.isfinite(metadata['NAP'])]
     metadata[['NAP']] = metadata[['NAP']].astype(str)
     metadata.drop_duplicates(cols='NAP', take_last=True)
-    metadata.to_csv("../data/HMP-Data/ppAll_V35_map_noTimeseries.txt", sep='\t', index=False)
+    if timeseries == True:
+        pass
+    else:
+        metadata[['VisitNo']] = metadata[['VisitNo']].astype(float)
+        metadata = metadata.loc[metadata['VisitNo'] == float(1)]
+        metadata.to_csv("../data/HMP-Data/ppAll_V35_map_noTimeseries.txt", sep='\t', index=False)
+    print metadata.shape
     # Pull the RSID number & convert to numpy array
-    print metadata
     NAPs = metadata[['NAP']].values
     NAPs = NAPs.flatten()
-    print NAPs
+    #print NAPs
     #RSIDs = map(str, RSIDs)
     IN_OTU = mydir + 'HMP-Data/HMPsparseSbyS.txt'
-    OUT = open(mydir + 'HMP-Data/HMPsparseSbyS_noTimeseries.txt','w+')
+    if timeseries == True:
+        OUT = open(mydir + 'HMP-Data/HMPsparseSbyS_NAP.txt','w+')
+    else:
+        OUT = open(mydir + 'HMP-Data/HMPsparseSbyS_NAP_noTimeseries.txt','w+')
     for j, line in enumerate(open(IN_OTU)):
         if '.PPS' in line:
             continue
@@ -57,46 +63,51 @@ def Remove_Time_Series_SADs():
             except ValueError:
                 print "Not a float"
 
+
         #if ('control' not in RSID) and ('water_blank' not in RSID):
         #    print float(RSID)
-def get_SADs_HMP(path):
+def get_SADs_HMP(path, timeseries):
+    timeseries = bool(timeseries)
+    if timeseries == True:
+        IN = path + 'HMP-Data/HMPsparseSbyS_NAP.txt'
+        OUT =  open(path+'HMP-Data/' + 'HMP-SADs_NAP.txt', 'w+')
+    else:
+        IN = path + 'HMP-Data/HMPsparseSbyS_NAP_noTimeseries.txt'
+        OUT =  open(path+'HMP-Data/' + 'HMP-SADs_NAP_noTimeseries.txt', 'w+')
+    SADdict = {}
+    with open(IN) as f:
+        for d in f:
+            if d.strip():
+                d = d.split()
+                site = d[0]
+                abundance = int(d[-1])
+                if abundance > 0:
+                    if site not in SADdict:
+                        #SADdict[site] = [abundance]
+                        SADdict[site] = [abundance]
+                    else:
+                        SADdict[site].append(abundance)
 
-        IN = path + 'HMP-Data/HMPsparseSbyS_noTimeseries.txt'
-        SADdict = {}
-        with open(IN) as f:
-            for d in f:
-                if d.strip():
-                    d = d.split()
-                    site = d[0]
-                    abundance = int(d[-1])
-                    if abundance > 0:
-                        if site not in SADdict:
-                            #SADdict[site] = [abundance]
-                            SADdict[site] = [abundance]
-                        else:
-                            SADdict[site].append(abundance)
+    #SADs = SADdict.values()
+    filtered_SADdict = {}
+    #filteredSiteNames = []
 
-        #SADs = SADdict.values()
-        filtered_SADdict = {}
-        #filteredSiteNames = []
+    for key, value in SADdict.iteritems():
+        if len(value) >= 10:
+            filtered_SADdict[key] = value
 
-        for key, value in SADdict.iteritems():
-            if len(value) >= 10:
-                filtered_SADdict[key] = value
+    print "You have " + str(len(SADdict)) + " sites"
 
-        print "You have " + str(len(SADdict)) + " sites"
+    # first value of the line is the site name, rest is SAD
+    # site name filtered out in generate obs pred data
+    for key, value in filtered_SADdict.iteritems():
+        output = value.insert(0,key)
+        #value = ", ".join(value)
+        print>> OUT, value
 
-        OUT1 =  open(path+'HMP-Data/' + 'HMP-SADs.txt', 'w+')
-        #OUT2 =  open(path+'HMP-Data/' + 'HMP-SADs_site_names.txt', 'w')
-        # first value of the line is the site name, rest is SAD
-        # site name filtered out in generate obs pred data
-        for key, value in filtered_SADdict.iteritems():
-            output = value.insert(0,key)
-            #value = ", ".join(value)
-            print>> OUT1, value
-            #print>> OUT2, key
-Remove_Time_Series_SADs()
+#Match_NAP_to_sparse_SbyS(False)
 #get_SADs_HMP(mydir)
 #datasets = ['HMP']
 #methods = ['geom', 'mete','zipf']
-#gf.generate_obs_pred_data()
+get_SADs_HMP(mydir, False)
+get_SADs_HMP(mydir, True)
