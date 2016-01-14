@@ -1,36 +1,59 @@
+---
+title: Mixed Model Regressions for the Fit of the Human Microbiome Project to Biodiversity
+  Models
+author: "Will Shoemaker"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: pdf_document
+geometry: margin=2.54cm
+---
+
+## Overview
+
+Based on  previous analyses, we know that as the total number of individuals in a site ($N_0$) and average species abundance ($N_0/S_0$) increases, the Species Abundance Distribution (SAD) becomes less even, as is the case for microbial SADs. Under this situation, METE and the Broken-stick distribution fail to predict SADs, whereas the Zipf distribution succeeds. From here, we would predict that information about the site where an SAD was sampled from would explain more of the variation of the modified coefficient of determination ($r^2_m$) for METE and the Broken-stick distribution than Zipf. The metadata for the Human Microbiome Project (HMP) is easily available and contains information on where on the body a site originated and the sex of the individual, so we will be using that.
+
+**Will rephrase the hypothesis**
+*Hypothesis*: Information about a site becomes increasingly important in predicting the relationship between observed and predicted SADs as you move from the Zipf distribution, to METE, to the Broken-stick distribution. 
+
+We will be testing this hypothesis using mixed model regression.
+
+First, set the working directory.
+
+```{r, include=FALSE}
 rm(list = ls())
 getwd()
 setwd("~/github/MicroMETE/R/")
-
-require("vegan")
+require(vegan)
 library(reshape2)
 library(plyr)
 library(lme4)
-library(ggplot2)
-library(sjPlot)
-# Import HMP metadata file
-HMP_meta <- read.csv("../data/HMP-Data/ppAll_V35_map_noTimeseries.txt",sep="\t")  # read csv file 
-#HMP_meta[,c('NAP')]
-# add suffix to NAP labels
-HMP_meta$NAP <- sub("$", ".may1", HMP_meta$NAP )
+```
 
-# Import CSV of N, S, Nmax, r2, etc for HMP for each model tested
+Import the data.
+
+```{r}
+HMP_meta <- read.csv("../data/HMP-Data/ppAll_V35_map_noTimeseries.txt",sep="\t")  # read csv file 
 HMP_BS <- read.table("../data/NSR2/geom_HMP_NSR2.txt")
 HMP_METE <- read.table("../data/NSR2/mete_HMP_NSR2.txt")
 HMP_Zipf <- read.table("../data/NSR2/zipf_HMP_NSR2.txt")
+```
 
-# add labels to columns
+
+Wrangle the data so that it matches the labels in the file containing $r^2_m$ values.
+
+```{r}
+HMP_meta$NAP <- sub("$", ".may1", HMP_meta$NAP )
 colnames(HMP_BS) <- c('site','N_BS','S_BS', 'Nmax_BS','R2_BS', 'NAP')
 colnames(HMP_METE) <- c('site','N','S', 'Nmax','R2_METE', 'NAP')
 colnames(HMP_Zipf) <- c('site','N','S', 'Nmax','gamma','R2_Zipf', 'NAP')
 HMP_Zipf_keeps <- c('gamma','R2_Zipf', 'NAP')
 HMP_Zipf_subset <- HMP_Zipf[HMP_Zipf_keeps]
-
-# Select metadata columns we're interested in 
 keeps <- c("NAP","Sex", "HMPBodySite", "HMPBodySubsite")
 HMP_meta_subset <- HMP_meta[keeps]
+```
 
-# Merge into single matrix
+Merge the data into a single matrix
+
+```{r}
 data_merged <- merge(HMP_BS, HMP_METE, by = "NAP", all = TRUE)
 data_merged <- merge(data_merged, HMP_Zipf_subset, by = "NAP", all = TRUE)
 data_merged <- merge(HMP_meta_subset, data_merged)
@@ -42,36 +65,60 @@ data_merged_no_dups <- data_merged[!duplicated(data_merged[,1]),]
 data_merged_no_dups_numeric <- data_merged_no_dups[,c("R2_BS","N","S", "Nmax", 
                                                       "R2_METE", "gamma", "R2_Zipf", "NAP",
                                                       "Sex", "HMPBodySite", "HMPBodySubsite")]
+```
 
+Add the average species abundance to each sample.
 
+```{r}
 data_merged_no_dups_numeric$AvgAbund <- data_merged_no_dups_numeric$N/ data_merged_no_dups_numeric$S
+```
 
+Log transform $N_0$ and $N_0 /S_0$ on a base $10$ scale.
 
+```{r}
 log.cols <- c("N","AvgAbund")
 data_merged_no_dups_numeric[log.cols] <- log(data_merged_no_dups_numeric[log.cols], 10)
 data <- data_merged_no_dups_numeric
+```
 
+We know from theory and the other analyses of this study that $N_0$ and $N_0 /S_0$ are not independent, so we include them as interactions from the start.  
+
+Set up three models.
+
+```{r}
 lm.geom <- lm(R2_BS ~ N * AvgAbund, data = data)
 lm.mete <- lm(R2_METE ~ N * AvgAbund, data = data)
 lm.zipf <- lm(R2_Zipf ~ N * AvgAbund, data = data)
+```
 
+Create a second set of models with $N_0$ and $N_0 /S_0$ as fixed effects and the site information as random effects.
 
+```{r}
 lmer.geom <- lmer(R2_BS ~ N * AvgAbund +  (1|Sex/HMPBodySite/HMPBodySubsite), data = data)
 lmer.mete <- lmer(R2_METE ~ N * AvgAbund +  (1|Sex/HMPBodySite/HMPBodySubsite), data = data)
 lmer.zipf <- lmer(R2_Zipf ~ N * AvgAbund +  (1|Sex/HMPBodySite/HMPBodySubsite), data = data)
+```
 
+Sex explains zero variance across models, so we'll remove that.
 
+```{r}
 lmer.geom.noSex <- lmer(R2_BS ~ N * AvgAbund +  (1|HMPBodySite/HMPBodySubsite), data = data)
 lmer.mete.noSex <- lmer(R2_METE ~ N * AvgAbund +  (1|HMPBodySite/HMPBodySubsite), data = data)
 lmer.zipf.noSex <- lmer(R2_Zipf ~ N * AvgAbund +  (1|HMPBodySite/HMPBodySubsite), data = data)
+```
 
+```{r}
 summary(lmer.geom.noSex)
 anova(lmer.geom.noSex, lm.geom)
 summary(lmer.mete.noSex)
 anova(lmer.mete.noSex, lm.mete)
 summary(lmer.zipf.noSex)
 anova(lmer.zipf.noSex, lm.zipf)
+```
 
+Variance explained by fixed and random effects of each model
+
+```{r}
 lmer.geom.rndm <- as.numeric(VarCorr(lmer.geom))[1]
 lmer.geom.resid <- attr(VarCorr(lmer.geom), "sc")^2 
 lmer.geom.fix <- var(predict(lm(R2_BS ~N * AvgAbund, data = data)))
@@ -83,7 +130,12 @@ lmer.mete.fix <- var(predict(lm(R2_METE ~N * AvgAbund, data = data)  ))
 lmer.zipf.rndm <- as.numeric(VarCorr(lmer.zipf))[1]
 lmer.zipf.resid <- attr(VarCorr(lmer.zipf), "sc")^2 
 lmer.zipf.fix <- var(predict(lm(R2_Zipf ~N * AvgAbund, data = data)  ))
+```
+###########
+##To-do####
+###########
 
+Figure out how to partition the variance.
+```{r}
 
-
-
+```
