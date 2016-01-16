@@ -12,7 +12,7 @@ from mpl_toolkits.axes_grid.inset_locator import inset_axes
 import argparse
 import optparse
 from sys import argv
-
+import pandas as pd
 from sklearn.grid_search import GridSearchCV
 from sklearn.neighbors import KernelDensity
 
@@ -46,8 +46,9 @@ class zipf:
     mle form of the rank-abundance distribution, and a rank-abundance curve
     based on fitting the zipf to the observed via a generalized linear model."""
 
-    def __init__(self, obs):
+    def __init__(self, obs, estimator):
         self.obs = obs
+        self.estimator = estimator
 
     def zipf_ll(self, ab, a):
         """Log-likelihood of the Zipf distribution with x_min = 1."""
@@ -59,7 +60,9 @@ class zipf:
         par0 = 1 + len(ab) / (sum(np.log(2 * np.array(ab))))
         def zipf_func(x):
             return -self.zipf_ll(ab, x)
-        par = optimize.fmin(zipf_func, x0 = par0, disp=False)[0]
+        #par = optimize.fmin(zipf_func, x0 = par0, disp=False)[0]
+        estimator = str(self.estimator)
+        par = getattr(optimize, estimator)(zipf_func, x0 = par0, disp=False)[0]
         return par
 
 
@@ -238,7 +241,6 @@ def get_SADs(path, name, closedref=True):
 
                     abundance = float(d[-1])
 
-
                 if abundance > 0:
                     if site in SADdict:
                         SADdict[site].append(abundance)
@@ -250,24 +252,16 @@ def get_SADs(path, name, closedref=True):
     for sad in SADs:
         if len(sad) >= 10:
             filteredSADs.append(sad)
-
-
     return filteredSADs
 
-
-
-
 def EMP_SADs(path, name, mgrast):
-
     minS = 10
-
     IN = path + '/' + name + '-SSADdata.txt'
     n = sum(1 for line in open(IN))
 
     SiteDict = {}
 
     with open(IN) as f:
-
         for d in f:
             n -= 1
             if d.strip():
@@ -284,19 +278,12 @@ def EMP_SADs(path, name, mgrast):
 
                     else:
                         SiteDict[sample].append(abundance)
-
     SADs = SiteDict.values()
     filteredSADs = []
-
     for sad in SADs:
         if len(sad) >= minS:
             filteredSADs.append(sad)
-
     return filteredSADs
-
-
-
-
 
 def get_GeomSeries(N,S,zeros):
 
@@ -453,6 +440,56 @@ def import_obs_pred_data(input_filename):   # TAKEN FROM THE mete_sads.py script
     #return test
     return data
 
+def import_subsampled_data(input_filename):
+    if ('zipf' in input_filename):
+        # 33 for zipf
+        # this needs to be fixesd, I put the file name twice in old code
+        data = np.genfromtxt(input_filename, \
+        dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
+        names = ['site','site2','N0','S0','Nmax', \
+        'N0_05','S0_05','Nmax_05', 'r2_05', 'gamma_05', \
+        'N0_025','S0_025','Nmax_025', 'r2_025', 'gamma_025', \
+        'N0_0125','S0_0125','Nmax_0125', 'r2_0125', 'gamma_0125', \
+        'N0_00625','S0_00625','Nmax_00625', 'r2_00625', 'gamma_00625', \
+        'N0_003125','S0_003125','Nmax_003125', 'r2_003125', 'gamma_003125',
+        'N0_0015625','S0_0015625','Nmax_0015625','r2_0015625', 'gamma_0015625'], \
+        delimiter = " ")
+    else:
+        # 27 columns for mete and geom
+        data = np.genfromtxt(input_filename, \
+        dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
+        names = ['site','N0','S0','Nmax', \
+        'N0_05','S0_05','Nmax_05','r2_05', \
+        'N0_025','S0_025','Nmax_025','r2_025', \
+        'N0_0125','S0_0125','Nmax_0125','r2_0125', \
+        'N0_00625','S0_00625','Nmax_00625','r2_00625', \
+        'N0_003125','S0_003125','Nmax_003125','r2_003125', \
+        'N0_0015625','S0_0015625','Nmax_0015625','r2_0015625'], \
+        delimiter = " ")
+    return data
+
+def import_subsampled_data_pandas(input_filename):
+    if ('zipf' in input_filename):
+        names = ['site','site2','N0','S0','Nmax', \
+        'N0_05','S0_05','Nmax_05', 'r2_05', 'gamma_05', \
+        'N0_025','S0_025','Nmax_025', 'r2_025', 'gamma_025', \
+        'N0_0125','S0_0125','Nmax_0125', 'r2_0125', 'gamma_0125', \
+        'N0_00625','S0_00625','Nmax_00625', 'r2_00625', 'gamma_00625', \
+        'N0_003125','S0_003125','Nmax_003125', 'r2_003125', 'gamma_003125',
+        'N0_0015625','S0_0015625','Nmax_0015625','r2_0015625', 'gamma_0015625']
+        #data_table = pd.read_table(input_filename, names = names, header = None, sep=' ')
+
+    else:
+        names = ['site','N0','S0','Nmax', \
+        'N0_05','S0_05','Nmax_05','r2_05', \
+        'N0_025','S0_025','Nmax_025','r2_025', \
+        'N0_0125','S0_0125','Nmax_0125','r2_0125', \
+        'N0_00625','S0_00625','Nmax_00625','r2_00625', \
+        'N0_003125','S0_003125','Nmax_003125','r2_003125', \
+        'N0_0015625','S0_0015625','Nmax_0015625','r2_0015625']
+        print names
+    data_table = pd.read_table(input_filename, names = names, header = None, sep=' ')
+    return data_table
 
 def hist_mete_r2(sites, obs, pred):  # TAKEN FROM Macroecotools or the mete_sads.py script used for White et al. (2012)
     """Generate a kernel density estimate of the r^2 values for obs-pred plots"""
@@ -513,8 +550,6 @@ def import_NSR2_data(input_filename):   # TAKEN FROM THE mete_sads.py script use
 def plot_obs_pred_sad(methods, datasets, n, data_dir=mydir, radius=2): # TAKEN FROM THE mete_sads.py script used for White et al. (2012)
     # Used for Figure 3 Locey and White (2013)        ########################################################################################
     """Multiple obs-predicted plotter"""
-
-
     fig = plt.figure()
     count = 0
 
@@ -749,9 +784,7 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
                 #tick.label.set_fontsize(14)
                 #leg.draw_frame(False)
                 #plt.legend(loc='upper left')
-
                 count += 1
-
     if '97' in datasets:
         title = "MG-RAST 97%"
         fig.suptitle(title, x = 0.54, y = 1.05, fontsize=16)
@@ -788,6 +821,7 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
 
 
 def zipf_mle_plots(datasets, data_dir):
+        print "what"
         fig = plt.figure()
 
         count  = 0
@@ -894,3 +928,43 @@ def zipf_mle_plots(datasets, data_dir):
         plt.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
         #plt.xscale()
         plt.close()
+
+def plot_subsampled_data(methods, datasets, data_dir= mydir):
+    fig = plt.figure()
+    count  = 0
+    for i, dataset in enumerate(datasets):
+        for j, method in enumerate(methods):
+            ax = fig.add_subplot(1, 1, 1)
+            input_file = data_dir + \
+            'SubSampled-Data/' + dataset+ '_' + method + '_SubSampled_Data.txt'
+            subsam_data = import_subsampled_data_pandas(input_file)
+            print subsam_data
+            #plt.xlim(0, 1)
+            print subsam_data['r2_05']
+            ax.set_xscale('log', basex=2)
+            test_5 = np.full(100, 0.5, dtype=float)
+            test_25 = np.full(100, 0.25, dtype=float)
+            test_125 = np.full(100, 0.125, dtype=float)
+            test_625 = np.full(100, 0.0625, dtype=float)
+            test_3125 = np.full(100, 0.03125, dtype=float)
+            test_12625 = np.full(100, 0.12625, dtype=float)
+            #r2_5 = ((subsam_data['r2_05']))
+            #r2_25 = ((subsam_data['r2_025']))
+            #r2_125 = ((subsam_data['r2_0125']))
+            #r2_625 = ((subsam_data['r2_00625']))
+            #r2_3125 = ((subsam_data['r2_003125']))
+            #r2_15625 = ((subsam_data['r2_0015625']))
+            #plt.scatter(test_5, r2_5, alpha=0.5)
+            #plt.scatter(test_25, r2_25, alpha=0.5)
+            #plt.scatter(test_125, r2_125, alpha=0.5)
+            #plt.scatter(test_625, r2_625, alpha=0.5)
+            #plt.scatter(test_3125, r2_3125, alpha=0.5)
+            #plt.scatter(test_12625, r2_15625, alpha=0.5)
+
+    plt.savefig("test.png", bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
+    #plt.xscale()
+    plt.close()
+
+datasets = ['MGRAST']
+methods = ['zipf']
+plot_subsampled_data(methods, datasets)
