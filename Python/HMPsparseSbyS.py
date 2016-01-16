@@ -66,44 +66,7 @@ def Match_NAP_to_sparse_SbyS(timeseries):
 
         #if ('control' not in RSID) and ('water_blank' not in RSID):
         #    print float(RSID)
-def get_SADs_HMP(path, timeseries):
-    timeseries = bool(timeseries)
-    if timeseries == True:
-        IN = path + 'HMP-Data/HMPsparseSbyS_NAP.txt'
-        OUT =  open(path+'HMP-Data/' + 'HMP-SADs_NAP.txt', 'w+')
-    else:
-        IN = path + 'HMP-Data/HMPsparseSbyS_NAP_noTimeseries.txt'
-        OUT =  open(path+'HMP-Data/' + 'HMP-SADs_NAP_noTimeseries.txt', 'w+')
-    SADdict = {}
-    with open(IN) as f:
-        for d in f:
-            if d.strip():
-                d = d.split()
-                site = d[0]
-                abundance = int(d[-1])
-                if abundance > 0:
-                    if site not in SADdict:
-                        #SADdict[site] = [abundance]
-                        SADdict[site] = [abundance]
-                    else:
-                        SADdict[site].append(abundance)
 
-    #SADs = SADdict.values()
-    filtered_SADdict = {}
-    #filteredSiteNames = []
-
-    for key, value in SADdict.iteritems():
-        if len(value) >= 10:
-            filtered_SADdict[key] = value
-
-    print "You have " + str(len(SADdict)) + " sites"
-
-    # first value of the line is the site name, rest is SAD
-    # site name filtered out in generate obs pred data
-    for key, value in filtered_SADdict.iteritems():
-        output = value.insert(0,key)
-        #value = ", ".join(value)
-        print>> OUT, value
 
 #Match_NAP_to_sparse_SbyS(False)
 #get_SADs_HMP(mydir)
