@@ -15,7 +15,7 @@ from sys import argv
 import pandas as pd
 from sklearn.grid_search import GridSearchCV
 from sklearn.neighbors import KernelDensity
-
+import math
 import macroeco_distributions as md
 import macroecotools
 
@@ -487,7 +487,6 @@ def import_subsampled_data_pandas(input_filename):
         'N0_00625','S0_00625','Nmax_00625','r2_00625', \
         'N0_003125','S0_003125','Nmax_003125','r2_003125', \
         'N0_0015625','S0_0015625','Nmax_0015625','r2_0015625']
-        print names
     data_table = pd.read_table(input_filename, names = names, header = None, sep=' ')
     return data_table
 
@@ -929,42 +928,122 @@ def zipf_mle_plots(datasets, data_dir):
         #plt.xscale()
         plt.close()
 
+def get_slope_row(row):
+    #slope, intercept, r_value, p_value, std_err = stats.linregress(x,y)
+    #return row['a'] % row['c']
+    x_vals = [row['N0_05'], row['N0_025'], \
+    row['N0_0125'], row['N0_00625'], row['N0_003125'], row['N0_0015625']]
+    x_vals = [math.log(x, 10) for x in x_vals]
+    y_vals = [row['r2_05'], row['r2_025'], \
+    row['r2_0125'], row['r2_00625'], row['r2_003125'], row['r2_0015625']]
+    slope, intercept, r_value, p_value, std_err = stats.linregress(x_vals,y_vals)
+    return slope*-1
+
+def CV_KDE(x):
+    # remove +/- inf
+    x = x[np.logical_not(np.isnan(x))]
+    grid = GridSearchCV(KernelDensity(),
+                    {'bandwidth': np.logspace(0.1, 1.0, 30)},
+                    cv=20) # 20-fold cross-validation
+    grid.fit(x[:, None])
+    x_grid = np.linspace(np.min(x), np.max(x), len(x))
+    kde = grid.best_estimator_
+    print "bandwidth is " + str(kde.bandwidth)
+    pdf = np.exp(kde.score_samples(x_grid[:, None]))
+    # returns grod for x-axis,  pdf, and bandwidth
+    return_tuple = (x_grid, pdf, kde.bandwidth)
+    return return_tuple
+
+def get_kdens_choose_kernel(xlist,expand, kernel = 0.5):
+    """ Finds the kernel density function across a vector of values """
+    xlist = xlist[np.logical_not(np.isnan(xlist))]
+    density = gaussian_kde(xlist)
+    n = len(xlist)
+    if expand == False:
+        xs = np.linspace(min(xlist),max(xlist),n)
+    else:
+        xs = np.linspace(min(xlist - expand),max(xlist + expand),n)
+    #xs = np.linspace(0.0,1.0,n)
+    density.covariance_factor = lambda : kernel
+    density._compute_covariance()
+    D = [xs,density(xs)]
+    return D
+
 def plot_subsampled_data(methods, datasets, data_dir= mydir):
     fig = plt.figure()
     count  = 0
+    plot_dim = len(methods)
     for i, dataset in enumerate(datasets):
         for j, method in enumerate(methods):
-            ax = fig.add_subplot(1, 1, 1)
+            ax1 = fig.add_subplot(2, plot_dim, count+1)
             input_file = data_dir + \
             'SubSampled-Data/' + dataset+ '_' + method + '_SubSampled_Data.txt'
             subsam_data = import_subsampled_data_pandas(input_file)
-            print subsam_data
-            #plt.xlim(0, 1)
-            print subsam_data['r2_05']
-            ax.set_xscale('log', basex=2)
-            test_5 = np.full(100, 0.5, dtype=float)
-            test_25 = np.full(100, 0.25, dtype=float)
-            test_125 = np.full(100, 0.125, dtype=float)
-            test_625 = np.full(100, 0.0625, dtype=float)
-            test_3125 = np.full(100, 0.03125, dtype=float)
-            test_12625 = np.full(100, 0.12625, dtype=float)
+            subsam_data['slope'] = subsam_data.apply(lambda row: get_slope_row(row), axis=1)
+            # Get scatter plot of subsampled data
+            Ns = ['N0_05', 'N0_025', 'N0_0125', 'N0_00625', 'N0_003125', 'N0_0015625']
+            r2s = ['r2_05', 'r2_025', 'r2_0125', 'r2_00625', 'r2_003125', 'r2_0015625']
+            Ns_r2s = zip(Ns, r2s)
+            all_N_tuples = []
+            all_r2_tuples = []
+            for k in Ns_r2s:
+                all_N_tuples.append(subsam_data[k[0]])
+                all_r2_tuples.append(subsam_data[k[1]])
+            all_N_tuples_flat = [item for sublist in all_N_tuples \
+                for item in sublist]
+            all_r2_tuples_flat = [item for sublist in all_r2_tuples \
+                for item in sublist]
+            all_N_tuples_flat = np.log10(all_N_tuples_flat)
+            plt.scatter(all_N_tuples_flat, all_r2_tuples_flat, alpha=0.05)
+
+            #slope, intercept, r_value, p_value, std_err = stats.linregress(x,y)
+
+            # Get the KDE
+            slope_data = subsam_data['slope']
+            kde_data = get_kdens_choose_kernel(slope_data, 0.2, kernel = 0.4)
+            ax.plot(kde_data[0], kde_data[1],
+                label='bw={0}'.format(0.5), linewidth=3, alpha=0.5)
+            count +=1
+            ax2 = fig.add_subplot(2, plot_dim, count+1)
+            #get_slope_row(row, method)
+            # get the slope between N0 and r2 for each percent cut off for
+            # each row
+
+            #pass
+            #plt.ylim(-1, 1)
+            #ax.set_xscale('log', basex=10)
+            #test_5 = np.full(100, 0.5, dtype=float)
+            #test_25 = np.full(100, 0.25, dtype=float)
+            #test_125 = np.full(100, 0.125, dtype=float)
+            #test_625 = np.full(100, 0.0625, dtype=float)
+            #test_3125 = np.full(100, 0.03125, dtype=float)
+            #test_12625 = np.full(100, 0.012625, dtype=float)
+            #N_5 = ((subsam_data['N0_05']))
+            #print N_5
+            #N_25 = ((subsam_data['N0_025']))
+            #N_125 = ((subsam_data['N0_0125']))
+            #N_625 = ((subsam_data['N0_00625']))
+            #N_3125 = ((subsam_data['N0_003125']))
+            #N_15625 = ((subsam_data['N0_0015625']))
+
+
             #r2_5 = ((subsam_data['r2_05']))
             #r2_25 = ((subsam_data['r2_025']))
             #r2_125 = ((subsam_data['r2_0125']))
             #r2_625 = ((subsam_data['r2_00625']))
             #r2_3125 = ((subsam_data['r2_003125']))
             #r2_15625 = ((subsam_data['r2_0015625']))
-            #plt.scatter(test_5, r2_5, alpha=0.5)
-            #plt.scatter(test_25, r2_25, alpha=0.5)
-            #plt.scatter(test_125, r2_125, alpha=0.5)
-            #plt.scatter(test_625, r2_625, alpha=0.5)
-            #plt.scatter(test_3125, r2_3125, alpha=0.5)
-            #plt.scatter(test_12625, r2_15625, alpha=0.5)
+            #plt.scatter(N_5, r2_5, alpha=0.05)
+            #plt.scatter(N_25, r2_25, alpha=0.05)
+            #plt.scatter(N_125, r2_125, alpha=0.05)
+            #plt.scatter(N_625, r2_625, alpha=0.05)
+            #plt.scatter(N_3125, r2_3125, alpha=0.05)
+            #plt.scatter(N_15625, r2_15625, alpha=0.05)
 
     plt.savefig("test.png", bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
     #plt.xscale()
     plt.close()
 
-datasets = ['MGRAST']
-methods = ['zipf']
+datasets = ['EMPclosed']
+methods = ['geom', 'mete']
 plot_subsampled_data(methods, datasets)
