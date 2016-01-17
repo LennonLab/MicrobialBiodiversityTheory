@@ -26,20 +26,7 @@ mydir = str(mydir[:-6]) + 'data/'
 
 #import_NSR2_data(data_dir + 'NSR2/' + method+'_'+dataset+'_NSR2.txt')
 
-def CV_KDE(x):
-    # remove +/- inf
-    x = x[np.logical_not(np.isnan(x))]
-    grid = GridSearchCV(KernelDensity(),
-                    {'bandwidth': np.logspace(0.1, 5.0, 30)},
-                    cv=20) # 20-fold cross-validation
-    grid.fit(x[:, None])
-    x_grid = np.linspace(np.min(x), np.max(x), len(x))
-    kde = grid.best_estimator_
-    print "bandwidth is " + str(kde.bandwidth)
-    pdf = np.exp(kde.score_samples(x_grid[:, None]))
-    # returns grod for x-axis,  pdf, and bandwidth
-    return_tuple = (x_grid, pdf, kde.bandwidth)
-    return return_tuple
+
 
 
 
@@ -49,7 +36,7 @@ def generate_kde_to_file(datasets, methods):
             IN = gf.import_NSR2_data(mydir + 'NSR2/' + method+'_'+dataset+'_NSR2.txt')
             r2s = ((IN["R2"]))
             #r2s = r2s[(r2s >= -1) & (r2s <= 1)]
-            r2_kde = CV_KDE(r2s)
+            r2_kde = gf.CV_KDE(r2s)
             r2_kde_table = pd.DataFrame({'Grid':r2_kde[0], 'PDF':r2_kde[1]})
             OUT_name = method + '_' + dataset + '_KDEs.txt'
             OUT_dir = mydir + 'KDEs/'
@@ -364,4 +351,4 @@ colors = ['red', 'green', 'blue']
 #random_lines(datasets, methods, sample_size, iterations)
 #r2_KDE(datasets, methods)
 #sample_lines(datasets, 10, 1)
-sample_lines_mete_geom_test(datasets, 100, 100)
+#sample_lines_mete_geom_test(datasets, 100, 100)

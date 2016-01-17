@@ -541,8 +541,7 @@ def import_NSR2_data(input_filename):   # TAKEN FROM THE mete_sads.py script use
         else:
             data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8", \
             names = ['site','N','S','Nmax','R2'], delimiter = " ")
-    #test = data[0:5000]
-    #return test
+
     return data
 
 
@@ -705,7 +704,6 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
                 else:
                     nsr2_data = import_NSR2_data(data_dir + 'NSR2/' + method+'_MGRAST'+dataset+'_NSR2.txt')
 
-                #list = ['nan', 'NAN', '-inf', 'inf']
 
                 y = ((nsr2_data["R2"]))
                 mean = np.mean(y)
@@ -970,12 +968,12 @@ def get_kdens_choose_kernel(xlist,expand, kernel = 0.5):
     return D
 
 def plot_subsampled_data(methods, datasets, data_dir= mydir):
-    fig = plt.figure()
-    count  = 0
-    plot_dim = len(methods)
     for i, dataset in enumerate(datasets):
+        fig = plt.figure()
+        count  = 0
+        plot_dim = len(methods)
+        print plot_dim
         for j, method in enumerate(methods):
-            ax1 = fig.add_subplot(2, plot_dim, count+1)
             input_file = data_dir + \
             'SubSampled-Data/' + dataset+ '_' + method + '_SubSampled_Data.txt'
             subsam_data = import_subsampled_data_pandas(input_file)
@@ -993,53 +991,41 @@ def plot_subsampled_data(methods, datasets, data_dir= mydir):
                 for item in sublist]
             all_r2_tuples_flat = [item for sublist in all_r2_tuples \
                 for item in sublist]
-            all_N_tuples_flat = np.log10(all_N_tuples_flat)
-            plt.scatter(all_N_tuples_flat, all_r2_tuples_flat, alpha=0.05)
+            x = np.asarray(np.log10(all_N_tuples_flat))
+            y = np.asarray(all_r2_tuples_flat)
+            for l in range(2):
+                if l == 0:
+                    ax = fig.add_subplot(2, plot_dim, count + 1)
+                    plt.scatter(x, y, alpha=0.05)
+                    slope, intercept, r_value, p_value, std_err = \
+                        stats.linregress(x,y)
+                    print "r-value is " + str(r_value)
+                    print "p-value is " + str(p_value)
+                    plt.xlim(np.amin(x), np.amax(x))
+                    plt.ylim(-2, 2)
+                    predict_y = intercept + slope * x
+                    pred_error = y - predict_y
+                    plt.plot(x, predict_y, 'k-')
+                    degrees_of_freedom = len(x) - 2
+                    residual_std_error = np.sqrt(np.sum(pred_error**2) / \
+                        degrees_of_freedom)
+                    plt.xticks(fontsize = 6) # work on current fig
+                    plt.yticks(fontsize = 6)
+                    plt.ylabel(r'$\overline{r_m^2}$', fontsize = 10, rotation = 0)
+                    plt.xlabel(r'$\overline{N_0}$', fontsize = 10)
 
-            #slope, intercept, r_value, p_value, std_err = stats.linregress(x,y)
+                elif l == 1:
+                    ax = fig.add_subplot(2, plot_dim, count + 3)
+                    # Get the KDE
+                    slope_data = subsam_data['slope']
+                    kde_data = get_kdens_choose_kernel(slope_data, 0.4, kernel = 0.4)
+                    ax.plot(kde_data[0], kde_data[1])
+                    plt.xticks(fontsize = 6) # work on current fig
+                    plt.yticks(fontsize = 6)
+                    plt.ylabel('Probability Density', fontsize = 7)
+                    plt.xlabel(r'$m$', fontsize = 10)
 
-            # Get the KDE
-            slope_data = subsam_data['slope']
-            kde_data = get_kdens_choose_kernel(slope_data, 0.2, kernel = 0.4)
-            ax.plot(kde_data[0], kde_data[1],
-                label='bw={0}'.format(0.5), linewidth=3, alpha=0.5)
-            count +=1
-            ax2 = fig.add_subplot(2, plot_dim, count+1)
-            #get_slope_row(row, method)
-            # get the slope between N0 and r2 for each percent cut off for
-            # each row
-
-            #pass
-            #plt.ylim(-1, 1)
-            #ax.set_xscale('log', basex=10)
-            #test_5 = np.full(100, 0.5, dtype=float)
-            #test_25 = np.full(100, 0.25, dtype=float)
-            #test_125 = np.full(100, 0.125, dtype=float)
-            #test_625 = np.full(100, 0.0625, dtype=float)
-            #test_3125 = np.full(100, 0.03125, dtype=float)
-            #test_12625 = np.full(100, 0.012625, dtype=float)
-            #N_5 = ((subsam_data['N0_05']))
-            #print N_5
-            #N_25 = ((subsam_data['N0_025']))
-            #N_125 = ((subsam_data['N0_0125']))
-            #N_625 = ((subsam_data['N0_00625']))
-            #N_3125 = ((subsam_data['N0_003125']))
-            #N_15625 = ((subsam_data['N0_0015625']))
-
-
-            #r2_5 = ((subsam_data['r2_05']))
-            #r2_25 = ((subsam_data['r2_025']))
-            #r2_125 = ((subsam_data['r2_0125']))
-            #r2_625 = ((subsam_data['r2_00625']))
-            #r2_3125 = ((subsam_data['r2_003125']))
-            #r2_15625 = ((subsam_data['r2_0015625']))
-            #plt.scatter(N_5, r2_5, alpha=0.05)
-            #plt.scatter(N_25, r2_25, alpha=0.05)
-            #plt.scatter(N_125, r2_125, alpha=0.05)
-            #plt.scatter(N_625, r2_625, alpha=0.05)
-            #plt.scatter(N_3125, r2_3125, alpha=0.05)
-            #plt.scatter(N_15625, r2_15625, alpha=0.05)
-
+            count += 1
     plt.savefig("test.png", bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
     #plt.xscale()
     plt.close()
