@@ -13,7 +13,6 @@ import time
 mydir = os.path.dirname(os.path.realpath(__file__))
 mydir = str(mydir[:-6]) + 'data/'
 
-estimators = ['fmin']
 
 def test_zipf_num_est(datasets, estimators, SAD_number, iterations, fail_threshold):
     percents = [0.500000, 0.250000, 0.125000, 0.062500, 0.031250, 0.015625]
@@ -94,7 +93,7 @@ def test_zipf_num_est(datasets, estimators, SAD_number, iterations, fail_thresho
                             sample_k_sorted = -np.sort( -sample_k[sample_k != 0] )
                             N_0_k = sum(sample_k_sorted)
                             S_0_k = sample_k_sorted.size
-                            if S_k < 10 or N_k <= S_k:
+                            if S_0_k < 10 or N_0_k <= S_0_k:
                                 continue
                             N_max_k = max(sample_k_sorted)
                             iter_count_current += 1
@@ -172,5 +171,8 @@ def test_zipf_num_est(datasets, estimators, SAD_number, iterations, fail_thresho
 
 
 #datasets = ['MGRAST']
-datasets = ['MGRAST']
-#test_zipf_num_est(datasets, estimators, 100, 100, 20)
+#datasets = ['MGRAST']
+datasets = ['HMP', 'EMPclosed']
+#estimators = ['fmin']
+estimators = ['fmin_cg', 'fmin_bfgs']
+test_zipf_num_est(datasets, estimators, 100, 100, 20)
