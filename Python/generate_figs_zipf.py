@@ -18,8 +18,6 @@ from sklearn.neighbors import KernelDensity
 import math
 import macroeco_distributions as md
 import macroecotools
-
-
 import mete
 
 #mydir = os.path.expanduser("~/github/MicroMETE/data/")
@@ -32,13 +30,11 @@ repos: METE (https://github.com/weecology/METE) and macroecotools
 (https://github.com/weecology/macroecotools). """
 
 
-
 class TimeoutException(Exception):   # Custom exception class
     pass
 
 def timeout_handler(signum, frame):   # Custom signal handler
     raise TimeoutException
-
 
 class zipf:
 
@@ -65,7 +61,6 @@ class zipf:
         par = getattr(optimize, estimator)(zipf_func, x0 = par0, disp=False)[0]
         return par
 
-
     def from_cdf(self):
         """ Obtain the maximum likelihood form of the Zipf distribution, given
         the mle value for the Zipf shape parameter (a). Using a, this code
@@ -77,8 +72,6 @@ class zipf:
         This is an actual form of the Zipf distribution, obtained from getting
         the mle for the shape parameter.
         """
-        #print len(self.obs)
-
         p = self.zipf_solver(self.obs)
         S = len(self.obs)
         rv = stats.zipf(a=p)
@@ -92,8 +85,6 @@ class zipf:
         #print point_return.x, point_return.y
         return point_return
 
-
-
 def get_SADs_mgrast(path, thresholds):
 
     datasets = ['BOVINE', 'CATLIN', 'CHU', 'HYDRO', 'LAUB']
@@ -103,18 +94,13 @@ def get_SADs_mgrast(path, thresholds):
 
         for d in datasets:
             name = d+t
-
             print name
 
             filepath  = path + 'MGRAST-Data/'+t+'/'+name+'/'+name+'-data.txt'
-
             with open(filepath) as f:
-
                 for d in f:
-
                     if d.strip():
                         d = d.split()
-
                         site = d[0]
                         abundance = int(d[-1])
 
@@ -123,7 +109,6 @@ def get_SADs_mgrast(path, thresholds):
                                 SADdict[site].append(abundance)
                             else:
                                 SADdict[site] = [abundance]
-
         SADs = SADdict.values()
         filteredSADs = []
 
@@ -137,8 +122,6 @@ def get_SADs_mgrast(path, thresholds):
 
         for sad in SADs:
             print>> OUT, sad
-
-
 
 def get_SADs_mgrast_test(path):
     SADdict = {}
@@ -194,9 +177,7 @@ def get_SADs_HMP(path, timeseries):
                     else:
                         SADdict[site].append(abundance)
 
-    #SADs = SADdict.values()
     filtered_SADdict = {}
-    #filteredSiteNames = []
 
     for key, value in SADdict.iteritems():
         if len(value) >= 10:
@@ -208,12 +189,10 @@ def get_SADs_HMP(path, timeseries):
     # site name filtered out in generate obs pred data
     for key, value in filtered_SADdict.iteritems():
         output = value.insert(0,key)
-        #value = ", ".join(value)
         print>> OUT, value
 
 
 def get_SADs(path, name, closedref=True):
-
     SADdict = {}
     DATA = path + name + '-data.txt'
 
@@ -222,7 +201,6 @@ def get_SADs(path, name, closedref=True):
         for d in f:
             if d.strip():
                 d = d.split()
-
                 if name == 'GENTRY':
                     site = d[0]
                     #species = d[1] # Dataset name plus species identifier
@@ -294,10 +272,15 @@ def get_GeomSeries(N,S,zeros):
         abd = md.trunc_geom.ppf(np.array(cdf), SNratio, N)
     return abd
 
-
-
-def generate_obs_pred_data(datasets, methods, size):
-
+def generate_obs_pred_data(datasets, methods, size = 0, remove = 0):
+    remove = int(remove)
+    if remove != 0:
+        newpath1 = mydir + "ObsPred/Remove_" + str(remove) + 's/'
+        if not os.path.exists(newpath1):
+            os.makedirs(newpath1)
+        newpath2 = mydir + "NSR2/Remove_" + str(remove) + 's/'
+        if not os.path.exists(newpath2):
+            os.makedirs(newpath2)
     for method in methods:
         for dataset in datasets:
 
@@ -307,35 +290,67 @@ def generate_obs_pred_data(datasets, methods, size):
 
                 if dataset == 'EMPclosed' or dataset == 'EMPopen' :
                     IN = mydir  + dataset + '-Data' + '/' + dataset +'-SADs.txt'
-                    OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred.txt','w+')
-                    OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2.txt','w+')
-
+                    if remove == 0:
+                        OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred.txt','w+')
+                        OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2.txt','w+')
+                    else:
+                        OUT1 = open(mydir + "ObsPred/Remove_" + str(remove)  + 's/'+ method +'_'+dataset +'_obs_pred_' \
+                            + str(remove) + '.txt','w+')
+                        OUT2 = open(mydir + "NSR2/Remove_" + str(remove)  + 's/'+ method +'_'+dataset+'_NSR2_' \
+                            + str(remove) + '.txt','w+')
                 elif dataset == "HMP":
                     IN = mydir  + dataset + '-Data' + '/' + dataset +'-SADs_NAP.txt'
-                    OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred.txt','w+')
-                    OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2.txt','w+')
-
+                    if remove == 0:
+                        OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred.txt','w+')
+                        OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2.txt','w+')
+                    else:
+                        OUT1 = open(mydir + "ObsPred/Remove_" + str(remove)  + 's/'+ method +'_'+dataset+'_obs_pred_' \
+                            + str(remove) + '.txt','w+')
+                        OUT2 = open(mydir + "NSR2/Remove_" + str(remove)  + 's/'+ method +'_'+dataset+'_NSR2_' \
+                            + str(remove) + '.txt','w+')
                 else:
                     IN = mydir + 'MGRAST-Data/' + dataset +  '/' + 'MGRAST-' + dataset + '-SADs.txt'
-                    OUT1 = open(mydir + "ObsPred/" + method +'_'+ 'MGRAST' + dataset+'_obs_pred.txt','w+')
-                    OUT2 = open(mydir + "NSR2/" + method +'_'+ 'MGRAST' + dataset+'_NSR2.txt','w+')
-
+                    if remove == 0:
+                        OUT1 = open(mydir + "ObsPred/" + method +'_'+ 'MGRAST' + dataset+'_obs_pred.txt','w+')
+                        OUT2 = open(mydir + "NSR2/" + method +'_'+ 'MGRAST' + dataset+'_NSR2.txt','w+')
+                    else:
+                        OUT1 = open(mydir + "ObsPred/Remove_" + str(remove)  + 's/'+ method +'_'+ 'MGRAST' + dataset+'_obs_pred_' \
+                            + str(remove) + '.txt','w+')
+                        OUT2 = open(mydir + "NSR2/Remove_" + str(remove)  + 's/'+ method +'_'+ 'MGRAST' + dataset+'_NSR2_'  \
+                            + str(remove) + '.txt','w+')
             elif (method == 'zipf' and dataset != 'MGRAST'):
 
                 if dataset == 'EMPclosed' or dataset == 'EMPopen' or dataset == 'HMP':
                     IN = mydir  + dataset + '-Data' + '/' + dataset +'-SADs.txt'
-                    OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred.txt','w+')
-                    OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2.txt','w+')
-
+                    if remove == 0:
+                        OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred.txt','w+')
+                        OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2.txt','w+')
+                    else:
+                        OUT1 = open(mydir + "ObsPred/Remove_" + str(remove)  + 's/'+ method +'_' + dataset+'_obs_pred_' \
+                            + str(remove) + '.txt','w+')
+                        OUT2 = open(mydir + "NSR2/Remove_" + str(remove)  + 's/'+ method +'_'+ dataset+'_NSR2_'  \
+                            + str(remove) + '.txt','w+')
                 else:
                     IN = mydir + 'MGRAST-Data/' + dataset +  '/' + 'MGRAST-' + dataset + '-SADs.txt'
-                    OUT1 = open(mydir + "ObsPred/" + method +'_'+ 'MGRAST' + dataset+'_obs_pred.txt','w+')
-                    OUT2 = open(mydir + "NSR2/" + method +'_'+ 'MGRAST' + dataset+'_NSR2.txt','w+')
+                    if remove == 0:
+                        OUT1 = open(mydir + "ObsPred/" + method +'_'+ 'MGRAST' + dataset+'_obs_pred.txt','w+')
+                        OUT2 = open(mydir + "NSR2/" + method +'_'+ 'MGRAST' + dataset+'_NSR2.txt','w+')
+                    else:
+                        OUT1 = open(mydir + "ObsPred/Remove_" + str(remove)  + 's/'+ method +'_'+ 'MGRAST' + dataset+'_obs_pred_' \
+                            + str(remove) + '.txt','w+')
+                        OUT2 = open(mydir + "NSR2/Remove_" + str(remove)  + 's/'+ method +'_'+ 'MGRAST' + dataset+'_NSR2_' \
+                            + str(remove) + '.txt','w+')
+
             elif dataset == 'MGRAST':
                 IN = mydir + 'MGRAST-Data/MGRAST/MGRAST-SADs.txt'
-                OUT1 = open(mydir + "ObsPred/" + method +'_'+ 'MGRAST_obs_pred.txt','w+')
-                OUT2 = open(mydir + "NSR2/" + method +'_'+ 'MGRAST_NSR2.txt','w+')
-
+                if remove == 0:
+                    OUT1 = open(mydir + "ObsPred/" + method +'_'+ 'MGRAST_obs_pred.txt','w+')
+                    OUT2 = open(mydir + "NSR2/" + method +'_'+ 'MGRAST_NSR2.txt','w+')
+                else:
+                    OUT1 = open(mydir + "ObsPred/Remove_" + str(remove)  + 's/'+ method +'_' + dataset+'_obs_pred_' \
+                        + str(remove) + '.txt','w+')
+                    OUT2 = open(mydir + "NSR2/Remove_" + str(remove)  + 's/'+ method +'_' + dataset+'_NSR2_' \
+                        + str(remove) + '.txt','w+')
             num_lines = sum(1 for line in open(IN))
 
             random_sites = np.random.randint(num_lines, size=size)
@@ -356,6 +371,14 @@ def generate_obs_pred_data(datasets, methods, size):
                     if j not in random_sites:
                         continue
                 obs = map(int, line)
+                if remove != 0:
+                    if int(remove) in obs:
+                        obs = obs.remove(int(remove))
+                if obs is None:
+                    continue
+                if len(obs) == 0:
+                    continue
+                print len(obs), obs
                 N = sum(obs)
                 S = len(obs)
                 Nmax = np.amax(obs)
@@ -382,7 +405,7 @@ def generate_obs_pred_data(datasets, methods, size):
                 elif method == 'zipf':
                     #line = map(int, line)
                     # Start the timer. Once 1 second is over, a SIGALRM signal is sent.
-                    signal.alarm(2)
+                    signal.alarm(10)
                     # This try/except loop ensures that
                     #   you'll catch TimeoutException when it's sent.
                     try:
@@ -390,7 +413,7 @@ def generate_obs_pred_data(datasets, methods, size):
                         Zipf_solve_line = md.zipf_solver(obs)
                         # use S
                         rv = stats.zipf(Zipf_solve_line)
-                        zipf_class = zipf(obs)
+                        zipf_class = zipf(obs, 'fmin')
                         pred_tuple = zipf_class.from_cdf()
                         pred = pred_tuple[0]
                         gamma = pred_tuple[1]
@@ -545,8 +568,9 @@ def import_NSR2_data(input_filename):   # TAKEN FROM THE mete_sads.py script use
     return data
 
 
-def plot_obs_pred_sad(methods, datasets, n, data_dir=mydir, radius=2): # TAKEN FROM THE mete_sads.py script used for White et al. (2012)
-    # Used for Figure 3 Locey and White (2013)        ########################################################################################
+def plot_obs_pred_sad(methods, datasets, n, data_dir=mydir, radius=2, remove = 0):
+    # TAKEN FROM THE mete_sads.py script used for White et al. (2012)
+    # Used for Figure 3 Locey and White (2013)
     """Multiple obs-predicted plotter"""
     fig = plt.figure()
     count = 0
@@ -554,19 +578,22 @@ def plot_obs_pred_sad(methods, datasets, n, data_dir=mydir, radius=2): # TAKEN F
     plot_dim = len(datasets)
     for i, dataset in enumerate(datasets):
         for j, method in enumerate(methods):
-            if str(dataset) == 'EMPopen' and method != 'zipf':
-                obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred.txt')
-            elif str(dataset) == 'EMPopen' and method == 'zipf':
-                obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred.txt')
-            elif str(dataset) == 'EMPclosed':
-                obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred.txt')
-            elif str(dataset) == 'HMP':
-                obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred.txt')
-            elif str(dataset) == 'MGRAST':
-                obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method + '_' + 'MGRAST_obs_pred.txt')
+            if remove == 0:
+                if ( str(dataset) == 'EMPclosed') or ( str(dataset) == 'HMP') or \
+                    ( str(dataset) == 'EMPopen'):
+                    obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred.txt')
+                elif str(dataset) == 'MGRAST':
+                    obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method + '_' + 'MGRAST_obs_pred.txt')
+                else:
+                    obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method + '_' + 'MGRAST' + dataset +'_obs_pred.txt')
             else:
-                obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method + '_' + 'MGRAST' + dataset +'_obs_pred.txt')
-
+                if ( str(dataset) == 'EMPclosed') or ( str(dataset) == 'HMP') or \
+                    ( str(dataset) == 'EMPopen') or ( str(dataset) == 'MGRAST'):
+                    obs_pred_data = data_dir + "ObsPred/Remove_" + str(remove)  + 's/'+ method +'_'+dataset+'_obs_pred_' \
+                        + str(remove) + '.txt'
+                else:
+                    obs_pred_data = import_obs_pred_data(data_dir + "ObsPred/Remove_" + str(remove)  + 's/'+ method +'_'+ 'MGRAST' + dataset+'_obs_pred_' \
+                        + str(remove) + '.txt')
             print method, dataset
 
             site = ((obs_pred_data["site"]))
@@ -1030,6 +1057,8 @@ def plot_subsampled_data(methods, datasets, data_dir= mydir):
     #plt.xscale()
     plt.close()
 
-datasets = ['EMPclosed']
-methods = ['geom', 'mete']
-plot_subsampled_data(methods, datasets)
+datasets = ['EMPclosed', 'EMPopen', 'MGRAST', 'HMP', '97', '95', '99']
+#datasets = ['95']
+methods = [ 'zipf']
+#plot_subsampled_data(methods, datasets)
+generate_obs_pred_data(datasets, methods, size = 0, remove = 1)
