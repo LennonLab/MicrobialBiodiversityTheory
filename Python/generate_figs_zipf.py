@@ -1029,7 +1029,7 @@ def plot_subsampled_data(methods, datasets, data_dir= mydir):
                     print "r-value is " + str(r_value)
                     print "p-value is " + str(p_value)
                     plt.xlim(np.amin(x), np.amax(x))
-                    plt.ylim(-2, 2)
+                    plt.ylim(0.5, 1)
                     predict_y = intercept + slope * x
                     pred_error = y - predict_y
                     plt.plot(x, predict_y, 'k-')
@@ -1042,7 +1042,7 @@ def plot_subsampled_data(methods, datasets, data_dir= mydir):
                     plt.xlabel(r'$\overline{N_0}$', fontsize = 10)
 
                 elif l == 1:
-                    ax = fig.add_subplot(2, plot_dim, count + 3)
+                    ax = fig.add_subplot(2, plot_dim, count + 4)
                     # Get the KDE
                     slope_data = subsam_data['slope']
                     kde_data = get_kdens_choose_kernel(slope_data, 0.4, kernel = 0.4)
@@ -1053,12 +1053,15 @@ def plot_subsampled_data(methods, datasets, data_dir= mydir):
                     plt.xlabel(r'$m$', fontsize = 10)
 
             count += 1
-    plt.savefig("test.png", bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
-    #plt.xscale()
-    plt.close()
+        name = str(dataset) + '_test.png'
+        print name
+        plt.tight_layout()
+        plt.savefig(name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
+        #plt.xscale()
+        plt.close()
 
-datasets = ['EMPclosed', 'EMPopen', 'MGRAST', 'HMP', '97', '95', '99']
+#datasets = ['EMPclosed', 'EMPopen', 'MGRAST', 'HMP', '97', '95', '99']
 #datasets = ['95']
-methods = [ 'zipf']
-#plot_subsampled_data(methods, datasets)
-generate_obs_pred_data(datasets, methods, size = 0, remove = 1)
+datasets = ['EMPclosed', 'HMP', 'MGRAST']
+methods = ['geom', 'mete', 'zipf']
+plot_subsampled_data(methods, datasets)
