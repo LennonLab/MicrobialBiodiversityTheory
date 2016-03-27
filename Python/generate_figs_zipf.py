@@ -1029,7 +1029,7 @@ def plot_subsampled_data(methods, datasets, data_dir= mydir):
                     print "r-value is " + str(r_value)
                     print "p-value is " + str(p_value)
                     plt.xlim(np.amin(x), np.amax(x))
-                    plt.ylim(0.5, 1)
+                    plt.ylim(np.amin(y), np.amax(y))
                     predict_y = intercept + slope * x
                     pred_error = y - predict_y
                     plt.plot(x, predict_y, 'k-')
@@ -1053,8 +1053,13 @@ def plot_subsampled_data(methods, datasets, data_dir= mydir):
                     plt.xlabel(r'$m$', fontsize = 10)
 
             count += 1
-        name = str(dataset) + '_test.png'
-        print name
+        if dataset == 'HMP':
+            name = str(mydir[:-6]) + '/figures' + '/Fig3.png'
+            print name
+        elif dataset == 'EMPclosed':
+            name = str(mydir[:-6]) + '/figures' + '/Fig4.png'
+        elif dataset == 'MGRAST':
+            name = str(mydir[:-6]) + '/figures' + '/Fig5.png'
         plt.tight_layout()
         plt.savefig(name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
         #plt.xscale()
