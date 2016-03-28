@@ -61,18 +61,31 @@ lm.mete <- lm(R2_METE ~ N * S, data = data)
 lm.zipf <- lm(R2_Zipf ~ N * S, data = data)
 
 
-lmer.geom <- lmer(R2_BS ~ N * S +  (1|Sex/HMPBodySite/HMPBodySubsite), data = data)
-lmer.mete <- lmer(R2_METE ~ N * S +  (1|Sex/HMPBodySite/HMPBodySubsite), data = data)
-lmer.zipf <- lmer(R2_Zipf ~ N * S +  (1|Sex/HMPBodySite/HMPBodySubsite), data = data)
+lmer.geom <- lmer(R2_BS ~ N * S +  (1|Sex/HMPBodySite/HMPBodySubsite), data = data, REML=FALSE)
+lmer.mete <- lmer(R2_METE ~ N * S +  (1|Sex/HMPBodySite/HMPBodySubsite), data = data, REML=FALSE)
+lmer.zipf <- lmer(R2_Zipf ~ N * S +  (1|Sex/HMPBodySite/HMPBodySubsite), data = data, REML=FALSE)
 
 
-lmer.geom.noSex <- lmer(R2_BS ~ N * S +  (1|HMPBodySite/HMPBodySubsite), data = data)
-lmer.mete.noSex <- lmer(R2_METE ~ N * S +  (1|HMPBodySite/HMPBodySubsite), data = data)
-lmer.zipf.noSex <- lmer(R2_Zipf ~ N * S +  (1|HMPBodySite/HMPBodySubsite), data = data)
 
-lmer.geom.noSex.dummy <- lmer(R2_BS ~ 1 + (1|HMPBodySite/HMPBodySubsite), data = data)
-lmer.mete.noSex.dummy <- lmer(R2_METE ~ 1 +  (1|HMPBodySite/HMPBodySubsite), data = data)
-lmer.zipf.noSex.dummy <- lmer(R2_Zipf ~ 1 +  (1|HMPBodySite/HMPBodySubsite), data = data)
+anova(lmer.geom, lm.geom)
+summary(lmer.mete.noSex)
+anova(lmer.mete, lm.mete)
+summary(lmer.zipf.noSex)
+anova(lmer.zipf, lm.zipf)
+
+
+#lmer.geom.noSex <- lmer(R2_BS ~ N * S +  (1|HMPBodySite/HMPBodySubsite), data = data)
+#lmer.mete.noSex <- lmer(R2_METE ~ N * S +  (1|HMPBodySite/HMPBodySubsite), data = data)
+#lmer.zipf.noSex <- lmer(R2_Zipf ~ N * S +  (1|HMPBodySite/HMPBodySubsite), data = data)
+
+#lmer.geom.noSex.dummy <- lmer(R2_BS ~ 1 + (1|HMPBodySite/HMPBodySubsite), data = data)
+#lmer.mete.noSex.dummy <- lmer(R2_METE ~ 1 +  (1|HMPBodySite/HMPBodySubsite), data = data)
+#lmer.zipf.noSex.dummy <- lmer(R2_Zipf ~ 1 +  (1|HMPBodySite/HMPBodySubsite), data = data)
+
+
+lm1 = lm(R2_BS ~ N * S, data = data)
+lm2 = lm(R2_BS ~ N + S, data = data)
+anova(lm2, lm1)
 
 summary(lmer.geom.noSex)
 anova(lmer.geom.noSex, lm.geom)
