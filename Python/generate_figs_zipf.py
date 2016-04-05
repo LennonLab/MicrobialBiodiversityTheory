@@ -602,24 +602,24 @@ def import_NSR2_data(input_filename):   # TAKEN FROM THE mete_sads.py script use
     if 'HMP' in input_filename_str:
         if ('zipf' in input_filename_str) :
             if ('glm' in input_filename_str) :
-                data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8", \
+                data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8", \
                     names = ['site','N','S', 'NmaxObs', 'NmaxPred','R2', 'NAP'], delimiter = " ")
             else:
-                data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8", \
+                data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8", \
                     names = ['site','N','S', 'NmaxObs', 'NmaxPred', 'gamma','R2', 'NAP'], delimiter = " ")
         else:
-            data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8", \
+            data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8", \
             names = ['site','N','S', 'NmaxObs', 'NmaxPred','R2','NAP'], delimiter = " ")
     else:
         if 'zipf' in input_filename_str:
             if ('glm' in input_filename_str) :
-                data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8", \
+                data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8", \
                 names = ['site','N','S', 'NmaxObs', 'NmaxPred','R2'], delimiter = " ")
             else:
-                data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8", \
+                data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8 ", \
                 names = ['site','N','S', 'NmaxObs', 'NmaxPred', 'gamma','R2'], delimiter = " ")
         else:
-            data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8", \
+            data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8 ", \
             names = ['site','N','S','NmaxObs', 'NmaxPred', 'R2'], delimiter = " ")
 
     return data
@@ -753,19 +753,19 @@ def plot_obs_pred_sad(methods, datasets, n, data_dir=mydir, radius=2, remove = 0
 
             axins = inset_axes(ax, width="30%", height="30%", loc=4)
             #if str(dataset) == 'EMPclosed' or str(dataset) == 'EMPopen':
-            #    if method == 'zipf':
-            #        INh2 = import_NSR2_data(data_dir + 'NSR2/' + method+ '_'+ zipfType + '_'+dataset+'_NSR2.txt')
-            #    else:
-            #        INh2 = import_NSR2_data(data_dir + 'NSR2/' + method+'_'+dataset+'_NSR2.txt')
-            #    r2s = ((INh2["R2"]))
-            #    hist_r2 = np.histogram(r2s, range=(0, 1))
-            #    xvals = hist_r2[1] + (hist_r2[1][1] - hist_r2[1][0])
-            #    xvals = xvals[0:len(xvals)-1]
-            #    yvals = hist_r2[0]
-            #    plt.plot(xvals, yvals, 'k-', linewidth=2)
-            #    plt.axis([0, 1, 0, 1.1 * max(yvals)])
+            if method == 'zipf':
+                INh2 = import_NSR2_data(data_dir + 'NSR2/' + method+ '_'+ zipfType + '_'+dataset+'_NSR2.txt')
+            else:
+                INh2 = import_NSR2_data(data_dir + 'NSR2/' + method+'_'+dataset+'_NSR2.txt')
+            r2s = ((INh2["R2"]))
+            hist_r2 = np.histogram(r2s, range=(0, 1))
+            xvals = hist_r2[1] + (hist_r2[1][1] - hist_r2[1][0])
+            xvals = xvals[0:len(xvals)-1]
+            yvals = hist_r2[0]
+            plt.plot(xvals, yvals, 'k-', linewidth=2)
+            plt.axis([0, 1, 0, 1.1 * max(yvals)])
             #else:
-            hist_mete_r2(site, np.log10(obs), np.log10(pred))
+            #    hist_mete_r2(site, np.log10(obs), np.log10(pred))
             plt.setp(axins, xticks=[], yticks=[])
             count += 1
         #count += (len(datasets) - len(methods))
@@ -785,9 +785,9 @@ def plot_obs_pred_sad(methods, datasets, n, data_dir=mydir, radius=2, remove = 0
     #fig.text(0.35, 0.04, 'Predicted rank-abundance', ha='center', va='center')
     #ax.set_xlabel('Observed rank-abundance',fontsize=10)
     if n != 'all':
-        fig_name = str(mydir[:-6]) + '/figures/' +'_'.join(datasets) + '_obs_pred_' + zipfType + '_' + str(n) + '_plots.png'
+        fig_name = str(mydir[:-6]) + '/figures/' + 'obs_pred_' + zipfType + '_' + str(n) + '_plots.png'
     else:
-        fig_name = str(mydir[:-6]) + '/figures/' + '_'.join(datasets) + '_obs_pred_' + zipfType + '_plots.png'
+        fig_name = str(mydir[:-6]) + '/figures/' + 'obs_pred_' + zipfType + '_plots.png'
     plt.savefig(fig_name, dpi=600)#, bbox_inches = 'tight')#, pad_inches=0)
     plt.close()
 
@@ -1199,11 +1199,11 @@ def obs_pred_Nmax_plot(methods,datasets, zipfType = 'glm', radius=2, data_dir= m
             pred = np.asarray(pred)
             ax = fig.add_subplot(plot_dim, plot_dim, count+1)
             N = np.asarray(list(((obs_pred_data["N"]))))
-            y = np.asarray(np.subtract(pred, obs))
-            y = np.absolute(y)
-            y = np.asarray(np.divide(y, obs))
+            #y = np.asarray(np.subtract(pred, obs))
+            #y = np.absolute(y)
+            #y = np.asarray(np.divide(y, obs))
             # absolte value
-            #ratioObsPred = np.asarray(np.divide(pred, obs))
+            y = np.asarray(np.divide(pred, obs))
             #ratioObsPred = np.asarray(pred)
             x_axis_min = min(N)
             x_axis_max = max(N)
@@ -1273,7 +1273,7 @@ def obs_pred_Nmax_plot(methods,datasets, zipfType = 'glm', radius=2, data_dir= m
             #plt.axhline(linewidth=2, color='darkgrey',ls='--')
             plt.plot([x_axis_min, x_axis_max],[1, 1], 'k-', color='darkgrey')
             plt.xlim(x_axis_min, x_axis_max)
-            plt.ylim(0, 3)
+            plt.ylim(y_axis_min, y_axis_max)
 
             plt.tick_params(axis='both', which='major', labelsize=7)
             plt.subplots_adjust(wspace=0.5, hspace=0.3)
@@ -1290,7 +1290,7 @@ def obs_pred_Nmax_plot(methods,datasets, zipfType = 'glm', radius=2, data_dir= m
     else:
         fig.text(0.37, 0.04, r'$N$', ha='center', va='center')
 
-    fig.text(0.02, 0.5, 'Percent error', ha='center', va='center', rotation='vertical')
+    fig.text(0.02, 0.5, 'Nmax (predicted) / Nmax (observed)', ha='center', va='center', rotation='vertical')
     #fig.ylabel('ylabel')
     #fig.text(0.35, 0.04, 'Predicted rank-abundance', ha='center', va='center')
     #ax.set_xlabel('Observed rank-abundance',fontsize=10)
@@ -1312,7 +1312,7 @@ methods = ['geom', 'mete', 'zipf']
 #obs_pred_Nmax_plot(methods, datasets, zipfType = 'mle')
 #obs_pred_Nmax_plot(methods, datasets, zipfType = 'glm')
 
-#plot_obs_pred_sad(methods, datasets, 'all', zipfType = 'glm')
-#plot_obs_pred_sad(methods, datasets, 'all', zipfType = 'mle')
-plot_obs_pred_sad(methods, datasets, 1000, zipfType = 'mle')
-plot_obs_pred_sad(methods, datasets, 1000, zipfType = 'glm')
+plot_obs_pred_sad(methods, datasets, 352899, zipfType = 'glm')
+plot_obs_pred_sad(methods, datasets, 352899, zipfType = 'mle')
+#plot_obs_pred_sad(methods, datasets, 100, zipfType = 'mle')
+#plot_obs_pred_sad(methods, datasets, 100, zipfType = 'glm')
