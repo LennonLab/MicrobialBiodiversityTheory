@@ -19,6 +19,8 @@ import math
 import macroeco_distributions as md
 import macroecotools
 import mete
+import statsmodels.formula.api as smf
+import statsmodels.api as sm
 
 #mydir = os.path.expanduser("~/github/MicroMETE/data/")
 mydir = os.path.dirname(os.path.realpath(__file__))
@@ -84,6 +86,28 @@ class zipf:
         point_return = point(rad, y = p)
         #print point_return.x, point_return.y
         return point_return
+
+    def from_glm(self):
+
+        """ Fit the Zipf distribution to the observed vector of integer values
+        using a generalized linear model.
+
+        Note: This is a fitted curve; not an actual form of the Zipf distribution
+
+        This method was inspired by the vegan
+        package's open source code on vegan's public GitHub repository:
+        https://github.com/vegandevs/vegan/blob/master/R/rad.zipf.R
+        on Thursday, 19 Marth 2015 """
+
+        ranks = np.log(range(1, len(self.obs)+1))
+        off = [np.log(sum(self.obs))] * len(self.obs)
+
+        d = pd.DataFrame({'ranks': ranks, 'off': off, 'x':self.obs})
+
+        lm = smf.glm(formula='x ~ ranks', data = d, family = sm.families.Poisson()).fit()
+        pred = lm.predict()
+
+        return pred
 
 def get_SADs_mgrast(path, thresholds):
 
@@ -272,7 +296,7 @@ def get_GeomSeries(N,S,zeros):
         abd = md.trunc_geom.ppf(np.array(cdf), SNratio, N)
     return abd
 
-def generate_obs_pred_data(datasets, methods, size = 0, remove = 0):
+def generate_obs_pred_data(datasets, methods, size = 0, remove = 0, zipfType = 'glm'):
     remove = int(remove)
     if remove != 0:
         newpath1 = mydir + "ObsPred/Remove_" + str(remove) + 's/'
@@ -323,34 +347,45 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove = 0):
                 if dataset == 'EMPclosed' or dataset == 'EMPopen' or dataset == 'HMP':
                     IN = mydir  + dataset + '-Data' + '/' + dataset +'-SADs.txt'
                     if remove == 0:
-                        OUT1 = open(mydir + "ObsPred/" + method +'_'+dataset+'_obs_pred.txt','w+')
-                        OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2.txt','w+')
+                        OUT1 = open(mydir + "ObsPred/" + method + '_' + zipfType + '_'+dataset+'_obs_pred.txt','w+')
+                        OUT2 = open(mydir + "NSR2/" + method + '_' + zipfType +'_'+dataset+'_NSR2.txt','w+')
                     else:
-                        OUT1 = open(mydir + "ObsPred/Remove_" + str(remove)  + 's/'+ method +'_' + dataset+'_obs_pred_' \
+                        OUT1 = open(mydir + "ObsPred/Remove_" + str(remove)  + 's/'+ method + '_' + zipfType +'_' + dataset+'_obs_pred_' \
                             + str(remove) + '.txt','w+')
-                        OUT2 = open(mydir + "NSR2/Remove_" + str(remove)  + 's/'+ method +'_'+ dataset+'_NSR2_'  \
+                        OUT2 = open(mydir + "NSR2/Remove_" + str(remove)  + 's/'+ method + '_' + zipfType +'_'+ dataset+'_NSR2_'  \
                             + str(remove) + '.txt','w+')
                 else:
                     IN = mydir + 'MGRAST-Data/' + dataset +  '/' + 'MGRAST-' + dataset + '-SADs.txt'
                     if remove == 0:
-                        OUT1 = open(mydir + "ObsPred/" + method +'_'+ 'MGRAST' + dataset+'_obs_pred.txt','w+')
-                        OUT2 = open(mydir + "NSR2/" + method +'_'+ 'MGRAST' + dataset+'_NSR2.txt','w+')
+                        OUT1 = open(mydir + "ObsPred/" + method + '_' + zipfType +'_'+ 'MGRAST' + dataset+'_obs_pred.txt','w+')
+                        OUT2 = open(mydir + "NSR2/" + method + '_' + zipfType +'_'+ 'MGRAST' + dataset+'_NSR2.txt','w+')
                     else:
-                        OUT1 = open(mydir + "ObsPred/Remove_" + str(remove)  + 's/'+ method +'_'+ 'MGRAST' + dataset+'_obs_pred_' \
+                        OUT1 = open(mydir + "ObsPred/Remove_" + str(remove)  + 's/'+ method + '_' + zipfType +'_'+ 'MGRAST' + dataset+'_obs_pred_' \
                             + str(remove) + '.txt','w+')
-                        OUT2 = open(mydir + "NSR2/Remove_" + str(remove)  + 's/'+ method +'_'+ 'MGRAST' + dataset+'_NSR2_' \
+                        OUT2 = open(mydir + "NSR2/Remove_" + str(remove)  + 's/'+ method + '_' + zipfType +'_'+ 'MGRAST' + dataset+'_NSR2_' \
                             + str(remove) + '.txt','w+')
 
             elif dataset == 'MGRAST':
                 IN = mydir + 'MGRAST-Data/MGRAST/MGRAST-SADs.txt'
                 if remove == 0:
-                    OUT1 = open(mydir + "ObsPred/" + method +'_'+ 'MGRAST_obs_pred.txt','w+')
-                    OUT2 = open(mydir + "NSR2/" + method +'_'+ 'MGRAST_NSR2.txt','w+')
+                    if method == 'zipf':
+                        OUT1 = open(mydir + "ObsPred/" + method + '_' + zipfType +'_'+ 'MGRAST_obs_pred.txt','w+')
+                        OUT2 = open(mydir + "NSR2/" + method + '_' + zipfType +'_'+ 'MGRAST_NSR2.txt','w+')
+                    else:
+                        OUT1 = open(mydir + "ObsPred/" + method +'_'+ 'MGRAST_obs_pred.txt','w+')
+                        OUT2 = open(mydir + "NSR2/" + method +'_'+ 'MGRAST_NSR2.txt','w+')
                 else:
-                    OUT1 = open(mydir + "ObsPred/Remove_" + str(remove)  + 's/'+ method +'_' + dataset+'_obs_pred_' \
-                        + str(remove) + '.txt','w+')
-                    OUT2 = open(mydir + "NSR2/Remove_" + str(remove)  + 's/'+ method +'_' + dataset+'_NSR2_' \
-                        + str(remove) + '.txt','w+')
+                    if method == 'zipf':
+                        OUT1 = open(mydir + "ObsPred/Remove_" + str(remove)  + 's/'+ method + '_' + zipfType +'_' + dataset+'_obs_pred_' \
+                            + str(remove) + '.txt','w+')
+                        OUT2 = open(mydir + "NSR2/Remove_" + str(remove)  + 's/'+ method + '_' + zipfType +'_' + dataset+'_NSR2_' \
+                            + str(remove) + '.txt','w+')
+                    else:
+                        OUT1 = open(mydir + "ObsPred/Remove_" + str(remove)  + 's/'+ method +'_' + dataset+'_obs_pred_' \
+                            + str(remove) + '.txt','w+')
+                        OUT2 = open(mydir + "NSR2/Remove_" + str(remove)  + 's/'+ method +'_' + dataset+'_NSR2_' \
+                            + str(remove) + '.txt','w+')
+
             num_lines = sum(1 for line in open(IN))
 
             random_sites = np.random.randint(num_lines, size=size)
@@ -378,10 +413,10 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove = 0):
                     continue
                 if len(obs) == 0:
                     continue
-                print len(obs), obs
                 N = sum(obs)
                 S = len(obs)
-                Nmax = np.amax(obs)
+                NmaxObs = np.amax(obs)
+
 
                 if S < 10 or N <= S:
                     num_lines -= 1
@@ -403,26 +438,31 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove = 0):
                     logSeries = mete.get_mete_rad(S, N)
                     pred = logSeries[0]
                 elif method == 'zipf':
-                    #line = map(int, line)
-                    # Start the timer. Once 1 second is over, a SIGALRM signal is sent.
-                    signal.alarm(10)
-                    # This try/except loop ensures that
-                    #   you'll catch TimeoutException when it's sent.
-                    try:
-                        # Whatever your function that might hang
-                        Zipf_solve_line = md.zipf_solver(obs)
-                        # use S
-                        rv = stats.zipf(Zipf_solve_line)
-                        zipf_class = zipf(obs, 'fmin')
-                        pred_tuple = zipf_class.from_cdf()
-                        pred = pred_tuple[0]
-                        gamma = pred_tuple[1]
-                    except TimeoutException:
-                        continue # continue the for loop if function takes more than x seconds
+                    if zipfType == 'glm':
+                        zipf_pred = zipf(obs, 'fmin')
+                        zipf_glm = zipf_pred.from_glm()
+                        pred = zipf_glm
                     else:
-                        # Reset the alarm
-                        signal.alarm(0)
-
+                        #line = map(int, line)
+                        # Start the timer. Once 1 second is over, a SIGALRM signal is sent.
+                        signal.alarm(3)
+                        # This try/except loop ensures that
+                        #   you'll catch TimeoutException when it's sent.
+                        try:
+                            # Whatever your function that might hang
+                            Zipf_solve_line = md.zipf_solver(obs)
+                            # use S
+                            rv = stats.zipf(Zipf_solve_line)
+                            zipf_class = zipf(obs, 'fmin')
+                            pred_tuple = zipf_class.from_cdf()
+                            pred = pred_tuple[0]
+                            gamma = pred_tuple[1]
+                        except TimeoutException:
+                            continue # continue the for loop if function takes more than x seconds
+                        else:
+                            # Reset the alarm
+                            signal.alarm(0)
+                NmaxPred = np.amax(pred)
                 r2 = macroecotools.obs_pred_rsquare(np.log10(obs), np.log10(pred))
                 print " r2:", r2
                 if r2 == -float('inf') or r2 == float('inf') or r2 == float('Nan'):
@@ -430,21 +470,28 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove = 0):
                     continue
                 if method == 'zipf':
                     if dataset == 'EMPclosed' or dataset == 'EMPopen' or dataset == 'HMP':
-                        OUT2 = open(mydir + "NSR2/" + method +'_'+dataset+'_NSR2.txt','a+')
-                        if dataset == 'HMP':
-                            print>> OUT2, j, N, S, Nmax, gamma, r2, site_name
+                        OUT2 = open(mydir + "NSR2/" + method + '_' + zipfType +'_'+dataset+'_NSR2.txt','a+')
+                        if zipfType == 'glm':
+                            if dataset == 'HMP':
+                                print>> OUT2, j, N, S, NmaxObs, NmaxPred, r2, site_name
+                            else:
+                                print>> OUT2, j, N, S, NmaxObs, NmaxPred, r2
                         else:
-                            print>> OUT2, j, N, S, Nmax, gamma, r2
+                            if dataset == 'HMP':
+                                print>> OUT2, j, N, S, NmaxObs, NmaxPred, gamma, r2, site_name
+                            else:
+                                print>> OUT2, j, N, S, NmaxObs, NmaxPred, gamma, r2
                         OUT2.close()
                     else:
-                        print>> OUT2, j, N, S, Nmax, gamma, r2
-                        #print>> OUT3, j, N, S, r2, rv, zipf_class
+                        if zipfType == 'glm':
+                            print>> OUT2, j, N, S,NmaxObs, NmaxPred, r2
+                        else:
+                            print>> OUT2, j, N, S,NmaxObs, NmaxPred, gamma, r2
                 else:
                     if dataset == 'HMP':
-                        print>> OUT2, j, N, S, Nmax, r2, site_name
+                        print>> OUT2, j, N, S, NmaxObs, NmaxPred, r2, site_name
                     else:
-                        print>> OUT2, j, N, S, Nmax, r2
-                    #print j, N, S, r2
+                        print>> OUT2, j, N, S, NmaxObs, NmaxPred, r2
 
 
                 for i, sp in enumerate(pred):
@@ -552,23 +599,31 @@ def import_NSR2_data(input_filename):   # TAKEN FROM THE mete_sads.py script use
     #method = str(NSR2_method.split('/')[1])
     if 'HMP' in input_filename_str:
         if ('zipf' in input_filename_str) :
-            data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8", \
-            names = ['site','N','S', 'Nmax','gamma','R2', 'NAP'], delimiter = " ")
+            if ('glm' in input_filename_str) :
+                data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8", \
+                    names = ['site','N','S', 'NmaxObs', 'NmaxPred','R2', 'NAP'], delimiter = " ")
+            else:
+                data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8", \
+                    names = ['site','N','S', 'NmaxObs', 'NmaxPred', 'gamma','R2', 'NAP'], delimiter = " ")
         else:
             data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8", \
-            names = ['site','N','S', 'Nmax','R2','NAP'], delimiter = " ")
+            names = ['site','N','S', 'NmaxObs', 'NmaxPred','R2','NAP'], delimiter = " ")
     else:
         if 'zipf' in input_filename_str:
-            data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8", \
-            names = ['site','N','S', 'Nmax','gamma','R2'], delimiter = " ")
+            if ('glm' in input_filename_str) :
+                data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8", \
+                names = ['site','N','S', 'NmaxObs', 'NmaxPred','R2'], delimiter = " ")
+            else:
+                data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8", \
+                names = ['site','N','S', 'NmaxObs', 'NmaxPred', 'gamma','R2'], delimiter = " ")
         else:
             data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8", \
-            names = ['site','N','S','Nmax','R2'], delimiter = " ")
+            names = ['site','N','S','NmaxObs', 'NmaxPred', 'R2'], delimiter = " ")
 
     return data
 
 
-def plot_obs_pred_sad(methods, datasets, n, data_dir=mydir, radius=2, remove = 0):
+def plot_obs_pred_sad(methods, datasets, n, data_dir=mydir, radius=2, remove = 0, zipfType = 'glm'):
     # TAKEN FROM THE mete_sads.py script used for White et al. (2012)
     # Used for Figure 3 Locey and White (2013)
     """Multiple obs-predicted plotter"""
@@ -579,21 +634,39 @@ def plot_obs_pred_sad(methods, datasets, n, data_dir=mydir, radius=2, remove = 0
     for i, dataset in enumerate(datasets):
         for j, method in enumerate(methods):
             if remove == 0:
-                if ( str(dataset) == 'EMPclosed') or ( str(dataset) == 'HMP') or \
-                    ( str(dataset) == 'EMPopen'):
-                    obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred.txt')
-                elif str(dataset) == 'MGRAST':
-                    obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method + '_' + 'MGRAST_obs_pred.txt')
+                if method == 'zipf':
+                    if ( str(dataset) == 'EMPclosed') or ( str(dataset) == 'HMP') or \
+                        ( str(dataset) == 'EMPopen'):
+                        obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method + '_'+ zipfType +'_'+dataset+'_obs_pred.txt')
+                    elif str(dataset) == 'MGRAST':
+                        obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method + '_'+ zipfType + '_' + 'MGRAST_obs_pred.txt')
+                    else:
+                        obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method + '_'+ zipfType + '_' + 'MGRAST' + dataset +'_obs_pred.txt')
                 else:
-                    obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method + '_' + 'MGRAST' + dataset +'_obs_pred.txt')
+                    if ( str(dataset) == 'EMPclosed') or ( str(dataset) == 'HMP') or \
+                        ( str(dataset) == 'EMPopen'):
+                        obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred.txt')
+                    elif str(dataset) == 'MGRAST':
+                        obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method + '_' + 'MGRAST_obs_pred.txt')
+                    else:
+                        obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method + '_' + 'MGRAST' + dataset +'_obs_pred.txt')
             else:
-                if ( str(dataset) == 'EMPclosed') or ( str(dataset) == 'HMP') or \
-                    ( str(dataset) == 'EMPopen') or ( str(dataset) == 'MGRAST'):
-                    obs_pred_data = data_dir + "ObsPred/Remove_" + str(remove)  + 's/'+ method +'_'+dataset+'_obs_pred_' \
-                        + str(remove) + '.txt'
+                if method == 'zipf':
+                    if ( str(dataset) == 'EMPclosed') or ( str(dataset) == 'HMP') or \
+                        ( str(dataset) == 'EMPopen') or ( str(dataset) == 'MGRAST'):
+                        obs_pred_data = data_dir + "ObsPred/Remove_" + str(remove)  + 's/'+ method + '_'+ zipfType +'_'+dataset+'_obs_pred_' \
+                            + str(remove) + '.txt'
+                    else:
+                        obs_pred_data = import_obs_pred_data(data_dir + "ObsPred/Remove_" + str(remove)  + 's/'+ method + '_'+ zipfType +'_'+ 'MGRAST' + dataset+'_obs_pred_' \
+                            + str(remove) + '.txt')
                 else:
-                    obs_pred_data = import_obs_pred_data(data_dir + "ObsPred/Remove_" + str(remove)  + 's/'+ method +'_'+ 'MGRAST' + dataset+'_obs_pred_' \
-                        + str(remove) + '.txt')
+                    if ( str(dataset) == 'EMPclosed') or ( str(dataset) == 'HMP') or \
+                        ( str(dataset) == 'EMPopen') or ( str(dataset) == 'MGRAST'):
+                        obs_pred_data = data_dir + "ObsPred/Remove_" + str(remove)  + 's/'+ method +'_'+dataset+'_obs_pred_' \
+                            + str(remove) + '.txt'
+                    else:
+                        obs_pred_data = import_obs_pred_data(data_dir + "ObsPred/Remove_" + str(remove)  + 's/'+ method +'_'+ 'MGRAST' + dataset+'_obs_pred_' \
+                            + str(remove) + '.txt')
             print method, dataset
 
             site = ((obs_pred_data["site"]))
@@ -621,6 +694,7 @@ def plot_obs_pred_sad(methods, datasets, n, data_dir=mydir, radius=2, remove = 0
             obs = np.asarray(obs2)
             pred = np.asarray(pred2)
             site =  np.asarray(site2)
+            print obs
             if method == 'zipf':
                 axis_min = 0.5 * min(pred)
                 axis_max = 10  * max(pred)
@@ -676,17 +750,20 @@ def plot_obs_pred_sad(methods, datasets, n, data_dir=mydir, radius=2, remove = 0
             plt.subplots_adjust(wspace=0.5, hspace=0.3)
 
             axins = inset_axes(ax, width="30%", height="30%", loc=4)
-            if str(dataset) == 'EMPclosed' or str(dataset) == 'EMPopen':
-                INh2 = import_NSR2_data(data_dir + 'NSR2/' + method+'_'+dataset+'_NSR2.txt')
-                r2s = ((INh2["R2"]))
-                hist_r2 = np.histogram(r2s, range=(0, 1))
-                xvals = hist_r2[1] + (hist_r2[1][1] - hist_r2[1][0])
-                xvals = xvals[0:len(xvals)-1]
-                yvals = hist_r2[0]
-                plt.plot(xvals, yvals, 'k-', linewidth=2)
-                plt.axis([0, 1, 0, 1.1 * max(yvals)])
-            else:
-                hist_mete_r2(site, np.log10(obs), np.log10(pred))
+            #if str(dataset) == 'EMPclosed' or str(dataset) == 'EMPopen':
+            #    if method == 'zipf':
+            #        INh2 = import_NSR2_data(data_dir + 'NSR2/' + method+ '_'+ zipfType + '_'+dataset+'_NSR2.txt')
+            #    else:
+            #        INh2 = import_NSR2_data(data_dir + 'NSR2/' + method+'_'+dataset+'_NSR2.txt')
+            #    r2s = ((INh2["R2"]))
+            #    hist_r2 = np.histogram(r2s, range=(0, 1))
+            #    xvals = hist_r2[1] + (hist_r2[1][1] - hist_r2[1][0])
+            #    xvals = xvals[0:len(xvals)-1]
+            #    yvals = hist_r2[0]
+            #    plt.plot(xvals, yvals, 'k-', linewidth=2)
+            #    plt.axis([0, 1, 0, 1.1 * max(yvals)])
+            #else:
+            hist_mete_r2(site, np.log10(obs), np.log10(pred))
             plt.setp(axins, xticks=[], yticks=[])
             count += 1
         #count += (len(datasets) - len(methods))
@@ -705,7 +782,10 @@ def plot_obs_pred_sad(methods, datasets, n, data_dir=mydir, radius=2, remove = 0
     fig.text(0.05, 0.5, 'Observed rank-abundance', ha='center', va='center', rotation='vertical')
     #fig.text(0.35, 0.04, 'Predicted rank-abundance', ha='center', va='center')
     #ax.set_xlabel('Observed rank-abundance',fontsize=10)
-    fig_name = '_'.join(datasets) + '_obs_pred_plots.png'
+    if n != 'all':
+        fig_name = str(mydir[:-6]) + '/figures/' +'_'.join(datasets) + '_obs_pred' + zipfType + '_' + str(n) + '_plots.png'
+    else:
+        fig_name = str(mydir[:-6]) + '/figures/' + '_'.join(datasets) + '_obs_pred' + zipfType + '_plots.png'
     plt.savefig(fig_name, dpi=600)#, bbox_inches = 'tight')#, pad_inches=0)
     plt.close()
 
@@ -752,7 +832,6 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
                     print "mean S is " + str(np.mean(S_count))
                     x = np.divide(N_count, S_count)
                     x = np.log10(x)
-
 
                 macroecotools.plot_color_by_pt_dens(x, y, 0.1, loglog=0,
                                 plot_obj=plt.subplot(3, 3, count+1))
@@ -862,7 +941,7 @@ def zipf_mle_plots(datasets, data_dir):
 
             N =  np.log10(((zipf_data["N"])))
             y = ((zipf_data["gamma"])) * -1
-            x = np.log10(((zipf_data["Nmax"])))
+            x = np.log10(((zipf_data["NmaxObs"])))
             ax = fig.add_subplot(plot_dim, plot_dim, count+1)
             mean = np.mean(x)
             std_error = sp.stats.sem(x)
@@ -947,7 +1026,7 @@ def zipf_mle_plots(datasets, data_dir):
         plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
 
         fig.subplots_adjust(wspace = 0.4, hspace = 0.35, top=0.85)
-        fig_name = '_'.join(datasets) + '_zipf_mle_plots.png'
+        fig_name = str(mydir[:-6]) + '/figures/' + '_'.join(datasets) + '_zipf_mle_plots.png'
         #ax.set_aspect('equal')
         plt.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
         #plt.xscale()
@@ -999,7 +1078,6 @@ def plot_subsampled_data(methods, datasets, data_dir= mydir):
         fig = plt.figure()
         count  = 0
         plot_dim = len(methods)
-        print plot_dim
         for j, method in enumerate(methods):
             input_file = data_dir + \
             'SubSampled-Data/' + dataset+ '_' + method + '_SubSampled_Data.txt'
@@ -1047,6 +1125,7 @@ def plot_subsampled_data(methods, datasets, data_dir= mydir):
                     slope_data = subsam_data['slope']
                     kde_data = get_kdens_choose_kernel(slope_data, 0.4, kernel = 0.4)
                     ax.plot(kde_data[0], kde_data[1])
+                    plt.xlim(np.amin(x), np.amax(x))
                     plt.xticks(fontsize = 6) # work on current fig
                     plt.yticks(fontsize = 6)
                     plt.ylabel('Probability Density', fontsize = 7)
@@ -1065,8 +1144,174 @@ def plot_subsampled_data(methods, datasets, data_dir= mydir):
         #plt.xscale()
         plt.close()
 
+
+def plot_color_by_pt_dens1(x, y, radius, loglog=0, plot_obj=None):
+    """Plot bivariate relationships with large n using color for point density
+
+    Inputs:
+    x & y -- variables to be plotted
+    radius -- the linear distance within which to count points as neighbors
+    loglog -- a flag to indicate the use of a loglog plot (loglog = 1)
+
+    The color of each point in the plot is determined by the logarithm (base 10)
+    of the number of points that occur with a given radius of the focal point,
+    with hotter colors indicating more points. The number of neighboring points
+    is determined in linear space regardless of whether a loglog plot is
+    presented.
+    """
+    plot_data = macroecotools.count_pts_within_radius(x, y, radius, loglog)
+    sorted_plot_data = np.array(sorted(plot_data, key=lambda point: point[2]))
+
+    if plot_obj == None:
+        plot_obj = plt.axes()
+
+    if loglog == 1:
+        plot_obj.set_xscale('log')
+        #plot_obj.set_yscale('log')
+        plot_obj.scatter(sorted_plot_data[:, 0], sorted_plot_data[:, 1],
+                         c = np.sqrt(sorted_plot_data[:, 2]), edgecolors='none')
+        plot_obj.set_xlim(min(x) * 0.5, max(x) * 2)
+        plot_obj.set_ylim(min(y) * 0.5, max(y) * 2)
+    else:
+        plot_obj.scatter(sorted_plot_data[:, 0], sorted_plot_data[:, 1],
+                    c = log10(sorted_plot_data[:, 2]), edgecolors='none')
+    return plot_obj
+
+
+def obs_pred_Nmax_plot(methods,datasets, zipfType = 'glm', radius=2, data_dir= mydir):
+    """Multiple obs-predicted plotter"""
+    fig = plt.figure()
+    count = 0
+    plot_dim = len(datasets)
+    for i, dataset in enumerate(datasets):
+        for j, method in enumerate(methods):
+            if method == 'zipf':
+                obs_pred_data = import_NSR2_data(data_dir + 'NSR2/' + \
+                    method + '_' + zipfType + '_'+ dataset+'_NSR2.txt')
+            else:
+                obs_pred_data = import_NSR2_data(data_dir + 'NSR2/' + \
+                    method + '_'+ dataset+'_NSR2.txt')
+            obs = list(((obs_pred_data["NmaxObs"])))
+            pred = list(((obs_pred_data["NmaxPred"])))
+            obs = np.asarray(obs)
+            pred = np.asarray(pred)
+            ax = fig.add_subplot(plot_dim, plot_dim, count+1)
+            N = np.asarray(list(((obs_pred_data["N"]))))
+            y = np.asarray(np.subtract(pred, obs))
+            y = np.absolute(y)
+            y = np.asarray(np.divide(y, obs))
+            # absolte value
+            #ratioObsPred = np.asarray(np.divide(pred, obs))
+            #ratioObsPred = np.asarray(pred)
+            x_axis_min = min(N)
+            x_axis_max = max(N)
+            y_axis_min = min(y)
+            y_axis_max = max(y)
+            print y_axis_min,  y_axis_max
+            if method == 'zipf':
+                axis_min = 0.5 * min(N)
+                axis_max = 10  * max(N)
+            else:
+                axis_min = 0.5 * min(N)
+                axis_max = 2 * max(N)
+            #ax.set(adjustable='box-forced', aspect='equal')
+            plt.subplots_adjust(wspace=1, hspace=1)
+
+            if j == 0:
+                if all(x in datasets for x in ['HMP','EMPclosed','EMPopen', 'MGRAST']) == True:
+                    if dataset == 'HMP':
+                        ax.set_ylabel("HMP", rotation=90, size=12)
+                    elif dataset == 'EMPclosed':
+                        ax.set_ylabel("EMP (closed)", rotation=90, size=12)
+                    elif  dataset == 'EMPopen':
+                        ax.set_ylabel("EMP (open)", rotation=90, size=12)
+                    elif dataset == 'MGRAST':
+                        ax.set_ylabel("MG-RAST", rotation=90, size=12)
+                if all(x in datasets for x in ['95', '97', '99']) == True:
+                    if dataset == '95':
+                        ax.set_ylabel("MG-RAST 95%", rotation=90, size=12)
+                    elif dataset == '97':
+                        ax.set_ylabel("MG-RAST 97%", rotation=90, size=12)
+                    elif dataset == '99':
+                        ax.set_ylabel("MG-RAST 99%", rotation=90, size=12)
+                else:
+                    if dataset == 'HMP':
+                        ax.set_ylabel("HMP", rotation=90, size=12)
+                    elif dataset == 'EMPclosed' or method == 'EMPopen':
+                        ax.set_ylabel("EMP", rotation=90, size=12)
+                    elif dataset == '97':
+                        ax.set_ylabel("MG-RAST 97%", rotation=90, size=12)
+                    elif dataset == 'MGRAST':
+                        ax.set_ylabel("MG-RAST", rotation=90, size=12)
+            if i == 0 and j == 0:
+                ax.set_title("Broken-stick")
+            elif i == 0 and j == 1:
+                ax.set_title("METE")
+            elif i == 0 and j == 2:
+                ax.set_title("Zipf")
+
+            if i == 0 and j == 0:
+                ax.set_title("Broken-stick")
+            elif i == 0 and j == 1:
+                ax.set_title("METE")
+            elif i == 0 and j == 2:
+                ax.set_title("Zipf")
+
+            print len(obs), len(pred)
+
+            plot_color_by_pt_dens1(N, y, radius, loglog=1, \
+                            plot_obj=plt.subplot(plot_dim,plot_dim,count+1))
+            slope, intercept, r_value, p_value, std_err = stats.linregress(N,y)
+            predict_y = intercept + slope * N
+            pred_error = y - predict_y
+            degrees_of_freedom = len(N) - 2
+            residual_std_error = np.sqrt(np.sum(pred_error**2) / degrees_of_freedom)
+            N = np.log10(N)
+            plt.plot(N, predict_y, 'k-')
+            #plt.axhline(linewidth=2, color='darkgrey',ls='--')
+            plt.plot([x_axis_min, x_axis_max],[1, 1], 'k-', color='darkgrey')
+            plt.xlim(x_axis_min, x_axis_max)
+            plt.ylim(0, 3)
+
+            plt.tick_params(axis='both', which='major', labelsize=7)
+            plt.subplots_adjust(wspace=0.5, hspace=0.3)
+
+            count += 1
+
+    #ax.set_ylabel(-8.5,500,'Observed rank-abundance',rotation='90',fontsize=10)
+    fig.subplots_adjust(wspace = 0.2, hspace = 0.2, top=0.70)
+
+    if plot_dim == 3:
+        fig.text(0.5, 0.04, r'$N$', ha='center', va='center')
+    elif plot_dim == 4:
+        fig.text(0.30, 0.04, r'$N$', ha='center', va='center')
+    else:
+        fig.text(0.37, 0.04, r'$N$', ha='center', va='center')
+
+    fig.text(0.02, 0.5, 'Percent error', ha='center', va='center', rotation='vertical')
+    #fig.ylabel('ylabel')
+    #fig.text(0.35, 0.04, 'Predicted rank-abundance', ha='center', va='center')
+    #ax.set_xlabel('Observed rank-abundance',fontsize=10)
+    plt.tight_layout(pad=2, w_pad=2, h_pad=2)
+    fig_name = str(mydir[:-6]) + '/figures/' + '_'.join(datasets) + '_obs_pred_Nmax_' \
+        + zipfType + '_plots.png'
+    plt.savefig(fig_name, dpi=600)#, bbox_inches = 'tight')#, pad_inches=0)
+    plt.close()
+
+
 #datasets = ['EMPclosed', 'EMPopen', 'MGRAST', 'HMP', '97', '95', '99']
-#datasets = ['95']
-datasets = ['EMPclosed', 'HMP', 'MGRAST']
+datasets = ['HMP','EMPclosed','MGRAST']
+#methods = ['zipf']
 methods = ['geom', 'mete', 'zipf']
-plot_subsampled_data(methods, datasets)
+#plot_subsampled_data(methods, datasets)
+
+#generate_obs_pred_data(datasets, methods, size = 0, remove = 0, zipfType = 'glm')
+
+#obs_pred_Nmax_plot(methods, datasets, zipfType = 'mle')
+#obs_pred_Nmax_plot(methods, datasets, zipfType = 'glm')
+
+#plot_obs_pred_sad(methods, datasets, 'all', zipfType = 'glm')
+#plot_obs_pred_sad(methods, datasets, 'all', zipfType = 'mle')
+
+plot_obs_pred_sad(methods, datasets, 100, zipfType = 'mle')
+plot_obs_pred_sad(methods, datasets, 100, zipfType = 'glm')
