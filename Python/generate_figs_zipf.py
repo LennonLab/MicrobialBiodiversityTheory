@@ -441,7 +441,9 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove = 0, zipfType = '
                     if zipfType == 'glm':
                         zipf_pred = zipf(obs, 'fmin')
                         zipf_glm = zipf_pred.from_glm()
-                        pred = zipf_glm
+                        pred = np.ceil(zipf_glm)
+                        pred.astype(int)
+                        #numpy.ceil
                     else:
                         #line = map(int, line)
                         # Start the timer. Once 1 second is over, a SIGALRM signal is sent.
@@ -696,10 +698,10 @@ def plot_obs_pred_sad(methods, datasets, n, data_dir=mydir, radius=2, remove = 0
             site =  np.asarray(site2)
             print obs
             if method == 'zipf':
-                axis_min = 0.5 * min(pred)
+                axis_min = 0
                 axis_max = 10  * max(pred)
             else:
-                axis_min = 0.5 * min(obs)
+                axis_min = 0
                 axis_max = 2 * max(obs)
 
             ax = fig.add_subplot(plot_dim, plot_dim, count+1)
@@ -743,8 +745,8 @@ def plot_obs_pred_sad(methods, datasets, n, data_dir=mydir, radius=2, remove = 0
                             plot_obj=plt.subplot(plot_dim,plot_dim,count+1))
 
             plt.plot([axis_min, axis_max],[axis_min, axis_max], 'k-')
-            plt.xlim(axis_min, axis_max)
-            plt.ylim(axis_min, axis_max)
+            plt.xlim(0, axis_max)
+            plt.ylim(0, axis_max)
 
             plt.tick_params(axis='both', which='major', labelsize=7)
             plt.subplots_adjust(wspace=0.5, hspace=0.3)
@@ -783,9 +785,9 @@ def plot_obs_pred_sad(methods, datasets, n, data_dir=mydir, radius=2, remove = 0
     #fig.text(0.35, 0.04, 'Predicted rank-abundance', ha='center', va='center')
     #ax.set_xlabel('Observed rank-abundance',fontsize=10)
     if n != 'all':
-        fig_name = str(mydir[:-6]) + '/figures/' +'_'.join(datasets) + '_obs_pred' + zipfType + '_' + str(n) + '_plots.png'
+        fig_name = str(mydir[:-6]) + '/figures/' +'_'.join(datasets) + '_obs_pred_' + zipfType + '_' + str(n) + '_plots.png'
     else:
-        fig_name = str(mydir[:-6]) + '/figures/' + '_'.join(datasets) + '_obs_pred' + zipfType + '_plots.png'
+        fig_name = str(mydir[:-6]) + '/figures/' + '_'.join(datasets) + '_obs_pred_' + zipfType + '_plots.png'
     plt.savefig(fig_name, dpi=600)#, bbox_inches = 'tight')#, pad_inches=0)
     plt.close()
 
@@ -1312,6 +1314,5 @@ methods = ['geom', 'mete', 'zipf']
 
 #plot_obs_pred_sad(methods, datasets, 'all', zipfType = 'glm')
 #plot_obs_pred_sad(methods, datasets, 'all', zipfType = 'mle')
-
-plot_obs_pred_sad(methods, datasets, 100, zipfType = 'mle')
-plot_obs_pred_sad(methods, datasets, 100, zipfType = 'glm')
+plot_obs_pred_sad(methods, datasets, 1000, zipfType = 'mle')
+plot_obs_pred_sad(methods, datasets, 1000, zipfType = 'glm')
