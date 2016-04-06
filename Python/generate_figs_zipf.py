@@ -725,7 +725,7 @@ def import_NSR2_data(input_filename):   # TAKEN FROM THE mete_sads.py script use
     return data
 
 
-def plot_obs_pred_sad(methods, datasets, n, figname = 'Fig1', data_dir=mydir, \
+def plot_obs_pred_sad(methods, datasets, n, figname = 'Fig2', data_dir=mydir, \
     stratify = True, radius=2, remove = 0, zipfType = 'glm'):
     # TAKEN FROM THE mete_sads.py script used for White et al. (2012)
     # Used for Figure 3 Locey and White (2013)
@@ -1768,5 +1768,5 @@ methods = ['geom', 'lognorm', 'mete', 'zipf']
 #stratifyData(methods,datasets, totalSADs = 100)
 #NSR2_regression(methods, datasets)
 #obs_pred_Nmax_plot(methods, datasets, stratify = True, zipfType = 'glm')
-plot_obs_pred_sad(methods, datasets, n = 'all')
-#plot_example_fig()
+#plot_obs_pred_sad(methods, datasets, n = 'all')
+plot_example_fig()
