@@ -1,26 +1,21 @@
 from __future__ import division
-import os
-import sys
-import signal
-import collections
+import os, sys, signal, collections, argparse, optparse, math
 import scipy as sp
 import  matplotlib.pyplot as plt
 import numpy as np
 from scipy import stats, optimize
-from scipy.stats import gaussian_kde
+from scipy.stats import gaussian_kde, norm
 from mpl_toolkits.axes_grid.inset_locator import inset_axes
-import argparse
-import optparse
 from sys import argv
 import pandas as pd
 from sklearn.grid_search import GridSearchCV
 from sklearn.neighbors import KernelDensity
-import math
 import macroeco_distributions as md
 import macroecotools
 import mete
 import statsmodels.formula.api as smf
 import statsmodels.api as sm
+
 
 #mydir = os.path.expanduser("~/github/MicroMETE/data/")
 mydir = os.path.dirname(os.path.realpath(__file__))
@@ -108,6 +103,78 @@ class zipf:
         pred = lm.predict()
 
         return pred
+
+class lognorm:
+
+    def __init__(self, obs):
+        self.obs = obs
+
+    def ppoints(self, n):
+        """ numpy analogue or `R`'s `ppoints` function
+            see details at http://stat.ethz.ch/R-manual/R-patched/library/stats/html/ppoints.html
+            :param n: array type or number
+
+            Obtained from: http://stackoverflow.com/questions/20292216/imitating-ppoints-r-function-in-python
+            on 5 April 2016
+            """
+        if n < 10:
+            a = 3/8
+        else:
+            a = 1/2
+
+        try:
+            n = np.float(len(n))
+        except TypeError:
+            n = np.float(n)
+        return (np.arange(n) + 1 - a)/(n + 1 - 2*a)
+
+
+    def lognorm_glm(self):
+
+        """ Fit the lognormal distribution to the observed vector of integer values
+        using a generalized linear model.
+
+        Note: This is a fitted curve; not an actual form of the lognormal distribution
+
+        This method was inspired by the vegan package's open source code on vegan's public
+        GitHub repository: https://github.com/vegandevs/vegan/R/rad.lognormal.R
+        on Thursday, 5 April 2016
+        """
+
+        ranks = np.log(range(1, len(self.obs)+1))
+        ranks = -norm.ppf(self.ppoints(len(ranks)))
+
+        d = pd.DataFrame({'rnks': ranks, 'x': self.obs})
+        lm = smf.glm(formula='x ~ rnks', data = d, family = sm.genmod.families.family.Poisson(link=sm.genmod.families.links.log)).fit()
+        pred = lm.predict()
+
+        return pred
+
+def e_simpson(SAD): # based on 1/D, not 1 - D
+
+    " Simpson's evenness "
+    SAD = filter(lambda a: a != 0, SAD)
+
+    D = 0.0
+    N = sum(SAD)
+    S = len(SAD)
+
+    for x in SAD:
+        D += (x*x) / (N*N)
+
+    E = round((1.0/D)/S, 4)
+
+    if E < 0.0 or E > 1.0:
+        print 'Simpsons Evenness =',E
+    return E
+
+def skewness(RAD):
+    skew = stats.skew(RAD)
+    # log-modulo skewness
+    lms = np.log10(np.abs(float(skew)) + 1)
+    if skew < 0:
+        lms = lms * -1
+    return lms
 
 def get_SADs_mgrast(path, thresholds):
 
@@ -345,7 +412,7 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove = 0, zipfType = '
             elif (method == 'zipf' and dataset != 'MGRAST'):
 
                 if dataset == 'EMPclosed' or dataset == 'EMPopen' or dataset == 'HMP':
-                    IN = mydir  + dataset + '-Data' + '/' + dataset +'-SADs.txt'
+                    IN = mydir  + dataset + '-Data' + '/' + dataset +'-SADs_NAP.txt'
                     if remove == 0:
                         OUT1 = open(mydir + "ObsPred/" + method + '_' + zipfType + '_'+dataset+'_obs_pred.txt','w+')
                         OUT2 = open(mydir + "NSR2/" + method + '_' + zipfType +'_'+dataset+'_NSR2.txt','w+')
@@ -388,6 +455,7 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove = 0, zipfType = '
 
             num_lines = sum(1 for line in open(IN))
 
+
             random_sites = np.random.randint(num_lines, size=size)
 
             line_count = 0
@@ -416,6 +484,8 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove = 0, zipfType = '
                 N = sum(obs)
                 S = len(obs)
                 NmaxObs = np.amax(obs)
+                evennessObs = e_simpson(obs)
+                skewnessObs = skewness(obs)
 
 
                 if S < 10 or N <= S:
@@ -437,14 +507,20 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove = 0, zipfType = '
                 elif method == 'mete': # Predicted log-series
                     logSeries = mete.get_mete_rad(S, N)
                     pred = logSeries[0]
-                elif method == 'zipf':
-                    if zipfType == 'glm':
+                elif method == 'lognorm':
+                    lognorm_pred = lognorm(obs)
+                    pred = lognorm_pred.lognorm_glm()
+                    pred = np.ceil(pred)
+                    pred.astype(int)
+
+                elif method == 'zipf' and zipfType == 'glm':
                         zipf_pred = zipf(obs, 'fmin')
                         zipf_glm = zipf_pred.from_glm()
                         pred = np.ceil(zipf_glm)
                         pred.astype(int)
+                        print line_count
                         #numpy.ceil
-                    else:
+                elif method == 'zipf' and zipfType != 'glm':
                         #line = map(int, line)
                         # Start the timer. Once 1 second is over, a SIGALRM signal is sent.
                         signal.alarm(3)
@@ -465,6 +541,8 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove = 0, zipfType = '
                             # Reset the alarm
                             signal.alarm(0)
                 NmaxPred = np.amax(pred)
+                evennessPred = e_simpson(pred)
+                skewnessPred = skewness(pred)
                 r2 = macroecotools.obs_pred_rsquare(np.log10(obs), np.log10(pred))
                 print " r2:", r2
                 if r2 == -float('inf') or r2 == float('inf') or r2 == float('Nan'):
@@ -475,34 +553,43 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove = 0, zipfType = '
                         OUT2 = open(mydir + "NSR2/" + method + '_' + zipfType +'_'+dataset+'_NSR2.txt','a+')
                         if zipfType == 'glm':
                             if dataset == 'HMP':
-                                print>> OUT2, j, N, S, NmaxObs, NmaxPred, r2, site_name
+                                print>> OUT2, j, N, S, NmaxObs, NmaxPred, evennessObs, \
+                                    evennessPred, skewnessObs, skewnessPred, r2, site_name
                             else:
-                                print>> OUT2, j, N, S, NmaxObs, NmaxPred, r2
+                                print>> OUT2, j, N, S, NmaxObs, NmaxPred, evennessObs, \
+                                    evennessPred, skewnessObs, skewnessPred, r2
                         else:
                             if dataset == 'HMP':
-                                print>> OUT2, j, N, S, NmaxObs, NmaxPred, gamma, r2, site_name
+                                print>> OUT2, j, N, S, NmaxObs, NmaxPred,evennessObs, \
+                                    evennessPred, skewnessObs, skewnessPred, gamma, r2, site_name
                             else:
-                                print>> OUT2, j, N, S, NmaxObs, NmaxPred, gamma, r2
+                                print>> OUT2, j, N, S, NmaxObs, NmaxPred, evennessObs, \
+                                    evennessPred, skewnessObs, skewnessPred, gamma, r2
                         OUT2.close()
                     else:
                         if zipfType == 'glm':
-                            print>> OUT2, j, N, S,NmaxObs, NmaxPred, r2
+                            print>> OUT2, j, N, S,NmaxObs, NmaxPred, evennessObs, \
+                                evennessPred, skewnessObs, skewnessPred, r2
                         else:
-                            print>> OUT2, j, N, S,NmaxObs, NmaxPred, gamma, r2
+                            print>> OUT2, j, N, S,NmaxObs, NmaxPred, evennessObs, \
+                                evennessPred, skewnessObs, skewnessPred, gamma, r2
                 else:
                     if dataset == 'HMP':
-                        print>> OUT2, j, N, S, NmaxObs, NmaxPred, r2, site_name
+                        print>> OUT2, j, N, S, NmaxObs, NmaxPred, evennessObs, \
+                            evennessPred, skewnessObs, skewnessPred, r2, site_name
                     else:
-                        print>> OUT2, j, N, S, NmaxObs, NmaxPred, r2
+                        print>> OUT2, j, N, S, NmaxObs, NmaxPred, evennessObs, \
+                            evennessPred, skewnessObs, skewnessPred, r2
 
 
                 for i, sp in enumerate(pred):
                     print>> OUT1, j, obs[i], pred[i]
                     line_count += 1
-
+            print line_count
             OUT1.close()
             OUT2.close()
         print dataset
+
 
 
 
@@ -599,87 +686,63 @@ def import_NSR2_data(input_filename):   # TAKEN FROM THE mete_sads.py script use
     input_filename_str = str(input_filename)
     #NSR2_method = input_filename_split[-4]
     #method = str(NSR2_method.split('/')[1])
-    if 'HMP' in input_filename_str:
-        if ('zipf' in input_filename_str) :
-            if ('glm' in input_filename_str) :
-                data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8", \
-                    names = ['site','N','S', 'NmaxObs', 'NmaxPred','R2', 'NAP'], delimiter = " ")
-            else:
-                data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8", \
-                    names = ['site','N','S', 'NmaxObs', 'NmaxPred', 'gamma','R2', 'NAP'], delimiter = " ")
-        else:
-            data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8", \
-            names = ['site','N','S', 'NmaxObs', 'NmaxPred','R2','NAP'], delimiter = " ")
+    if 'Stratified' in input_filename_str:
+        data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
+            names = ['site','N','S', 'NmaxObs', 'NmaxPred', 'evennessObs', \
+                'evennessPred', 'skewnessObs', 'skewnessPred','R2'], delimiter = " ")
     else:
-        if 'zipf' in input_filename_str:
-            if ('glm' in input_filename_str) :
-                data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8", \
-                names = ['site','N','S', 'NmaxObs', 'NmaxPred','R2'], delimiter = " ")
+        if 'HMP' in input_filename_str:
+            if ('zipf' in input_filename_str) :
+                if ('glm' in input_filename_str) :
+
+
+                    data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
+                        names = ['site','N','S', 'NmaxObs', 'NmaxPred', 'evennessObs', \
+                            'evennessPred', 'skewnessObs', 'skewnessPred','R2', 'NAP'], delimiter = " ")
+                else:
+                    data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
+                        names = ['site','N','S', 'NmaxObs', 'NmaxPred', 'evennessObs', \
+                            'evennessPred', 'skewnessObs', 'skewnessPred', 'gamma','R2', 'NAP'], delimiter = " ")
             else:
-                data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8 ", \
-                names = ['site','N','S', 'NmaxObs', 'NmaxPred', 'gamma','R2'], delimiter = " ")
+                data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
+                names = ['site','N','S', 'NmaxObs', 'NmaxPred', 'evennessObs', \
+                    'evennessPred', 'skewnessObs', 'skewnessPred', 'R2','NAP'], delimiter = " ")
         else:
-            data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8 ", \
-            names = ['site','N','S','NmaxObs', 'NmaxPred', 'R2'], delimiter = " ")
+            if 'zipf' in input_filename_str:
+                if ('glm' in input_filename_str) :
+                    data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
+                    names = ['site','N','S', 'NmaxObs', 'NmaxPred', 'evennessObs', \
+                        'evennessPred', 'skewnessObs', 'skewnessPred', 'R2'], delimiter = " ")
+                else:
+                    data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
+                    names = ['site','N','S', 'NmaxObs', 'NmaxPred', 'evennessObs', \
+                        'evennessPred', 'skewnessObs', 'skewnessPred', 'gamma','R2'], delimiter = " ")
+            else:
+                data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
+                names = ['site','N','S','NmaxObs', 'NmaxPred', 'evennessObs', \
+                    'evennessPred', 'skewnessObs', 'skewnessPred', 'R2'], delimiter = " ")
 
     return data
 
 
-def plot_obs_pred_sad(methods, datasets, n, data_dir=mydir, radius=2, remove = 0, zipfType = 'glm'):
+def plot_obs_pred_sad(methods, datasets, n, figname = 'Fig1', data_dir=mydir, \
+    stratify = True, radius=2, remove = 0, zipfType = 'glm'):
     # TAKEN FROM THE mete_sads.py script used for White et al. (2012)
     # Used for Figure 3 Locey and White (2013)
     """Multiple obs-predicted plotter"""
     fig = plt.figure()
     count = 0
+    if stratify == True:
+        plot_dim = 2
+        for i, method in enumerate(methods):
+            obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/Stratified/'+ method +'_obs_pred_stratify_t.txt')
+            obs = np.asarray(list(((obs_pred_data["obs"]))))
+            pred = np.asarray(list(((obs_pred_data["pred"]))))
+            site = np.asarray(list(((obs_pred_data["site"]))))
 
-    plot_dim = len(datasets)
-    for i, dataset in enumerate(datasets):
-        for j, method in enumerate(methods):
-            if remove == 0:
-                if method == 'zipf':
-                    if ( str(dataset) == 'EMPclosed') or ( str(dataset) == 'HMP') or \
-                        ( str(dataset) == 'EMPopen'):
-                        obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method + '_'+ zipfType +'_'+dataset+'_obs_pred.txt')
-                    elif str(dataset) == 'MGRAST':
-                        obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method + '_'+ zipfType + '_' + 'MGRAST_obs_pred.txt')
-                    else:
-                        obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method + '_'+ zipfType + '_' + 'MGRAST' + dataset +'_obs_pred.txt')
-                else:
-                    if ( str(dataset) == 'EMPclosed') or ( str(dataset) == 'HMP') or \
-                        ( str(dataset) == 'EMPopen'):
-                        obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred.txt')
-                    elif str(dataset) == 'MGRAST':
-                        obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method + '_' + 'MGRAST_obs_pred.txt')
-                    else:
-                        obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method + '_' + 'MGRAST' + dataset +'_obs_pred.txt')
-            else:
-                if method == 'zipf':
-                    if ( str(dataset) == 'EMPclosed') or ( str(dataset) == 'HMP') or \
-                        ( str(dataset) == 'EMPopen') or ( str(dataset) == 'MGRAST'):
-                        obs_pred_data = data_dir + "ObsPred/Remove_" + str(remove)  + 's/'+ method + '_'+ zipfType +'_'+dataset+'_obs_pred_' \
-                            + str(remove) + '.txt'
-                    else:
-                        obs_pred_data = import_obs_pred_data(data_dir + "ObsPred/Remove_" + str(remove)  + 's/'+ method + '_'+ zipfType +'_'+ 'MGRAST' + dataset+'_obs_pred_' \
-                            + str(remove) + '.txt')
-                else:
-                    if ( str(dataset) == 'EMPclosed') or ( str(dataset) == 'HMP') or \
-                        ( str(dataset) == 'EMPopen') or ( str(dataset) == 'MGRAST'):
-                        obs_pred_data = data_dir + "ObsPred/Remove_" + str(remove)  + 's/'+ method +'_'+dataset+'_obs_pred_' \
-                            + str(remove) + '.txt'
-                    else:
-                        obs_pred_data = import_obs_pred_data(data_dir + "ObsPred/Remove_" + str(remove)  + 's/'+ method +'_'+ 'MGRAST' + dataset+'_obs_pred_' \
-                            + str(remove) + '.txt')
-            print method, dataset
-
-            site = ((obs_pred_data["site"]))
-            print "Dataset " + str(dataset) + " for method " + str(method) + " has "+ str(len(set(site))) + " sites"
-
-            obs = list(((obs_pred_data["obs"])))
-            pred = list(((obs_pred_data["pred"])))
             obs2 = []
             pred2 = []
             site2 = []
-
             if n == 'all' or len(obs) <= n:
                 obs2 = list(obs)
                 pred2 = list(pred)
@@ -687,60 +750,33 @@ def plot_obs_pred_sad(methods, datasets, n, data_dir=mydir, radius=2, remove = 0
 
             else:
                 if len(obs) > n:
-                    inds = np.random.choice(range(len(obs)), size=n, replace=False)
+                    inds = np.random.choice(range(len(site)), size=n, replace=False)
                     for ind in inds:
                         obs2.append(obs[ind])
-	                pred2.append(pred[ind])
-	                site2.append(site[ind])
+                        pred2.append(pred[ind])
+                        site2.append(site[ind])
 
             obs = np.asarray(obs2)
             pred = np.asarray(pred2)
             site =  np.asarray(site2)
-            print obs
+
             if method == 'zipf':
                 axis_min = 0
                 axis_max = 10  * max(pred)
             else:
                 axis_min = 0
                 axis_max = 2 * max(obs)
-
             ax = fig.add_subplot(plot_dim, plot_dim, count+1)
             ax.set(adjustable='box-forced', aspect='equal')
+            if method == 'geom':
+                ax.set_title(r"$\mathbf{Broken-stick}$")
+            elif method == 'lognorm':
+                ax.set_title(r"$\mathbf{Lognormal}$")
+            elif method == 'mete':
+                ax.set_title(r"$\mathbf{Log-series}$")
+            elif method == 'zipf':
+                ax.set_title(r"$\mathbf{Zipf}$")
 
-            if j == 0:
-                if all(x in datasets for x in ['HMP','EMPclosed','EMPopen', 'MGRAST']) == True:
-                    if dataset == 'HMP':
-                        ax.set_ylabel("HMP", rotation=90, size=12)
-                    elif dataset == 'EMPclosed':
-                        ax.set_ylabel("EMP (closed)", rotation=90, size=12)
-                    elif  dataset == 'EMPopen':
-                        ax.set_ylabel("EMP (open)", rotation=90, size=12)
-                    elif dataset == 'MGRAST':
-                        ax.set_ylabel("MG-RAST", rotation=90, size=12)
-                if all(x in datasets for x in ['95', '97', '99']) == True:
-                    if dataset == '95':
-                        ax.set_ylabel("MG-RAST 95%", rotation=90, size=12)
-                    elif dataset == '97':
-                        ax.set_ylabel("MG-RAST 97%", rotation=90, size=12)
-                    elif dataset == '99':
-                        ax.set_ylabel("MG-RAST 99%", rotation=90, size=12)
-                else:
-                    if dataset == 'HMP':
-                        ax.set_ylabel("HMP", rotation=90, size=12)
-                    elif dataset == 'EMPclosed' or method == 'EMPopen':
-                        ax.set_ylabel("EMP", rotation=90, size=12)
-                    elif dataset == '97':
-                        ax.set_ylabel("MG-RAST 97%", rotation=90, size=12)
-                    elif dataset == 'MGRAST':
-                        ax.set_ylabel("MG-RAST", rotation=90, size=12)
-            if i == 0 and j == 0:
-                ax.set_title("Broken-stick")
-            elif i == 0 and j == 1:
-                ax.set_title("METE")
-            elif i == 0 and j == 2:
-                ax.set_title("Zipf")
-
-            print len(obs), len(pred)
             macroecotools.plot_color_by_pt_dens(pred, obs, radius, loglog=1,
                             plot_obj=plt.subplot(plot_dim,plot_dim,count+1))
 
@@ -753,10 +789,7 @@ def plot_obs_pred_sad(methods, datasets, n, data_dir=mydir, radius=2, remove = 0
 
             axins = inset_axes(ax, width="30%", height="30%", loc=4)
             #if str(dataset) == 'EMPclosed' or str(dataset) == 'EMPopen':
-            if method == 'zipf':
-                INh2 = import_NSR2_data(data_dir + 'NSR2/' + method+ '_'+ zipfType + '_'+dataset+'_NSR2.txt')
-            else:
-                INh2 = import_NSR2_data(data_dir + 'NSR2/' + method+'_'+dataset+'_NSR2.txt')
+            INh2 = import_NSR2_data(data_dir + 'NSR2/Stratified/' + method + '_NSR2_stratify_t.txt')
             r2s = ((INh2["R2"]))
             hist_r2 = np.histogram(r2s, range=(0, 1))
             xvals = hist_r2[1] + (hist_r2[1][1] - hist_r2[1][0])
@@ -767,76 +800,199 @@ def plot_obs_pred_sad(methods, datasets, n, data_dir=mydir, radius=2, remove = 0
             #else:
             #    hist_mete_r2(site, np.log10(obs), np.log10(pred))
             plt.setp(axins, xticks=[], yticks=[])
+
+
             count += 1
-        #count += (len(datasets) - len(methods))
-        #count += 1
+        fig.text(0.50, 0.04, 'Predicted rank-abundance', ha='center', va='center')
+        fig.text(0.05, 0.5, 'Observed rank-abundance', ha='center', va='center', rotation='vertical')
+        fig_name = str(mydir[:-6]) + '/figures/' + figname + '.png'
+        plt.savefig(fig_name, dpi=600)#, bbox_inches = 'tight')#, pad_inches=0)
+        plt.close()
 
-    #ax.set_ylabel(-8.5,500,'Observed rank-abundance',rotation='90',fontsize=10)
-    fig.subplots_adjust(wspace=0.0001, left=0.1)
-
-    if plot_dim == 3:
-        fig.text(0.5, 0.04, 'Predicted rank-abundance', ha='center', va='center')
-    elif plot_dim == 4:
-        fig.text(0.30, 0.04, 'Predicted rank-abundance', ha='center', va='center')
     else:
-        fig.text(0.37, 0.04, 'Predicted rank-abundance', ha='center', va='center')
+        plot_dim = len(datasets)
+        for i, dataset in enumerate(datasets):
+            for j, method in enumerate(methods):
+                if remove == 0:
+                    if method == 'zipf':
+                        if ( str(dataset) == 'EMPclosed') or ( str(dataset) == 'HMP') or \
+                            ( str(dataset) == 'EMPopen'):
+                            obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method + '_'+ zipfType +'_'+dataset+'_obs_pred.txt')
+                        elif str(dataset) == 'MGRAST':
+                            obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method + '_'+ zipfType + '_' + 'MGRAST_obs_pred.txt')
+                        else:
+                            obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method + '_'+ zipfType + '_' + 'MGRAST' + dataset +'_obs_pred.txt')
+                    else:
+                        if ( str(dataset) == 'EMPclosed') or ( str(dataset) == 'HMP') or \
+                            ( str(dataset) == 'EMPopen'):
+                            obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred.txt')
+                        elif str(dataset) == 'MGRAST':
+                            obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method + '_' + 'MGRAST_obs_pred.txt')
+                        else:
+                            obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method + '_' + 'MGRAST' + dataset +'_obs_pred.txt')
+                else:
+                    if method == 'zipf':
+                        if ( str(dataset) == 'EMPclosed') or ( str(dataset) == 'HMP') or \
+                            ( str(dataset) == 'EMPopen') or ( str(dataset) == 'MGRAST'):
+                            obs_pred_data = data_dir + "ObsPred/Remove_" + str(remove)  + 's/'+ method + '_'+ zipfType +'_'+dataset+'_obs_pred_' \
+                                + str(remove) + '.txt'
+                        else:
+                            obs_pred_data = import_obs_pred_data(data_dir + "ObsPred/Remove_" + str(remove)  + 's/'+ method + '_'+ zipfType +'_'+ 'MGRAST' + dataset+'_obs_pred_' \
+                                + str(remove) + '.txt')
+                    else:
+                        if ( str(dataset) == 'EMPclosed') or ( str(dataset) == 'HMP') or \
+                            ( str(dataset) == 'EMPopen') or ( str(dataset) == 'MGRAST'):
+                            obs_pred_data = data_dir + "ObsPred/Remove_" + str(remove)  + 's/'+ method +'_'+dataset+'_obs_pred_' \
+                                + str(remove) + '.txt'
+                        else:
+                            obs_pred_data = import_obs_pred_data(data_dir + "ObsPred/Remove_" + str(remove)  + 's/'+ method +'_'+ 'MGRAST' + dataset+'_obs_pred_' \
+                                + str(remove) + '.txt')
+                print method, dataset
 
-    fig.text(0.05, 0.5, 'Observed rank-abundance', ha='center', va='center', rotation='vertical')
-    #fig.text(0.35, 0.04, 'Predicted rank-abundance', ha='center', va='center')
-    #ax.set_xlabel('Observed rank-abundance',fontsize=10)
-    if n != 'all':
-        fig_name = str(mydir[:-6]) + '/figures/' + 'obs_pred_' + zipfType + '_' + str(n) + '_plots.png'
-    else:
-        fig_name = str(mydir[:-6]) + '/figures/' + 'obs_pred_' + zipfType + '_plots.png'
-    plt.savefig(fig_name, dpi=600)#, bbox_inches = 'tight')#, pad_inches=0)
-    plt.close()
+                site = ((obs_pred_data["site"]))
+                print "Dataset " + str(dataset) + " for method " + str(method) + " has "+ str(len(set(site))) + " sites"
+
+                obs = list(((obs_pred_data["obs"])))
+                pred = list(((obs_pred_data["pred"])))
+                obs2 = []
+                pred2 = []
+                site2 = []
+
+                if n == 'all' or len(obs) <= n:
+                    obs2 = list(obs)
+                    pred2 = list(pred)
+                    site2 = list(site)
+
+                else:
+                    if len(obs) > n:
+                        inds = np.random.choice(range(len(obs)), size=n, replace=False)
+                        for ind in inds:
+                            obs2.append(obs[ind])
+    	                pred2.append(pred[ind])
+    	                site2.append(site[ind])
+
+                obs = np.asarray(obs2)
+                pred = np.asarray(pred2)
+                site =  np.asarray(site2)
+                if method == 'zipf':
+                    axis_min = 0
+                    axis_max = 10  * max(pred)
+                else:
+                    axis_min = 0
+                    axis_max = 2 * max(obs)
+
+                ax = fig.add_subplot(plot_dim, plot_dim, count+1)
+                ax.set(adjustable='box-forced', aspect='equal')
+
+                if j == 0:
+                    if all(x in datasets for x in ['HMP','EMPclosed','EMPopen', 'MGRAST']) == True:
+                        if dataset == 'HMP':
+                            ax.set_ylabel("HMP", rotation=90, size=12)
+                        elif dataset == 'EMPclosed':
+                            ax.set_ylabel("EMP (closed)", rotation=90, size=12)
+                        elif  dataset == 'EMPopen':
+                            ax.set_ylabel("EMP (open)", rotation=90, size=12)
+                        elif dataset == 'MGRAST':
+                            ax.set_ylabel("MG-RAST", rotation=90, size=12)
+                    if all(x in datasets for x in ['95', '97', '99']) == True:
+                        if dataset == '95':
+                            ax.set_ylabel("MG-RAST 95%", rotation=90, size=12)
+                        elif dataset == '97':
+                            ax.set_ylabel("MG-RAST 97%", rotation=90, size=12)
+                        elif dataset == '99':
+                            ax.set_ylabel("MG-RAST 99%", rotation=90, size=12)
+                    else:
+                        if dataset == 'HMP':
+                            ax.set_ylabel("HMP", rotation=90, size=12)
+                        elif dataset == 'EMPclosed' or method == 'EMPopen':
+                            ax.set_ylabel("EMP", rotation=90, size=12)
+                        elif dataset == '97':
+                            ax.set_ylabel("MG-RAST 97%", rotation=90, size=12)
+                        elif dataset == 'MGRAST':
+                            ax.set_ylabel("MG-RAST", rotation=90, size=12)
+                if i == 0 and j == 0:
+                    ax.set_title("Broken-stick")
+                elif i == 0 and j == 1:
+                    ax.set_title("METE")
+                elif i == 0 and j == 2:
+                    ax.set_title("Zipf")
+
+                print len(obs), len(pred)
+                macroecotools.plot_color_by_pt_dens(pred, obs, radius, loglog=1,
+                                plot_obj=plt.subplot(plot_dim,plot_dim,count+1))
+
+                plt.plot([axis_min, axis_max],[axis_min, axis_max], 'k-')
+                plt.xlim(0, axis_max)
+                plt.ylim(0, axis_max)
+
+                plt.tick_params(axis='both', which='major', labelsize=7)
+                plt.subplots_adjust(wspace=0.5, hspace=0.3)
+
+                axins = inset_axes(ax, width="30%", height="30%", loc=4)
+                #if str(dataset) == 'EMPclosed' or str(dataset) == 'EMPopen':
+                if method == 'zipf':
+                    INh2 = import_NSR2_data(data_dir + 'NSR2/' + method+ '_'+ zipfType + '_'+dataset+'_NSR2.txt')
+                else:
+                    INh2 = import_NSR2_data(data_dir + 'NSR2/' + method+'_'+dataset+'_NSR2.txt')
+                r2s = ((INh2["R2"]))
+                hist_r2 = np.histogram(r2s, range=(0, 1))
+                xvals = hist_r2[1] + (hist_r2[1][1] - hist_r2[1][0])
+                xvals = xvals[0:len(xvals)-1]
+                yvals = hist_r2[0]
+                plt.plot(xvals, yvals, 'k-', linewidth=2)
+                plt.axis([0, 1, 0, 1.1 * max(yvals)])
+                #else:
+                #    hist_mete_r2(site, np.log10(obs), np.log10(pred))
+                plt.setp(axins, xticks=[], yticks=[])
+                count += 1
+            #count += (len(datasets) - len(methods))
+            #count += 1
+
+        #ax.set_ylabel(-8.5,500,'Observed rank-abundance',rotation='90',fontsize=10)
+        fig.subplots_adjust(wspace=0.0001, left=0.1)
+
+        if plot_dim == 3:
+            fig.text(0.5, 0.04, 'Predicted rank-abundance', ha='center', va='center')
+        elif plot_dim == 4:
+            fig.text(0.30, 0.04, 'Predicted rank-abundance', ha='center', va='center')
+        else:
+            fig.text(0.37, 0.04, 'Predicted rank-abundance', ha='center', va='center')
+
+        fig.text(0.05, 0.5, 'Observed rank-abundance', ha='center', va='center', rotation='vertical')
+        #fig.text(0.35, 0.04, 'Predicted rank-abundance', ha='center', va='center')
+        #ax.set_xlabel('Observed rank-abundance',fontsize=10)
+        if n != 'all':
+            fig_name = str(mydir[:-6]) + '/figures/' + 'obs_pred_' + zipfType + '_' + str(n) + '_plots.png'
+        else:
+            fig_name = str(mydir[:-6]) + '/figures/' + 'obs_pred_' + zipfType + '_plots.png'
+        plt.savefig(fig_name, dpi=600)#, bbox_inches = 'tight')#, pad_inches=0)
+        plt.close()
 
 
 
 # Make a function to generate the histogram.
-def NSR2_regression(methods, datasets, data_dir= mydir):
+def NSR2_regression(methods, datasets, figname = 'Fig4', Stratified = True, data_dir= mydir):
     fig = plt.figure()
     count  = 0
-    params = ['N','S', 'N/S']
-
-    for i, dataset in enumerate(datasets):
-        for k, param in enumerate(params):
+    if Stratified == True:
+        params = ['N','S']
+        for i, param in enumerate(params):
             for j, method in enumerate(methods):
-
-                if (dataset == 'EMPopen' or dataset == 'EMPclosed'):
-                    nsr2_data = import_NSR2_data(data_dir + 'NSR2/' + method+'_'+dataset+'_NSR2.txt')
-
-                elif dataset == 'HMP':
-                    nsr2_data = import_NSR2_data(data_dir + 'NSR2/' + method+'_'+dataset+'_NSR2.txt')
-                elif dataset == 'MGRAST':
-                    nsr2_data = import_NSR2_data(data_dir + 'NSR2/' + method+'_MGRAST_NSR2.txt')
-                else:
-                    nsr2_data = import_NSR2_data(data_dir + 'NSR2/' + method+'_MGRAST'+dataset+'_NSR2.txt')
-
-
-                y = ((nsr2_data["R2"]))
-                mean = np.mean(y)
+                obs_pred_data = import_NSR2_data(data_dir + 'NSR2/Stratified/'+ method +'_NSR2_stratify_t.txt')
+                y = np.asarray(list(((obs_pred_data["R2"]))))
+                #if i == 0:
+                x = np.log10(np.asarray(list(((obs_pred_data[param])))))
+                mean_x = np.mean(x)
+                mean_y = np.mean(y)
                 std_error = sp.stats.sem(y)
-                print method, param, dataset
-                print "mean modified r2 = " + str(mean)
+                print method, param
+                print "mean modified r2 = " + str(mean_y)
                 print "modified r2 standard error = " + str(std_error)
-
-                #print method, dataset, param
-                ax = fig.add_subplot(3, 3, count+1)
-                #ax.set(adjustable='box-forced', aspect='equal')
-                if param == "N" or param == "S":
-                    x = np.log10(((nsr2_data[param])))
-                else:
-                    N_count = ((nsr2_data["N"]))
-                    S_count = ((nsr2_data["S"]))
-                    print dataset, method
-                    print "mean N is " + str(np.mean(N_count))
-                    print "mean S is " + str(np.mean(S_count))
-                    x = np.divide(N_count, S_count)
-                    x = np.log10(x)
-
+                print "mean " + param  + " is " + str(mean_x)
+                ax = fig.add_subplot(len(params), len(methods), count+1)
+                print len(x), len(y)
                 macroecotools.plot_color_by_pt_dens(x, y, 0.1, loglog=0,
-                                plot_obj=plt.subplot(3, 3, count+1))
+                                plot_obj=plt.subplot(len(params), len(methods), count+1))
                 slope, intercept, r_value, p_value, std_err = stats.linregress(x,y)
                 print "r-value is " + str(r_value)
                 print "p-value is " + str(p_value)
@@ -852,77 +1008,160 @@ def NSR2_regression(methods, datasets, data_dir= mydir):
                 plt.axhline(linewidth=2, color='darkgrey',ls='--')
 
                 #plt.hline(0, xmin, xmax, color="0.3", ls='--')
+                if i == 0:
+                    plt.xlabel(r'$log_{10}(N)$', fontsize = 'large')
+                if i == 1:
+                    plt.xlabel(r'$log_{10}(S)$', fontsize = 'large')
                 plt.subplots_adjust(wspace=0.2, hspace=0.3)
+                if i == 0 and j == 0:
+                    ax.set_title(r"$\mathbf{Broken-stick}$")
+                if i == 0 and j == 1:
+                    ax.set_title(r"$\mathbf{Lognormal}$")
+                if i == 0 and j == 2:
+                    ax.set_title(r"$\mathbf{Log-series}$")
+                if i == 0 and j == 3:
+                    ax.set_title(r"$\mathbf{Zipf}$")
+                ax.tick_params(axis='x', labelsize=8)
+                ax.tick_params(axis='y', labelsize=8)
 
-                # Plotting
-                if k == 0:
-                    plt.xlabel(r'$N_{0}$', fontsize = 12)
-                elif k == 1:
-                    plt.xlabel(r'$S_{0}$', fontsize = 12)
-                elif k == 2:
-                    plt.xlabel(r'$N_{0}/S_{0}$', fontsize = 12)
-
-                if k == 1 and j ==0:
-                    plt.ylabel(r'$r^{2}_{m}$', fontsize = 'xx-large')
-
-                #if k == 0 and i ==0 :
-                #    plt.title('HMP', fontsize = 'large')
-                #elif k == 0 and i ==1:
-                #    plt.title('EMP Closed', fontsize = 'large')
-                #elif k == 0 and i ==2:
-                #    plt.title('EMP Open', fontsize = 'large')
-                #elif k == 0 and i ==3:
-                #    plt.title('MG-RAST, 97%', fontsize = 'large')
-
-                if j == 0 and k == 0:
-                    #plt.title(r'\textbf{Broken-stick}', fontsize = 'large')
-                    plt.title('Broken-stick', fontsize = 13)
-                elif j == 1 and k == 0:
-                    plt.title('METE', fontsize = 13)
-                elif j == 2 and k == 0:
-                    plt.title('Zipf', fontsize = 13)
-                #ax.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=14, verticalalignment='top', bbox=props)
-                leg = plt.legend(loc=1,prop={'size':10})
-                ax.tick_params(axis='x', labelsize=6)
-                ax.tick_params(axis='y', labelsize=6)
-
-                #tick.label.set_fontsize(14)
-                #leg.draw_frame(False)
-                #plt.legend(loc='upper left')
                 count += 1
-    if '97' in datasets:
-        title = "MG-RAST 97%"
-        fig.suptitle(title, x = 0.54, y = 1.05, fontsize=16)
-    elif '95' in datasets:
-        title = "MG-RAST 95%"
-        fig.suptitle(title, x = 0.54, y = 1.05, fontsize=16)
-    elif '99' in datasets:
-        title = "MG-RAST 99%"
-        fig.suptitle(title, x = 0.54, y = 1.05, fontsize=16)
-    elif 'MGRAST' in datasets:
-        title = "MG-RAST"
-        fig.suptitle(title, x = 0.54, y = 1.05, fontsize=16)
-    elif 'HMP' in datasets:
-        fig.suptitle("HMP", x = 0.54, y = 1.05, fontsize=16)
-    elif 'EMPclosed' in datasets:
-        fig.suptitle("EMP (closed)", x = 0.54, y = 1.05, fontsize=16)
-    elif 'EMPopen' in datasets:
-        fig.suptitle("EMP (open)", x = 0.54, y = 1.05, fontsize=16)
 
-    fig.subplots_adjust(wspace = 0.2, hspace = 0.2, top=0.70)
+        fig.subplots_adjust(wspace = 0.2, hspace = 0.2, top=0.70)
+        plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=0.5)
+        fig.text(0.001, 0.5, r'$r^{2}$', ha='center', va='center', size = 'large',rotation='vertical')
+        fig_name = str(mydir[:-6]) + '/figures/' + figname  + '.png'
+        plt.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
+        #plt.xscale()
+        plt.close()
 
-    plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=0.5)
 
-    #fig.text(0.02, 0.5, r'$r^{2}$', ha='center', va='center', rotation='vertical', size = 'large')
-    #st.set_y(0.95)
-    #fig.subplots_adjust(top=0.85)
-    #ax.set_ylabel('common ylabel')
-    #fig.text(-8,-80,'Rank-abundance at the centre of the feasible set',fontsize=10)
-    #plt.suptitle(-8.5,500,r'$r^{2}$',rotation='90',fontsize=10)
-    fig_name = 'NSR2_GeomMete' + str(dataset) + '.png'
-    plt.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
-    #plt.xscale()
-    plt.close()
+    else:
+        params = ['N','S', 'N/S']
+        for i, dataset in enumerate(datasets):
+            for k, param in enumerate(params):
+                for j, method in enumerate(methods):
+
+                    if (dataset == 'EMPopen' or dataset == 'EMPclosed'):
+                        nsr2_data = import_NSR2_data(data_dir + 'NSR2/' + method+'_'+dataset+'_NSR2.txt')
+
+                    elif dataset == 'HMP':
+                        nsr2_data = import_NSR2_data(data_dir + 'NSR2/' + method+'_'+dataset+'_NSR2.txt')
+                    elif dataset == 'MGRAST':
+                        nsr2_data = import_NSR2_data(data_dir + 'NSR2/' + method+'_MGRAST_NSR2.txt')
+                    else:
+                        nsr2_data = import_NSR2_data(data_dir + 'NSR2/' + method+'_MGRAST'+dataset+'_NSR2.txt')
+
+
+                    y = ((nsr2_data["R2"]))
+                    mean = np.mean(y)
+                    std_error = sp.stats.sem(y)
+                    print method, param, dataset
+                    print "mean modified r2 = " + str(mean)
+                    print "modified r2 standard error = " + str(std_error)
+
+
+                    #print method, dataset, param
+                    ax = fig.add_subplot(3, 3, count+1)
+                    #ax.set(adjustable='box-forced', aspect='equal')
+                    if param == "N" or param == "S":
+                        x = np.log10(((nsr2_data[param])))
+                    else:
+                        N_count = ((nsr2_data["N"]))
+                        S_count = ((nsr2_data["S"]))
+                        print dataset, method
+                        print "mean N is " + str(np.mean(N_count))
+                        print "mean S is " + str(np.mean(S_count))
+                        x = np.divide(N_count, S_count)
+                        x = np.log10(x)
+
+                    macroecotools.plot_color_by_pt_dens(x, y, 0.1, loglog=0,
+                                    plot_obj=plt.subplot(3, 3, count+1))
+                    slope, intercept, r_value, p_value, std_err = stats.linregress(x,y)
+                    print "r-value is " + str(r_value)
+                    print "p-value is " + str(p_value)
+
+                    plt.xlim(np.amin(x), np.amax(x))
+                    plt.ylim(-1,1)
+
+                    predict_y = intercept + slope * x
+                    pred_error = y - predict_y
+                    degrees_of_freedom = len(x) - 2
+                    residual_std_error = np.sqrt(np.sum(pred_error**2) / degrees_of_freedom)
+                    plt.plot(x, predict_y, 'k-')
+                    plt.axhline(linewidth=2, color='darkgrey',ls='--')
+
+                    #plt.hline(0, xmin, xmax, color="0.3", ls='--')
+                    plt.subplots_adjust(wspace=0.2, hspace=0.3)
+
+                    # Plotting
+                    if k == 0:
+                        plt.xlabel(r'$N_{0}$', fontsize = 12)
+                    elif k == 1:
+                        plt.xlabel(r'$S_{0}$', fontsize = 12)
+                    elif k == 2:
+                        plt.xlabel(r'$N_{0}/S_{0}$', fontsize = 12)
+
+                    if k == 1 and j ==0:
+                        plt.ylabel(r'$r^{2}_{m}$', fontsize = 'xx-large')
+
+                    #if k == 0 and i ==0 :
+                    #    plt.title('HMP', fontsize = 'large')
+                    #elif k == 0 and i ==1:
+                    #    plt.title('EMP Closed', fontsize = 'large')
+                    #elif k == 0 and i ==2:
+                    #    plt.title('EMP Open', fontsize = 'large')
+                    #elif k == 0 and i ==3:
+                    #    plt.title('MG-RAST, 97%', fontsize = 'large')
+
+                    if j == 0 and k == 0:
+                        #plt.title(r'\textbf{Broken-stick}', fontsize = 'large')
+                        plt.title('Broken-stick', fontsize = 13)
+                    elif j == 1 and k == 0:
+                        plt.title('METE', fontsize = 13)
+                    elif j == 2 and k == 0:
+                        plt.title('Zipf', fontsize = 13)
+                    #ax.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=14, verticalalignment='top', bbox=props)
+                    leg = plt.legend(loc=1,prop={'size':10})
+                    ax.tick_params(axis='x', labelsize=6)
+                    ax.tick_params(axis='y', labelsize=6)
+
+                    #tick.label.set_fontsize(14)
+                    #leg.draw_frame(False)
+                    #plt.legend(loc='upper left')
+                    count += 1
+        if '97' in datasets:
+            title = "MG-RAST 97%"
+            fig.suptitle(title, x = 0.54, y = 1.05, fontsize=16)
+        elif '95' in datasets:
+            title = "MG-RAST 95%"
+            fig.suptitle(title, x = 0.54, y = 1.05, fontsize=16)
+        elif '99' in datasets:
+            title = "MG-RAST 99%"
+            fig.suptitle(title, x = 0.54, y = 1.05, fontsize=16)
+        elif 'MGRAST' in datasets:
+            title = "MG-RAST"
+            fig.suptitle(title, x = 0.54, y = 1.05, fontsize=16)
+        elif 'HMP' in datasets:
+            fig.suptitle("HMP", x = 0.54, y = 1.05, fontsize=16)
+        elif 'EMPclosed' in datasets:
+            fig.suptitle("EMP (closed)", x = 0.54, y = 1.05, fontsize=16)
+        elif 'EMPopen' in datasets:
+            fig.suptitle("EMP (open)", x = 0.54, y = 1.05, fontsize=16)
+
+        fig.subplots_adjust(wspace = 0.2, hspace = 0.2, top=0.70)
+
+        plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=0.5)
+
+        #fig.text(0.02, 0.5, r'$r^{2}$', ha='center', va='center', rotation='vertical', size = 'large')
+        #st.set_y(0.95)
+        #fig.subplots_adjust(top=0.85)
+        #ax.set_ylabel('common ylabel')
+        #fig.text(-8,-80,'Rank-abundance at the centre of the feasible set',fontsize=10)
+        #plt.suptitle(-8.5,500,r'$r^{2}$',rotation='90',fontsize=10)
+        fig_name = 'NSR2_GeomMete' + str(dataset) + '.png'
+        plt.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
+        #plt.xscale()
+        plt.close()
 
 
 def zipf_mle_plots(datasets, data_dir):
@@ -1180,139 +1419,354 @@ def plot_color_by_pt_dens1(x, y, radius, loglog=0, plot_obj=None):
     return plot_obj
 
 
-def obs_pred_Nmax_plot(methods,datasets, zipfType = 'glm', radius=2, data_dir= mydir):
+def obs_pred_Nmax_plot(methods,datasets, figname = 'Fig5', zipfType = 'glm', radius=2, stratify = True, data_dir= mydir):
     """Multiple obs-predicted plotter"""
     fig = plt.figure()
     count = 0
-    plot_dim = len(datasets)
-    for i, dataset in enumerate(datasets):
-        for j, method in enumerate(methods):
-            if method == 'zipf':
-                obs_pred_data = import_NSR2_data(data_dir + 'NSR2/' + \
-                    method + '_' + zipfType + '_'+ dataset+'_NSR2.txt')
-            else:
-                obs_pred_data = import_NSR2_data(data_dir + 'NSR2/' + \
-                    method + '_'+ dataset+'_NSR2.txt')
-            obs = list(((obs_pred_data["NmaxObs"])))
-            pred = list(((obs_pred_data["NmaxPred"])))
-            obs = np.asarray(obs)
-            pred = np.asarray(pred)
-            ax = fig.add_subplot(plot_dim, plot_dim, count+1)
-            N = np.asarray(list(((obs_pred_data["N"]))))
-            #y = np.asarray(np.subtract(pred, obs))
-            #y = np.absolute(y)
-            #y = np.asarray(np.divide(y, obs))
-            # absolte value
-            y = np.asarray(np.divide(pred, obs))
-            #ratioObsPred = np.asarray(pred)
-            x_axis_min = min(N)
-            x_axis_max = max(N)
-            y_axis_min = min(y)
-            y_axis_max = max(y)
-            print y_axis_min,  y_axis_max
-            if method == 'zipf':
-                axis_min = 0.5 * min(N)
-                axis_max = 10  * max(N)
-            else:
-                axis_min = 0.5 * min(N)
-                axis_max = 2 * max(N)
-            #ax.set(adjustable='box-forced', aspect='equal')
-            plt.subplots_adjust(wspace=1, hspace=1)
+    if stratify == True:
+        params = ['Nmax', 'evenness', 'skewness']
+        #### Add evenness and skewness
+        for i, param in enumerate(params):
+            for j, method in enumerate(methods):
+                obs_pred_data = import_NSR2_data(data_dir + 'NSR2/Stratified/'+ method +'_NSR2_stratify.txt')
+                N = np.asarray(list(((obs_pred_data["N"]))))
+                if i == 0:
+                    pred = list(((obs_pred_data["NmaxPred"])))
+                elif i == 1:
+                    pred = list(((obs_pred_data["evennessPred"])))
+                elif i == 2:
+                    pred = list(((obs_pred_data["skewnessPred"])))
 
-            if j == 0:
-                if all(x in datasets for x in ['HMP','EMPclosed','EMPopen', 'MGRAST']) == True:
-                    if dataset == 'HMP':
-                        ax.set_ylabel("HMP", rotation=90, size=12)
-                    elif dataset == 'EMPclosed':
-                        ax.set_ylabel("EMP (closed)", rotation=90, size=12)
-                    elif  dataset == 'EMPopen':
-                        ax.set_ylabel("EMP (open)", rotation=90, size=12)
-                    elif dataset == 'MGRAST':
-                        ax.set_ylabel("MG-RAST", rotation=90, size=12)
-                if all(x in datasets for x in ['95', '97', '99']) == True:
-                    if dataset == '95':
-                        ax.set_ylabel("MG-RAST 95%", rotation=90, size=12)
-                    elif dataset == '97':
-                        ax.set_ylabel("MG-RAST 97%", rotation=90, size=12)
-                    elif dataset == '99':
-                        ax.set_ylabel("MG-RAST 99%", rotation=90, size=12)
+                y = np.asarray(pred)
+
+                ax = fig.add_subplot(3, len(methods), count+1)
+
+                x_axis_min = min(N)
+                x_axis_max = max(N)
+                y_axis_min = min(y)
+                y_axis_max = max(y)
+
+                plt.subplots_adjust(wspace=1, hspace=1)
+
+                if i == 2 and (j == 3 or j ==1):
+                    merge_filter = [k for k in zip(N, y) if k[1] > 0.000001]
+                    N = np.asarray([l[0] for l in merge_filter])
+                    y = np.asarray([m[1] for m in merge_filter])
+
+                print param, method
+
+                if i ==0 and j == 0:
+                    ax.set_title(r"$\mathbf{Broken-stick}$")
+                    plt.ylabel(r'$log_{10}(N_{max})$', fontsize = 'large')
+                elif i ==0 and j == 1:
+                    ax.set_title(r"$\mathbf{Lognormal}$")
+                elif i ==0 and j == 2:
+                    ax.set_title(r"$\mathbf{Log-series}$")
+                elif i ==0 and j ==3:
+                    ax.set_title(r"$\mathbf{Zipf}$")
+                elif i == 1 and j == 0:
+                    plt.ylabel(r'$Evenness, \, log_{10}$', fontsize = 'large')
+                elif i == 2 and j == 0:
+                    plt.ylabel(r'$Skewness, \, log_{10}$', fontsize = 'large')
+
+                macroecotools.plot_color_by_pt_dens(N, y, radius, loglog=1,
+                                plot_obj=plt.subplot(3,len(methods),count+1))
+                slope, intercept, r_value, p_value, std_err = stats.linregress(np.log10(N),np.log10(y))
+                print "r-value is " + str(r_value)
+                print "p-value is " + str(p_value)
+                print "slope is " + str(slope)
+                if i == 0:
+                    plt.plot([0, x_axis_max],[0, x_axis_max], 'k-')
+                if (i ==1  or i ==2) and j ==0:
+                    plt.xlim(0, x_axis_max)
+                    plt.ylim(0, 1)
+                elif i == 2 and (j == 2):
+                    plt.xlim(0, x_axis_max)
+                    plt.ylim(0, 1)
                 else:
-                    if dataset == 'HMP':
-                        ax.set_ylabel("HMP", rotation=90, size=12)
-                    elif dataset == 'EMPclosed' or method == 'EMPopen':
-                        ax.set_ylabel("EMP", rotation=90, size=12)
-                    elif dataset == '97':
-                        ax.set_ylabel("MG-RAST 97%", rotation=90, size=12)
-                    elif dataset == 'MGRAST':
-                        ax.set_ylabel("MG-RAST", rotation=90, size=12)
-            if i == 0 and j == 0:
-                ax.set_title("Broken-stick")
-            elif i == 0 and j == 1:
-                ax.set_title("METE")
-            elif i == 0 and j == 2:
-                ax.set_title("Zipf")
+                    plt.xlim(0, x_axis_max)
+                    plt.ylim(0, y_axis_max)
 
-            if i == 0 and j == 0:
-                ax.set_title("Broken-stick")
-            elif i == 0 and j == 1:
-                ax.set_title("METE")
-            elif i == 0 and j == 2:
-                ax.set_title("Zipf")
 
-            print len(obs), len(pred)
+                plt.yscale('log')
+                plt.tick_params(axis='both', which='major', labelsize=7)
+                plt.subplots_adjust(wspace=0.5, hspace=0.3)
+                count += 1
 
-            plot_color_by_pt_dens1(N, y, radius, loglog=1, \
-                            plot_obj=plt.subplot(plot_dim,plot_dim,count+1))
-            slope, intercept, r_value, p_value, std_err = stats.linregress(N,y)
-            predict_y = intercept + slope * N
-            pred_error = y - predict_y
-            degrees_of_freedom = len(N) - 2
-            residual_std_error = np.sqrt(np.sum(pred_error**2) / degrees_of_freedom)
-            N = np.log10(N)
-            plt.plot(N, predict_y, 'k-')
-            #plt.axhline(linewidth=2, color='darkgrey',ls='--')
-            plt.plot([x_axis_min, x_axis_max],[1, 1], 'k-', color='darkgrey')
-            plt.xlim(x_axis_min, x_axis_max)
-            plt.ylim(y_axis_min, y_axis_max)
+        plt.tight_layout(pad=2, w_pad=2, h_pad=2)
+        #fig.text(0.02, 0.5, r'$N_{max}$', ha='center', va='center', size = 'x-large', rotation='vertical')
+        fig.text(0.527, 0.05, r'$log_{10}(N)$', ha='center', va='center', size = 'large',rotation='horizontal')
+        fig_name = str(mydir[:-6]) + '/figures/' + figname + '.png'
+        plt.savefig(fig_name, dpi=600)#, bbox_inches = 'tight')#, pad_inches=0)
+        plt.close()
 
-            plt.tick_params(axis='both', which='major', labelsize=7)
-            plt.subplots_adjust(wspace=0.5, hspace=0.3)
-
-            count += 1
-
-    #ax.set_ylabel(-8.5,500,'Observed rank-abundance',rotation='90',fontsize=10)
-    fig.subplots_adjust(wspace = 0.2, hspace = 0.2, top=0.70)
-
-    if plot_dim == 3:
-        fig.text(0.5, 0.04, r'$N$', ha='center', va='center')
-    elif plot_dim == 4:
-        fig.text(0.30, 0.04, r'$N$', ha='center', va='center')
     else:
-        fig.text(0.37, 0.04, r'$N$', ha='center', va='center')
+        plot_dim = len(datasets)
+        for i, dataset in enumerate(datasets):
+            for j, method in enumerate(methods):
+                if method == 'zipf':
+                    obs_pred_data = import_NSR2_data(data_dir + 'NSR2/' + \
+                        method + '_' + zipfType + '_'+ dataset+'_NSR2.txt')
+                else:
+                    obs_pred_data = import_NSR2_data(data_dir + 'NSR2/' + \
+                        method + '_'+ dataset+'_NSR2.txt')
+                obs = list(((obs_pred_data["NmaxObs"])))
+                pred = list(((obs_pred_data["NmaxPred"])))
+                obs = np.asarray(obs)
+                pred = np.asarray(pred)
+                ax = fig.add_subplot(plot_dim, plot_dim, count+1)
+                N = np.asarray(list(((obs_pred_data["N"]))))
 
-    fig.text(0.02, 0.5, 'Nmax (predicted) / Nmax (observed)', ha='center', va='center', rotation='vertical')
-    #fig.ylabel('ylabel')
-    #fig.text(0.35, 0.04, 'Predicted rank-abundance', ha='center', va='center')
-    #ax.set_xlabel('Observed rank-abundance',fontsize=10)
-    plt.tight_layout(pad=2, w_pad=2, h_pad=2)
-    fig_name = str(mydir[:-6]) + '/figures/' + '_'.join(datasets) + '_obs_pred_Nmax_' \
-        + zipfType + '_plots.png'
-    plt.savefig(fig_name, dpi=600)#, bbox_inches = 'tight')#, pad_inches=0)
+                y = pred
+
+                x_axis_min = min(N)
+                x_axis_max = max(N)
+                y_axis_min = min(y)
+                y_axis_max = max(y)
+
+                plt.subplots_adjust(wspace=1, hspace=1)
+
+                if j == 0:
+                    if all(x in datasets for x in ['HMP','EMPclosed','EMPopen', 'MGRAST']) == True:
+                        if dataset == 'HMP':
+                            ax.set_ylabel("HMP", rotation=90, size=12)
+                        elif dataset == 'EMPclosed':
+                            ax.set_ylabel("EMP (closed)", rotation=90, size=12)
+                        elif  dataset == 'EMPopen':
+                            ax.set_ylabel("EMP (open)", rotation=90, size=12)
+                        elif dataset == 'MGRAST':
+                            ax.set_ylabel("MG-RAST", rotation=90, size=12)
+                    if all(x in datasets for x in ['95', '97', '99']) == True:
+                        if dataset == '95':
+                            ax.set_ylabel("MG-RAST 95%", rotation=90, size=12)
+                        elif dataset == '97':
+                            ax.set_ylabel("MG-RAST 97%", rotation=90, size=12)
+                        elif dataset == '99':
+                            ax.set_ylabel("MG-RAST 99%", rotation=90, size=12)
+                    else:
+                        if dataset == 'HMP':
+                            ax.set_ylabel("HMP", rotation=90, size=12)
+                        elif dataset == 'EMPclosed' or method == 'EMPopen':
+                            ax.set_ylabel("EMP", rotation=90, size=12)
+                        elif dataset == '97':
+                            ax.set_ylabel("MG-RAST 97%", rotation=90, size=12)
+                        elif dataset == 'MGRAST':
+                            ax.set_ylabel("MG-RAST", rotation=90, size=12)
+
+
+                if i == 0 and j == 0:
+                    ax.set_title("Broken-stick")
+                elif i == 0 and j == 1:
+                    ax.set_title("METE")
+                elif i == 0 and j == 2:
+                    ax.set_title("Zipf")
+
+                macroecotools.plot_color_by_pt_dens(N, y, radius, loglog=1,
+                                plot_obj=plt.subplot(plot_dim,plot_dim,count+1))
+                slope, intercept, r_value, p_value, std_err = stats.linregress(np.log10(N),np.log10(y))
+                print "r-value is " + str(r_value)
+                print "p-value is " + str(p_value)
+                print "slope is " + str(slope)
+
+                plt.plot([x_axis_min, x_axis_max],[x_axis_min, x_axis_max], 'k-')
+                plt.xlim(0, x_axis_max)
+                plt.ylim(0, y_axis_max)
+
+                plt.tick_params(axis='both', which='major', labelsize=7)
+                plt.subplots_adjust(wspace=0.5, hspace=0.3)
+
+
+
+                count += 1
+
+        #ax.set_ylabel(-8.5,500,'Observed rank-abundance',rotation='90',fontsize=10)
+        fig.subplots_adjust(wspace = 0.2, hspace = 0.2, top=0.70)
+
+        if plot_dim == 3:
+            fig.text(0.5, 0.04, r'$N$', ha='center', va='center')
+        elif plot_dim == 4:
+            fig.text(0.30, 0.04, r'$N$', ha='center', va='center')
+        else:
+            fig.text(0.37, 0.04, r'$N$', ha='center', va='center')
+
+        fig.text(0.02, 0.5, r'$N_{max}$', ha='center', va='center', rotation='vertical')
+        #fig.ylabel('ylabel')
+        #fig.text(0.35, 0.04, 'Predicted rank-abundance', ha='center', va='center')
+        #ax.set_xlabel('Observed rank-abundance',fontsize=10)
+        plt.tight_layout(pad=2, w_pad=2, h_pad=2)
+        fig_name = str(mydir[:-6]) + '/figures/' + '_'.join(datasets) + '_obs_pred_Nmax_error_' \
+            + zipfType + '_plots.png'
+        plt.savefig(fig_name, dpi=600)#, bbox_inches = 'tight')#, pad_inches=0)
+        plt.close()
+
+
+def stratifyData(methods,datasets, totalSADs = 1000, zipfType = 'glm', data_dir= mydir):
+    # Number of lines in each file
+    MGRAST_sites = 1174
+    HMP_sites = 4504
+    EMPclosed_sites = 14979
+    Total = MGRAST_sites + HMP_sites + EMPclosed_sites
+    for i, method in enumerate(methods):
+        OUT1 = open(data_dir + 'ObsPred/Stratified/'+ method +'_obs_pred_stratify_t.txt', 'w')
+        OUT2 = open(data_dir + 'NSR2/Stratified/'+ method +'_NSR2_stratify_t.txt', 'w')
+        for j, dataset in enumerate(datasets):
+            print "what"
+            n = totalSADs
+            #if dataset == 'HMP':
+            #    n = round((HMP_sites / Total) * totalSADs)
+            #elif dataset == 'EMPclosed':
+            #    n = round((EMPclosed_sites / Total) * totalSADs)
+            #elif dataset == 'MGRAST':
+            #    n = round((MGRAST_sites / Total) * totalSADs)
+
+            if method == 'zipf':
+                if ( str(dataset) == 'EMPclosed') or ( str(dataset) == 'HMP') or \
+                    ( str(dataset) == 'EMPopen'):
+                    obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method + '_'+ zipfType +'_'+dataset+'_obs_pred.txt')
+                    nsr2_data = import_NSR2_data(data_dir + 'NSR2/' + method + '_'+ zipfType +'_'+ dataset+'_NSR2.txt')
+                elif str(dataset) == 'MGRAST':
+                    obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method + '_'+ zipfType + '_' + 'MGRAST_obs_pred.txt')
+                    nsr2_data = import_NSR2_data(data_dir + 'NSR2/' + method+ '_'+ zipfType  + '_MGRAST_NSR2.txt')
+                else:
+                    obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method + '_'+ zipfType + '_' + 'MGRAST' + dataset +'_obs_pred.txt')
+                    nsr2_data = import_NSR2_data(data_dir + 'NSR2/' + method+ '_'+ zipfType  + '_MGRAST'+dataset+'_NSR2.txt')
+            else:
+                if ( str(dataset) == 'EMPclosed') or ( str(dataset) == 'HMP') or \
+                    ( str(dataset) == 'EMPopen'):
+                    obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method+'_'+dataset+'_obs_pred.txt')
+                    nsr2_data = import_NSR2_data(data_dir + 'NSR2/' + method+'_'+dataset+'_NSR2.txt')
+                elif str(dataset) == 'MGRAST':
+                    obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method + '_' + 'MGRAST_obs_pred.txt')
+                    nsr2_data = import_NSR2_data(data_dir + 'NSR2/' + method+'_MGRAST_NSR2.txt')
+                else:
+                    obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method + '_' + 'MGRAST' + dataset +'_obs_pred.txt')
+                    nsr2_data = import_NSR2_data(data_dir + 'NSR2/' + method+'_MGRAST'+dataset+'_NSR2.txt')
+            print "whatt"
+            N = np.asarray(list(((nsr2_data["N"]))))
+            S = np.asarray(list(((nsr2_data["S"]))))
+            NmaxObs = np.asarray(list(((nsr2_data["NmaxObs"]))))
+            NmaxPred = np.asarray(list(((nsr2_data["NmaxPred"]))))
+            evennessObs = np.asarray(list(((nsr2_data["evennessObs"]))))
+            evennessPred = np.asarray(list(((nsr2_data["evennessPred"]))))
+            skewnessObs = np.asarray(list(((nsr2_data["skewnessObs"]))))
+            skewnessPred = np.asarray(list(((nsr2_data["skewnessPred"]))))
+            R2 = np.asarray(list(((nsr2_data["R2"]))))
+
+            site = ((obs_pred_data["site"]))
+            obs = list(((obs_pred_data["obs"])))
+            pred = list(((obs_pred_data["pred"])))
+            obs2 = []
+            pred2 = []
+            site2 = []
+            uniqueSites = np.unique(site)
+            print len(uniqueSites)
+            print len(N)
+            randomSites = np.random.choice(range(len(uniqueSites)), size=n, replace=False)
+            count = 0
+            for p, q in enumerate(uniqueSites):
+                if q in randomSites:
+
+                    print>> OUT2, count, N[p], S[p], NmaxObs[p], NmaxPred[p], \
+                        evennessObs[p], evennessPred[p], skewnessObs[p], skewnessPred[p], R2[p]
+                    count += 1
+            for r, s in enumerate(site):
+                if s in randomSites:
+                    obs2.append(obs[r])
+                    pred2.append(pred[r])
+                    site2.append(site[r])
+            print method, dataset
+
+
+            #if n == 'all' or len(obs) <= n:
+            #    obs2 = list(obs)
+            #    pred2 = list(pred)
+            #    site2 = list(site)
+
+            #else:
+            #    if len(obs) > n:
+            #        #inds = np.random.choice(range(len(obs)), size=n, replace=False)
+            #        for randomSite in randomSites:
+            #            obs2.append(obs[randomSite])
+            #            pred2.append(pred[randomSite])
+            #            site2.append(site[randomSite])
+            #print len(obs2), len(pred2)
+            obs = np.asarray(obs2)
+            pred = np.asarray(pred2)
+
+            #site = np.asarray(site2)
+            k_minus1 = obs2[0]
+            count_sites = 0
+            for k, sp in enumerate(obs2):
+                print>> OUT1, k, obs2[k], pred2[k]
+            #site =  np.asarray(site2)
+        OUT1.close()
+        OUT2.close()
+
+def plot_example_fig(figname = 'Fig1', data_dir= mydir):
+    SAD = [10000, 8000, 6000, 5000, 1000, 200, 100,  20, 18, 16, 14, 12, 10, 4,5,
+        4, 4, 3, 3, 2, 2, 2, 2, 2,2, 1, 1, 1, 1, 1,1,1,1, 1, 1, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+    SAD.sort()
+    SAD.reverse()
+    x = range(1, len(SAD) +1)
+    N = sum(SAD)
+    S = len(SAD)
+    geom = get_GeomSeries(N, S, False)
+
+    logSeries = mete.get_mete_rad(S, N)[0]
+
+    lognorm_pred = lognorm(SAD)
+    lognorm_SAD = lognorm_pred.lognorm_glm()
+    lognorm_SAD = np.ceil(lognorm_SAD)
+    lognorm_SAD.astype(int)
+
+    zipf_pred = zipf(SAD, 'fmin')
+    zipf_glm = zipf_pred.from_glm()
+    zipf_SAD = np.ceil(zipf_glm)
+    zipf_SAD.astype(int)
+
+    fig = plt.figure()
+    plt.plot()
+    # try with mle zipf
+    zipf_class = zipf(SAD, 'fmin')
+    pred_tuple = zipf_class.from_cdf()
+    pred = pred_tuple[0]
+
+    plt.plot(x, SAD,color = 'r', linestyle = '-', linewidth=2, label="Emperical distribution")
+    plt.plot(x, geom,color = 'b', linestyle = '-', linewidth=2, label="Broken-stick")
+    plt.plot(x, lognorm_SAD, color = 'b',linestyle = '--', linewidth=2, label="Lognormal")
+    plt.plot(x, logSeries, color = 'b',linestyle = '-.', linewidth=2, label="Log-series")
+    plt.plot(x, pred, color = 'b',linestyle = ':',linewidth=2,  label="Zipf")
+
+    plt.tight_layout()
+    plt.xlabel(r'$Rank \; Abundance$', fontsize = 18)
+    plt.ylabel(r'$Abundance, \, log_{10}$', fontsize = 18)
+    output = "dorm_fix_prob.png"
+    plt.legend(loc='upper right')
+    plt.yscale('log')
+    plt.xlim(1, len(SAD))
+    plt.ylim(1, max(zipf_SAD))
+    #fig.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+    fig_name = str(mydir[:-6]) + '/figures/' + figname + '.png'
+    plt.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
+    #plt.xscale()
     plt.close()
 
-
 #datasets = ['EMPclosed', 'EMPopen', 'MGRAST', 'HMP', '97', '95', '99']
-datasets = ['HMP','EMPclosed','MGRAST']
+#datasets = ['HMP','EMPclosed','MGRAST']
+datasets = ['EMPclosed']
 #methods = ['zipf']
-methods = ['geom', 'mete', 'zipf']
+#methods = ['geom', 'lognorm', 'mete']
+methods = ['geom', 'lognorm', 'mete', 'zipf']
 #plot_subsampled_data(methods, datasets)
 
-#generate_obs_pred_data(datasets, methods, size = 0, remove = 0, zipfType = 'glm')
+#stratifyData(methods,datasets, 352899)
+#obs_pred_Nmax_plot(methods, datasets, stratify = True, zipfType = 'glm')
 
-#obs_pred_Nmax_plot(methods, datasets, zipfType = 'mle')
-#obs_pred_Nmax_plot(methods, datasets, zipfType = 'glm')
-
-plot_obs_pred_sad(methods, datasets, 352899, zipfType = 'glm')
-plot_obs_pred_sad(methods, datasets, 352899, zipfType = 'mle')
+#plot_obs_pred_sad(methods, datasets, 352899, zipfType = 'glm')
+#plot_obs_pred_sad(methods, datasets, 352899, zipfType = 'mle')
 #plot_obs_pred_sad(methods, datasets, 100, zipfType = 'mle')
-#plot_obs_pred_sad(methods, datasets, 100, zipfType = 'glm')
+#stratifyData(methods,datasets, totalSADs = 100)
+#NSR2_regression(methods, datasets)
+#obs_pred_Nmax_plot(methods, datasets, stratify = True, zipfType = 'glm')
+plot_obs_pred_sad(methods, datasets, n = 'all')
+#plot_example_fig()
