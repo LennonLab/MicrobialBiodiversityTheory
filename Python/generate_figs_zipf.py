@@ -71,7 +71,7 @@ class zipf:
         This is an actual form of the Zipf distribution, obtained from getting
         the mle for the shape parameter.
         """
-        p = self.zipf_solver(self.obs)
+        p = md.zipf_solver(self.obs)
         S = len(self.obs)
         rv = stats.zipf(a=p)
         rad = []
@@ -84,175 +84,175 @@ class zipf:
         #print point_return.x, point_return.y
         return point_return
 
-    def from_glm(self):
+    #def from_glm(self):
 
-        """ Fit the Zipf distribution to the observed vector of integer values
-        using a generalized linear model.
+    #    """ Fit the Zipf distribution to the observed vector of integer values
+    #    using a generalized linear model.
 
-        Note: This is a fitted curve; not an actual form of the Zipf distribution
+    #    Note: This is a fitted curve; not an actual form of the Zipf distribution
 
-        This method was inspired by the vegan
-        package's open source code on vegan's public GitHub repository:
-        https://github.com/vegandevs/vegan/blob/master/R/rad.zipf.R
-        on Thursday, 19 Marth 2015 """
+    #    This method was inspired by the vegan
+    #    package's open source code on vegan's public GitHub repository:
+    #    https://github.com/vegandevs/vegan/blob/master/R/rad.zipf.R
+    #    on Thursday, 19 Marth 2015 """
 
-        ranks = np.log(range(1, len(self.obs)+1))
-        off = [np.log(sum(self.obs))] * len(self.obs)
+    #    ranks = np.log(range(1, len(self.obs)+1))
+    #    off = [np.log(sum(self.obs))] * len(self.obs)
 
-        d = pd.DataFrame({'ranks': ranks, 'off': off, 'x':self.obs})
+    #    d = pd.DataFrame({'ranks': ranks, 'off': off, 'x':self.obs})
 
-        lm = smf.glm(formula='x ~ ranks', data = d, family = sm.families.Poisson()).fit()
-        pred = lm.predict()
+    #    lm = smf.glm(formula='x ~ ranks', data = d, family = sm.families.Poisson()).fit()
+    #    pred = lm.predict()
 
-        return pred
+    #    return pred
 
-    def get_pred_iterative(self, pmf, S):
-        """Function to get predicted abundances (reverse-sorted) for distributions with no analytical ppf."""
+    #def get_pred_iterative(self, pmf, S):
+    #    """Function to get predicted abundances (reverse-sorted) for distributions with no analytical ppf."""
 
-        cdf = [(S - i + 0.5) / S for i in range(1, S + 1)]
-        cdf = np.sort(cdf)
-        rad = []
+    #    cdf = [(S - i + 0.5) / S for i in range(1, S + 1)]
+    #    cdf = np.sort(cdf)
+    #    rad = []
 
-        j = 0
-        i = 1
-        cdf_cum = 0
+    #    j = 0
+    #    i = 1
+    #    cdf_cum = 0
 
         # print statements below were used as checks in writing the code
-        while j < len(cdf):
+    #    while j < len(cdf):
             #print cdf_cum, len(pmf), i
-            cdf_cum += pmf[i-1]
+    #        cdf_cum += pmf[i-1]
 
-            while cdf_cum >= cdf[j]:
+    #        while cdf_cum >= cdf[j]:
                 #print cdf_cum, cdf[j], rad.count(0)
 
-                rad.append(i)
+    #            rad.append(i)
                 #print 'N:', N, 'S:', S, 'species:', len(rad), 'abundance:',i, 'cum_abs:', sum(rad)#, 'kmin:', min(rad), 'kmax:', max(rad)
 
-                j += 1
-                if j == len(cdf):
-                    rad.reverse()
-                    return np.array(rad)
-            i += 1
+    #            j += 1
+    #            if j == len(cdf):
+    #                rad.reverse()
+    #                return np.array(rad)
+    #        i += 1
 
 
-    def get_emp_cdf(self, pmf):
-        """Compute the empirical cdf given a list or an array"""
-        pmf = np.array(pmf)
-        cdf = []
+    #def get_emp_cdf(self, pmf):
+    #    """Compute the empirical cdf given a list or an array"""
+    #    pmf = np.array(pmf)
+    #    cdf = []
 
-        for point in pmf:
-            point_cdf = len(pmf[pmf <= point]) / len(pmf)
-            cdf.append(point_cdf)
-        return np.array(cdf)
+    #    for point in pmf:
+    #        point_cdf = len(pmf[pmf <= point]) / len(pmf)
+    #        cdf.append(point_cdf)
+    #    return np.array(cdf)
 
 
 
-    """ Note: In their paper, the authors M is our N. Their N is our S. Their kmax is our Nmax."""
+    #""" Note: In their paper, the authors M is our N. Their N is our S. Their kmax is our Nmax."""
 
-    def zipf_rgf_params(self, obs_rad):
+    #def zipf_rgf_params(self, obs_rad):
 
-        N = sum(obs_rad)
-        S = len(obs_rad)
+    #    N = sum(obs_rad)
+    #    S = len(obs_rad)
 
-        kmin = min(obs_rad)
-        Nmax = max(obs_rad)
-        avg_ab = N/S
+    #    kmin = min(obs_rad)
+    #    Nmax = max(obs_rad)
+    #    avg_ab = N/S
 
         #Set gamma and upper bound of b.
-        gamma = 1.99999
-        b = 1
+    #    gamma = 1.99999
+    #    b = 1
 
-        _sum = 0
-        for k in range(kmin, N):
-            pk = math.exp(-b*k)/k**gamma
-            if pk > 0:
-                _sum += pk
-            else:
-                break
+    #    _sum = 0
+    #    for k in range(kmin, N):
+    #        pk = math.exp(-b*k)/k**gamma
+    #        if pk > 0:
+    #            _sum += pk
+    #        else:
+    #            break
 
-        A = 1/_sum
+    #    A = 1/_sum
 
         #Find the best b.
-        Nmaxtmp = N # initialize Nmaxtmp as N
-        b0 = 2*b
-        b1 = 0
+    #    Nmaxtmp = N # initialize Nmaxtmp as N
+    #    b0 = 2*b
+    #    b1 = 0
 
-        while(abs(Nmaxtmp - Nmax) > 1):
-            b = (b0 + b1)/2
-            sum1 = 0
-            kc = 0
+    #    while(abs(Nmaxtmp - Nmax) > 1):
+    #        b = (b0 + b1)/2
+    #        sum1 = 0
+    #        kc = 0
 
-            for k in range(N, kmin,-1):
-                sum1 += A * math.exp(-b*k)/k**gamma
-                if sum1 > 1/S:
-                    kc = k
-                    break
+    #        for k in range(N, kmin,-1):
+    #            sum1 += A * math.exp(-b*k)/k**gamma
+    #            if sum1 > 1/S:
+    #                kc = k
+    #                break
 
-            sum1 = 0
-            sum2 = 0
+    #        sum1 = 0
+    #        sum2 = 0
 
-            for k in range(kc, N):
-                s1=k*math.exp(-b*k)/k**gamma
-                s2=math.exp(-b*k)/k**gamma
+    #        for k in range(kc, N):
+    #            s1=k*math.exp(-b*k)/k**gamma
+    #            s2=math.exp(-b*k)/k**gamma
 
-                if s1 <= 0 or s2 <= 0:
-                    break
+    #            if s1 <= 0 or s2 <= 0:
+    #                break
 
-                sum1 += s1
-                sum2 += s2
+    #            sum1 += s1
+    #            sum2 += s2
 
-            Nmaxtmp = sum1/sum2
+    #        Nmaxtmp = sum1/sum2
 
             #print Nmaxtmp, Nmax,'b =', b
 
-            if Nmaxtmp > Nmax:
-                b1 = b
+    #        if Nmaxtmp > Nmax:
+    #            b1 = b
 
-            else:
-                b0 = b
+    #        else:
+    #            b0 = b
 
-        sum1 = 0
-        sum2 = 0
+    #    sum1 = 0
+    #    sum2 = 0
 
-        for k in range(kmin, N):
-            sum1 += math.exp(-b*k)/k**gamma
-            sum2 += k * math.exp(-b*k)/k**gamma
+    #    for k in range(kmin, N):
+    #        sum1 += math.exp(-b*k)/k**gamma
+    #        sum2 += k * math.exp(-b*k)/k**gamma
 
-        A = 1/sum1
+    #    A = 1/sum1
         #kavm = sum2/sum1
 
         #print gamma,'\t', b,'\t',A,'\t',kavm,'\t',avg_ab  #gamma, b, A, modeling
         #Compare modelling <k> and real <k>. If they are different, guess another gamma (increasing gamma will decrease <k>).
 
-        return [gamma, b, A, N]
+    #    return [gamma, b, A, N]
 
 
 
 
-    def zipf_pmf(self, gamma, b, A, N):
+    #def zipf_pmf(self, gamma, b, A, N):
 
-        pmf = []
-        k = 1
-        while k <= N:
-            pK = A * np.exp(-b*k) / (k**gamma)
-            pmf.append(pK)
-            k += 1
+    #    pmf = []
+    #    k = 1
+    #    while k <= N:
+    #        pK = A * np.exp(-b*k) / (k**gamma)
+    #        pmf.append(pK)
+    #        k += 1
 
-        return pmf
+    #    return pmf
 
 
 
-    def zipf_rgf(self):
+    #def zipf_rgf(self):
 
-        S = len(self.obs)
-        gamma, b, A, N = self.zipf_rgf_params(self.obs)
-        pmf = self.zipf_pmf(gamma, b, A, N) # pmf for non-built-in function
+    #    S = len(self.obs)
+    #    gamma, b, A, N = self.zipf_rgf_params(self.obs)
+    #    pmf = self.zipf_pmf(gamma, b, A, N) # pmf for non-built-in function
         #print len(pmf),'\t', pmf[0],'\t', pmf[-1]
 
-        rad = self.get_pred_iterative(pmf, S)
+    #    rad = self.get_pred_iterative(pmf, S)
         #print 'predN', sum(rad), 'predS', len(rad), 'Nmax', max(rad), rad[0], 'Nmin', min(rad), rad[-1]
 
-        return rad
+    #    return rad
 
 
 class lognorm:
@@ -795,8 +795,8 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove = 0, zipfType = '
                     #   you'll catch TimeoutException when it's sent.
                     try:
                         # Whatever your function that might hang
-                        zipf_class = zipf(obs, 'fmin')
-                        pred = zipf_class.zipf_rgf()
+                        zipf_class_ = zipf(obs, 'fmin')
+                        pred = zipf_class_.zipf_rgf()
                         b = datetime.datetime.now()
                         c = b - a
                         print str(c.seconds) + " seconds"
@@ -816,9 +816,9 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove = 0, zipfType = '
                         #   you'll catch TimeoutException when it's sent.
                         try:
                             # Whatever your function that might hang
-                            Zipf_solve_line = md.zipf_solver(obs)
+                            #Zipf_solve_line = md.zipf_solver(obs)
                             # use S
-                            rv = stats.zipf(Zipf_solve_line)
+                            #rv = stats.zipf(Zipf_solve_line)
                             zipf_class = zipf(obs, 'fmin')
                             pred_tuple = zipf_class.from_cdf()
                             pred = pred_tuple[0]
@@ -988,9 +988,9 @@ def import_NSR2_data(input_filename):   # TAKEN FROM THE mete_sads.py script use
                         names = ['site','N','S', 'NmaxObs', 'NmaxPred', 'evennessObs', \
                             'evennessPred', 'skewnessObs', 'skewnessPred','R2', 'NAP'], delimiter = " ")
                 else:
-                    data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
+                    data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
                         names = ['site','N','S', 'NmaxObs', 'NmaxPred', 'evennessObs', \
-                            'evennessPred', 'skewnessObs', 'skewnessPred', 'gamma','R2', 'NAP'], delimiter = " ")
+                            'evennessPred', 'skewnessObs', 'skewnessPred','R2', 'NAP'], delimiter = " ")
             else:
                 data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
                 names = ['site','N','S', 'NmaxObs', 'NmaxPred', 'evennessObs', \
@@ -1001,10 +1001,11 @@ def import_NSR2_data(input_filename):   # TAKEN FROM THE mete_sads.py script use
                     data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
                     names = ['site','N','S', 'NmaxObs', 'NmaxPred', 'evennessObs', \
                         'evennessPred', 'skewnessObs', 'skewnessPred', 'R2'], delimiter = " ")
+
                 else:
                     data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
                     names = ['site','N','S', 'NmaxObs', 'NmaxPred', 'evennessObs', \
-                        'evennessPred', 'skewnessObs', 'skewnessPred', 'gammma','R2'], delimiter = " ")
+                        'evennessPred', 'skewnessObs', 'skewnessPred','gamma', 'R2'], delimiter = " ")
                         # 'gammma'
             else:
                 data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
@@ -1021,17 +1022,18 @@ def plot_obs_pred_sad(methods, datasets, n, figname = 'Fig2', data_dir=mydir, \
     """Multiple obs-predicted plotter"""
     fig = plt.figure()
     count = 0
-    if RGF == True:
-        methods.append('rgf')
+    #if RGF == True:
+    #    methods.append('rgf')
     if stratify == True:
         plot_dim = 2
         for i, method in enumerate(methods):
             if method == 'zipf':
                 obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/Stratified/'+ method + '_'+  zipfType+'_obs_pred_stratify.txt')
-                INh2 = import_NSR2_data(data_dir + 'NSR2/Stratified/' + method + '_'+  zipfType + '_NSR2_stratify.txt')
-            if method == 'rgf':
-                obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/Stratified/'+ 'zipf' + '_'+  method+'_obs_pred_stratify.txt')
-                INh2 = import_NSR2_data(data_dir + 'NSR2/Stratified/' +'zipf' + '_'+  method + '_NSR2_stratify.txt')
+                INh2 = import_NSR2_data(data_dir + 'NSR2/Stratified/' + method + '_mle' + '_NSR2_stratify.txt')
+                print ((INh2["R2"]))
+            #if method == 'rgf':
+            #    obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/Stratified/'+ 'zipf' + '_'+  method+'_obs_pred_stratify.txt')
+            #    INh2 = import_NSR2_data(data_dir + 'NSR2/Stratified/' +'zipf' + '_'+  method + '_NSR2_stratify.txt')
             elif method == 'lognorm':
                 obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/Stratified/'+ method + '_'+  lognormType+'_obs_pred_stratify.txt')
                 INh2 = import_NSR2_data(data_dir + 'NSR2/Stratified/' + method + '_'+  lognormType + '_NSR2_stratify.txt')
@@ -1068,7 +1070,7 @@ def plot_obs_pred_sad(methods, datasets, n, figname = 'Fig2', data_dir=mydir, \
             else:
                 axis_min = 0
                 axis_max = 2 * max(obs)
-            print plot_dim
+            #print plot_dim
             ax = fig.add_subplot(plot_dim, plot_dim, count+1)
             ax.set(adjustable='box-forced', aspect='equal')
             if method == 'geom':
@@ -1081,7 +1083,7 @@ def plot_obs_pred_sad(methods, datasets, n, figname = 'Fig2', data_dir=mydir, \
                 ax.set_title(r"$\mathbf{Zipf,\, MLE}$")
             elif method == 'rgf':
                 ax.set_title(r"$\mathbf{Zipf, \, RGF}$")
-
+            print len(pred), len(obs)
             macroecotools.plot_color_by_pt_dens(pred, obs, radius, loglog=1,
                             plot_obj=plt.subplot(plot_dim,plot_dim,count+1))
 
@@ -1097,6 +1099,7 @@ def plot_obs_pred_sad(methods, datasets, n, figname = 'Fig2', data_dir=mydir, \
             #if method == 'zipf':
 
             r2s = ((INh2["R2"]))
+            r2s = r2s.astype(float)
             hist_r2 = np.histogram(r2s, range=(0, 1))
             xvals = hist_r2[1] + (hist_r2[1][1] - hist_r2[1][0])
             xvals = xvals[0:len(xvals)-1]
@@ -1174,12 +1177,13 @@ def plot_obs_pred_sad(methods, datasets, n, figname = 'Fig2', data_dir=mydir, \
                         inds = np.random.choice(range(len(obs)), size=n, replace=False)
                         for ind in inds:
                             obs2.append(obs[ind])
-    	                pred2.append(pred[ind])
-    	                site2.append(site[ind])
+                            pred2.append(pred[ind])
+                            site2.append(site[ind])
 
                 obs = np.asarray(obs2)
                 pred = np.asarray(pred2)
                 site =  np.asarray(site2)
+                print len(obs), len(pred)
                 if method == 'zipf':
                     axis_min = 0
                     axis_max = 10  * max(pred)
@@ -1223,7 +1227,7 @@ def plot_obs_pred_sad(methods, datasets, n, figname = 'Fig2', data_dir=mydir, \
                 elif i == 0 and j == 2:
                     ax.set_title("Zipf")
 
-                print len(obs), len(pred)
+
                 macroecotools.plot_color_by_pt_dens(pred, obs, radius, loglog=1,
                                 plot_obj=plt.subplot(plot_dim,plot_dim,count+1))
 
@@ -1237,7 +1241,11 @@ def plot_obs_pred_sad(methods, datasets, n, figname = 'Fig2', data_dir=mydir, \
                 axins = inset_axes(ax, width="30%", height="30%", loc=4)
                 #if str(dataset) == 'EMPclosed' or str(dataset) == 'EMPopen':
                 if method == 'zipf':
-                    INh2 = import_NSR2_data(data_dir + 'NSR2/' + method+ '_'+ zipfType + '_'+dataset+'_NSR2.txt')
+                    if dataset == '97' or  dataset == '95' or  dataset == '99':
+                        INh2 = import_NSR2_data(data_dir + 'NSR2/' + method+ '_'+ zipfType + '_MGRAST' +dataset+'_NSR2.txt')
+                    else:
+                        INh2 = import_NSR2_data(data_dir + 'NSR2/' + method+ '_'+ 'mle' + '_'+dataset+'_NSR2.txt')
+                        print ((INh2["R2"]))
                 else:
                     INh2 = import_NSR2_data(data_dir + 'NSR2/' + method+'_'+dataset+'_NSR2.txt')
                 r2s = ((INh2["R2"]))
@@ -1949,27 +1957,13 @@ def obs_pred_Nmax_plot(methods,datasets, figname = 'Fig5', zipfType = 'mle', \
         plt.close()
 
 
-def stratifyData(methods,datasets, totalSADs = 500, zipfType = 'mle', lognormType = 'pln', data_dir= mydir):
+def stratifyData(methods,datasets, totalSADs = 500, zipfType = 'mle', lognormType = 'pln', remove = True, data_dir= mydir):
     # Number of lines in each file
     MGRAST_sites = 1174
     HMP_sites = 4504
     EMPclosed_sites = 14979
     Total = MGRAST_sites + HMP_sites + EMPclosed_sites
-    removeSADs = []
 
-    get_bad_zipfs = import_NSR2_data(data_dir + 'NSR2/' + 'zipf' + '_'+ 'mle' +'_'+ 'EMPclosed'+'_NSR2.txt')
-    site = np.asarray(list(((get_bad_zipfs["site"]))))
-    N = np.asarray(list(((get_bad_zipfs["N"]))))
-    S = np.asarray(list(((get_bad_zipfs["S"]))))
-    r2s = np.asarray(list(((get_bad_zipfs["R2"]))))
-    zipNsite = zip(site, N, S, r2s)
-    print zipNsite[63]
-    for x in zipNsite:
-        if x == 427.0:
-            print x
-        if float(x[3]) < 0.2:
-            removeSADs.append(int(x[0]))
-    removeSADs = np.asarray(removeSADs)
     for i, method in enumerate(methods):
         if method == 'zipf':
             OUT1 = open(data_dir + 'ObsPred/Stratified/'+ method + '_' + zipfType +'_obs_pred_stratify.txt', 'w')
@@ -1981,7 +1975,22 @@ def stratifyData(methods,datasets, totalSADs = 500, zipfType = 'mle', lognormTyp
             OUT1 = open(data_dir + 'ObsPred/Stratified/'+ method +'_obs_pred_stratify.txt', 'w')
             OUT2 = open(data_dir + 'NSR2/Stratified/'+ method  +'_NSR2_stratify.txt', 'w')
         for j, dataset in enumerate(datasets):
-            n = totalSADs
+            removeSADs = []
+            get_bad_zipfs = import_NSR2_data(data_dir + 'NSR2/' + 'zipf' + '_'+ 'mle' +'_'+dataset +'_NSR2.txt')
+            site = np.asarray(list(((get_bad_zipfs["site"]))))
+            N = np.asarray(list(((get_bad_zipfs["N"]))))
+            S = np.asarray(list(((get_bad_zipfs["S"]))))
+            r2s = np.asarray(list(((get_bad_zipfs["R2"]))))
+            zipNsite = zip(site, N, S, r2s)
+            for x in zipNsite:
+                if float(x[3]) < 0.2:
+                    removeSADs.append(int(x[0]))
+            removeSADs = np.asarray(removeSADs)
+            if dataset == 'MGRAST':
+                n = 239 - len(removeSADs)
+            else:
+                n = totalSADs
+            print "sites to remove selected"
             #if dataset == 'HMP':
             #    n = round((HMP_sites / Total) * totalSADs)
             #elif dataset == 'EMPclosed':
@@ -2023,10 +2032,6 @@ def stratifyData(methods,datasets, totalSADs = 500, zipfType = 'mle', lognormTyp
                     obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/' + method + '_' + 'MGRAST' + dataset +'_obs_pred.txt')
                     nsr2_data = import_NSR2_data(data_dir + 'NSR2/' + method+'_MGRAST'+dataset+'_NSR2.txt')
             siteNSR2 = np.asarray( map(float, list(((nsr2_data["site"])))))
-            #print siteNSR2)
-
-            siteNSR2_cleaned = np.setdiff1d(siteNSR2, removeSADs)
-            print len(siteNSR2), len(siteNSR2_cleaned)
             N = np.asarray(list(((nsr2_data["N"]))))
             S = np.asarray(list(((nsr2_data["S"]))))
             NmaxObs = np.asarray(list(((nsr2_data["NmaxObs"]))))
@@ -2044,23 +2049,17 @@ def stratifyData(methods,datasets, totalSADs = 500, zipfType = 'mle', lognormTyp
             obs2 = []
             pred2 = []
             site2 = []
-            uniqueSites = np.unique(siteNSR2_cleaned)
+            if remove == True:
+                siteNSR2_cleaned = np.setdiff1d(siteNSR2, removeSADs)
+                uniqueSites = np.unique(siteNSR2_cleaned)
+            else:
+                uniqueSites = np.unique(siteNSR2)
 
-            print "running cleaned sites"
-            for clean in siteNSR2_cleaned:
-                if clean in removeSADs:
-                    print clean
-            #print uniqueSites
-            #print n
-            #print len(uniqueSites)
-            #print len(N)
             randomSites = np.random.choice(uniqueSites, size=n, replace=False)
-            print "running random sites"
-            for rand in randomSites:
-                if rand in removeSADs:
-                    print rand
+
             count = 0
             for p, q in enumerate(siteNSR2):
+                print p
                 if q in randomSites:
                     print>> OUT2, q, N[p], S[p], NmaxObs[p], NmaxPred[p], \
                         evennessObs[p], evennessPred[p], skewnessObs[p], skewnessPred[p], R2[p]
@@ -2073,20 +2072,6 @@ def stratifyData(methods,datasets, totalSADs = 500, zipfType = 'mle', lognormTyp
             print count
             print method, dataset
 
-
-            #if n == 'all' or len(obs) <= n:
-            #    obs2 = list(obs)
-            #    pred2 = list(pred)
-            #    site2 = list(site)
-
-            #else:
-            #    if len(obs) > n:
-            #        #inds = np.random.choice(range(len(obs)), size=n, replace=False)
-            #        for randomSite in randomSites:
-            #            obs2.append(obs[randomSite])
-            #            pred2.append(pred[randomSite])
-            #            site2.append(site[randomSite])
-            #print len(obs2), len(pred2)
             obs = np.asarray(obs2)
             pred = np.asarray(pred2)
 
@@ -2094,7 +2079,7 @@ def stratifyData(methods,datasets, totalSADs = 500, zipfType = 'mle', lognormTyp
             k_minus1 = obs2[0]
             count_sites = 0
             for k, sp in enumerate(obs2):
-                print>> OUT1, k, obs2[k], pred2[k]
+                print>> OUT1, site2[k], obs2[k], pred2[k]
             #site =  np.asarray(site2)
         OUT1.close()
         OUT2.close()
@@ -2123,9 +2108,9 @@ def plot_example_fig(figname = 'Fig1', data_dir= mydir):
     #zipf_SAD = np.ceil(zipf_glm)
     #zipf_SAD.astype(int)
 
-    Zipf_solve_line = md.zipf_solver(SAD)
+    #Zipf_solve_line = md.zipf_solver(SAD)
     # use S
-    rv = stats.zipf(Zipf_solve_line)
+    #rv = stats.zipf(Zipf_solve_line)
     zipf_class = zipf(SAD, 'fmin')
     pred_tuple = zipf_class.from_cdf()
     zipf_SAD = pred_tuple[0]
@@ -2133,10 +2118,9 @@ def plot_example_fig(figname = 'Fig1', data_dir= mydir):
 
     fig = plt.figure()
     plt.plot()
-    # try with mle zipf
-    #zipf_class = zipf(SAD, 'fmin')
-    #pred_tuple = zipf_class.from_cdf()
-    #pred = pred_tuple[0]
+
+    max_y = max(max(SAD),  max(zipf_SAD))
+
 
     plt.plot(x, SAD,color = 'r', linestyle = '-', linewidth=2, label="Emperical distribution")
     plt.plot(x, geom,color = 'b', linestyle = '-', linewidth=2, label="Broken-stick")
@@ -2151,7 +2135,7 @@ def plot_example_fig(figname = 'Fig1', data_dir= mydir):
     plt.legend(loc='upper right')
     plt.yscale('log')
     plt.xlim(1, len(SAD))
-    plt.ylim(1, max(zipf_SAD))
+    plt.ylim(1, max_y)
     #fig.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
     fig_name = str(mydir[:-6]) + '/figures/' + figname + '.png'
     plt.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
@@ -2160,19 +2144,20 @@ def plot_example_fig(figname = 'Fig1', data_dir= mydir):
 
 #datasets = ['EMPclosed', 'EMPopen', 'MGRAST', 'HMP', '97', '95', '99']
 #datasets = ['HMP','MGRAST']
-datasets = ['EMPclosed']
-#methods = ['zipf']
+datasets = ['EMPclosed', 'HMP','MGRAST']
+#datasets = ['MGRAST']
+#methods = ['geom']
 #methods = ['geom', 'lognorm', 'mete']
 methods = ['geom', 'lognorm', 'mete', 'zipf']
 #plot_subsampled_data(methods, datasets)
 
-#stratifyData(methods,datasets, 352899)
-#obs_pred_Nmax_plot(methods, datasets, stratify = True, zipfType = 'glm')
+obs_pred_Nmax_plot(methods, datasets, stratify = True, zipfType = 'mle')
 
-#plot_obs_pred_sad(methods, datasets, 352899, zipfType = 'mle')
-#stratifyData(methods,datasets, zipfType = 'mle', totalSADs = 500)
-#NSR2_regression(methods, datasets)
-obs_pred_Nmax_plot(methods, datasets, stratify = True)
+#stratifyData(methods,datasets, zipfType = 'mle', totalSADs = 500, remove = True)
+#plot_obs_pred_sad(methods, datasets, 352899, zipfType = 'mle', stratify = True)
+# 352899
+NSR2_regression(methods, datasets)
+#obs_pred_Nmax_plot(methods, datasets, stratify = True)
 #plot_example_fig()
 
 #generate_obs_pred_data(datasets, methods, zipfType = 'mle')
