@@ -116,8 +116,8 @@ def timeout_handler(signum, frame):   # Custom signal handler
 
 
 
-def sample_lines_mete_geom_test(datasets, SAD_number, iterations):
-    percents = [0.500000, 0.250000, 0.125000, 0.062500, 0.031250, 0.015625]
+def sample_lines_mete_geom_test(datasets, SAD_number, iterations, percents):
+    #percents = [0.500000, 0.250000, 0.125000, 0.062500, 0.031250, 0.015625]
     SAD_number = int(SAD_number)
     iterations = int(iterations)
     methods = ['geom', 'mete']
