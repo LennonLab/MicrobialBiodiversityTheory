@@ -1030,7 +1030,6 @@ def plot_obs_pred_sad(methods, datasets, n, figname = 'Fig2', data_dir=mydir, \
             if method == 'zipf':
                 obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/Stratified/'+ method + '_'+  zipfType+'_obs_pred_stratify.txt')
                 INh2 = import_NSR2_data(data_dir + 'NSR2/Stratified/' + method + '_mle' + '_NSR2_stratify.txt')
-                print ((INh2["R2"]))
             #if method == 'rgf':
             #    obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/Stratified/'+ 'zipf' + '_'+  method+'_obs_pred_stratify.txt')
             #    INh2 = import_NSR2_data(data_dir + 'NSR2/Stratified/' +'zipf' + '_'+  method + '_NSR2_stratify.txt')
@@ -1072,7 +1071,7 @@ def plot_obs_pred_sad(methods, datasets, n, figname = 'Fig2', data_dir=mydir, \
                 axis_max = 2 * max(obs)
             #print plot_dim
             ax = fig.add_subplot(plot_dim, plot_dim, count+1)
-            ax.set(adjustable='box-forced', aspect='equal')
+
             if method == 'geom':
                 ax.set_title(r"$\mathbf{Broken-stick}$")
             elif method == 'lognorm':
@@ -1080,40 +1079,56 @@ def plot_obs_pred_sad(methods, datasets, n, figname = 'Fig2', data_dir=mydir, \
             elif method == 'mete':
                 ax.set_title(r"$\mathbf{Log-series}$")
             elif method == 'zipf':
-                ax.set_title(r"$\mathbf{Zipf,\, MLE}$")
+                ax.set_title(r"$\mathbf{Zipf}$")
             elif method == 'rgf':
                 ax.set_title(r"$\mathbf{Zipf, \, RGF}$")
             print len(pred), len(obs)
             macroecotools.plot_color_by_pt_dens(pred, obs, radius, loglog=1,
                             plot_obj=plt.subplot(plot_dim,plot_dim,count+1))
+            #
+            #plt.text(0.1, 0.9,'matplotlib', ha='center', va='center', transform=ax.transAxes)
+
 
             plt.plot([axis_min, axis_max],[axis_min, axis_max], 'k-')
-            plt.xlim(0, axis_max)
-            plt.ylim(0, axis_max)
-
+            if method == 'zipf':
+                plt.xlim(0, max(pred))
+                plt.ylim(0, max(pred))
+            else:
+                plt.xlim(0, axis_max)
+                plt.ylim(0, axis_max)
+            r2s = ((INh2["R2"]))
+            r2s = r2s.astype(float)
+            # insert r2 of all data
+            r2_all = macroecotools.obs_pred_rsquare(np.log10(obs), np.log10(pred))
+            r2text = r"${}^{{2}}_{{m}} = {:.{p}f} $".format('r',r2_all , p=2)
+            if method == 'geom':
+                plt.text(0.20, 0.93, r2text,  fontsize=10,
+                    horizontalalignment='center',
+                    verticalalignment='center',transform = ax.transAxes)
+            else:
+                plt.text(0.18, 0.93, r2text,  fontsize=10,
+                    horizontalalignment='center',
+                    verticalalignment='center',transform = ax.transAxes)
             plt.tick_params(axis='both', which='major', labelsize=7)
             plt.subplots_adjust(wspace=0.5, hspace=0.3)
 
             axins = inset_axes(ax, width="30%", height="30%", loc=4)
-            #if str(dataset) == 'EMPclosed' or str(dataset) == 'EMPopen':
-            #if method == 'zipf':
 
-            r2s = ((INh2["R2"]))
-            r2s = r2s.astype(float)
             hist_r2 = np.histogram(r2s, range=(0, 1))
             xvals = hist_r2[1] + (hist_r2[1][1] - hist_r2[1][0])
             xvals = xvals[0:len(xvals)-1]
             yvals = hist_r2[0]
             plt.plot(xvals, yvals, 'k-', linewidth=2)
             plt.axis([0, 1, 0, 1.1 * max(yvals)])
+            ax.set(adjustable='box-forced', aspect='equal')
             #else:
             #    hist_mete_r2(site, np.log10(obs), np.log10(pred))
             plt.setp(axins, xticks=[], yticks=[])
 
 
             count += 1
-        fig.text(0.50, 0.04, 'Predicted rank-abundance', ha='center', va='center')
-        fig.text(0.05, 0.5, 'Observed rank-abundance', ha='center', va='center', rotation='vertical')
+        fig.text(0.50, 0.04, r'$Predicted \; rank-abundance$', ha='center', va='center')
+        fig.text(0.05, 0.5, r'$Observed \; rank-abundance$', ha='center', va='center', rotation='vertical')
         fig_name = str(mydir[:-6]) + '/figures/' + figname + '.png'
         plt.savefig(fig_name, dpi=600)#, bbox_inches = 'tight')#, pad_inches=0)
         plt.close()
@@ -1293,18 +1308,6 @@ def NSR2_regression(methods, datasets, figname = 'Fig4', \
         params = ['N','S']
         removeSADs = []
 
-        #get_bad_zipfs = import_NSR2_data(data_dir + 'NSR2/Stratified/'+ 'zipf' + '_'+ 'mle' + '_NSR2_stratify.txt')
-        #site = np.asarray(list(((get_bad_zipfs["N"]))))
-        #N = np.asarray(list(((get_bad_zipfs["N"]))))
-        #S = np.asarray(list(((get_bad_zipfs["S"]))))
-        #r2s = np.asarray(list(((get_bad_zipfs["R2"]))))
-        #zipNsite = zip(site, N, S, r2s)
-        #for x in zipNsite:
-        #    if x[3] < 0.1:
-        #        removeSADs.append(int(x[0]))
-        #print len(removeSADs)
-        #print removeSADs.sort()
-        #removeSADs = np.asarray(removeSADs)
         for i, param in enumerate(params):
             for j, method in enumerate(methods):
                 if method == 'zipf':
@@ -1317,13 +1320,7 @@ def NSR2_regression(methods, datasets, figname = 'Fig4', \
                 y = np.asarray(list(((obs_pred_data["R2"]))))
                 #if i == 0:
                 x = np.log10(np.asarray(list(((obs_pred_data[param])))))
-                #removeZip = zip(site, x1, y1)
-                #if method == 'zipf':
-                #    print site
-                #removeZipList = [k for k in removeZip if int(k[0]) not in removeSADs]
-                #print len(removeZipList)
-                #y = np.asarray([m[2] for m in removeZipList])
-                #x = np.asarray([n[1] for n in removeZipList])
+
                 print len(x),  len(y)
                 mean_x = np.mean(x)
                 mean_y = np.mean(y)
@@ -1374,7 +1371,7 @@ def NSR2_regression(methods, datasets, figname = 'Fig4', \
 
         fig.subplots_adjust(wspace = 0.2, hspace = 0.2, top=0.70)
         plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=0.5)
-        fig.text(0.001, 0.5, r'$r^{2}$', ha='center', va='center', size = 'large',rotation='vertical')
+        fig.text(0.001, 0.5, r'$r^{2}_{m}$', ha='center', va='center', size = 'large',rotation='vertical')
         fig_name = str(mydir[:-6]) + '/figures/' + figname  + '.png'
         plt.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
         #plt.xscale()
@@ -1824,25 +1821,34 @@ def obs_pred_Nmax_plot(methods,datasets, figname = 'Fig5', zipfType = 'mle', \
                 macroecotools.plot_color_by_pt_dens(N, y, radius, loglog=1,
                                 plot_obj=plt.subplot(3,len(methods),count+1))
                 slope, intercept, r_value, p_value, std_err = stats.linregress(np.log10(N),np.log10(y))
-                print "r-value is " + str(r_value)
-                print "p-value is " + str(p_value)
-                print "slope is " + str(slope)
+                print "r-squared: " + str(r_value ** 2)
+                print "p-value: " + str(p_value)
+                print "slope: " + str(slope)
                 #predict_y = intercept + slope * N
                 #pred_error = y - predict_y
                 #degrees_of_freedom = len(N) - 2
                 #residual_std_error = np.sqrt(np.sum(pred_error**2) / degrees_of_freedom)
                 #plt.plot(N, predict_y, 'k-')
+                predict_y = intercept + slope * N
+                pred_error = y - predict_y
+                degrees_of_freedom = len(N) - 2
+                residual_std_error = np.sqrt(np.sum(pred_error**2) / degrees_of_freedom)
+                print predict_y
                 if i == 0:
-                    plt.plot([0, x_axis_max],[0, x_axis_max], 'k-')
+                    plt.plot([0, x_axis_max],[0, x_axis_max], 'k-', color = 'darkgray', linestyle='dashed')
+                plt.plot(N, predict_y, 'k-')
                 if (i ==1  or i ==2) and j ==0:
                     plt.xlim(0, x_axis_max)
                     plt.ylim(0, 1)
+
                 elif i == 2 and (j == 2):
                     plt.xlim(0, x_axis_max)
                     plt.ylim(0, 1)
+                    #plt.plot(N, predict_y, 'k-')
                 else:
                     plt.xlim(0, x_axis_max)
                     plt.ylim(0, y_axis_max)
+                    #plt.plot(N, predict_y, 'k-')
 
 
                 plt.yscale('log')
@@ -1852,7 +1858,7 @@ def obs_pred_Nmax_plot(methods,datasets, figname = 'Fig5', zipfType = 'mle', \
 
         plt.tight_layout(pad=2, w_pad=2, h_pad=2)
         #fig.text(0.02, 0.5, r'$N_{max}$', ha='center', va='center', size = 'x-large', rotation='vertical')
-        fig.text(0.527, 0.05, r'$log_{10}(N)$', ha='center', va='center', size = 'large',rotation='horizontal')
+        fig.text(0.527, 0.04, r'$log_{10}(N)$', ha='center', va='center', size = 'large',rotation='horizontal')
         fig_name = str(mydir[:-6]) + '/figures/' + figname + '.png'
         plt.savefig(fig_name, dpi=600)#, bbox_inches = 'tight')#, pad_inches=0)
         plt.close()
@@ -2151,19 +2157,14 @@ datasets = ['EMPclosed', 'HMP','MGRAST']
 methods = ['geom', 'lognorm', 'mete', 'zipf']
 #plot_subsampled_data(methods, datasets)
 
-obs_pred_Nmax_plot(methods, datasets, stratify = True, zipfType = 'mle')
+#obs_pred_Nmax_plot(methods, datasets, stratify = True, zipfType = 'mle')
 
 #stratifyData(methods,datasets, zipfType = 'mle', totalSADs = 500, remove = True)
-#plot_obs_pred_sad(methods, datasets, 352899, zipfType = 'mle', stratify = True)
+plot_obs_pred_sad(methods, datasets, 352899, zipfType = 'mle', stratify = True)
+#NSR2_regression(methods, datasets)
+#plot_obs_pred_sad(methods, datasets, 20, figname = 'test', zipfType = 'mle', stratify = True)
+
 # 352899
-NSR2_regression(methods, datasets)
+#NSR2_regression(methods, datasets)
 #obs_pred_Nmax_plot(methods, datasets, stratify = True)
 #plot_example_fig()
-
-#generate_obs_pred_data(datasets, methods, zipfType = 'mle')
-
-#rad = [500, 400, 350, 320, 310, 300, 250, 240, 230, 220, 200, 180, 160, 140, 130, 120, 100, 80, 70, 60, 40, 20, 10, 9,9,9,9,9,9,9,9,9,9,9,9, 5, 5,5,5,5,5,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-
-#zipf_class = zipf(rad, 'fmin')
-#pred_tuple = zipf_class.zipf_rgf()
-#print pred_tuple
