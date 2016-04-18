@@ -2148,6 +2148,30 @@ def plot_example_fig(figname = 'Fig1', data_dir= mydir):
     #plt.xscale()
     plt.close()
 
+def plotNvNmaxLognormZipf(figname = 'LognormZipfScale', data_dir= mydir):
+    INh2Lognorm = import_NSR2_data(data_dir + 'NSR2/Stratified/lognorm_pln_NSR2_stratify.txt')
+    INh2Zipf = import_NSR2_data(data_dir + 'NSR2/Stratified/zipf_mle_NSR2_stratify.txt')
+    fig = plt.figure()
+    plt.plot()
+    LognormN = np.asarray(list(((INh2Lognorm["N"]))))
+    ZipfN = np.asarray(list(((INh2Zipf["N"]))))
+    LognormNmax = np.asarray(list(((INh2Lognorm["NmaxPred"]))))
+    ZipfNmax = np.asarray(list(((INh2Zipf["NmaxPred"]))))
+
+    plt.scatter(LognormN, LognormNmax,  c='blue', alpha=0.3, label="Lognorm")
+    plt.scatter(ZipfN, ZipfNmax,  c='green', alpha=0.3, label="Zipf")
+    plt.xlabel(r'$log_{10}(N)$', fontsize = 18)
+    plt.ylabel(r'$log_{10}(N_{max})$', fontsize = 18)
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.legend(loc='upper left')
+    fig_name = str(mydir[:-6]) + '/figures/' + figname + '.png'
+    plt.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
+    plt.close()
+
+
+
+
 #datasets = ['EMPclosed', 'EMPopen', 'MGRAST', 'HMP', '97', '95', '99']
 #datasets = ['HMP','MGRAST']
 datasets = ['EMPclosed', 'HMP','MGRAST']
@@ -2158,9 +2182,9 @@ methods = ['geom', 'lognorm', 'mete', 'zipf']
 #plot_subsampled_data(methods, datasets)
 
 #obs_pred_Nmax_plot(methods, datasets, stratify = True, zipfType = 'mle')
-
+plotNvNmaxLognormZipf()
 #stratifyData(methods,datasets, zipfType = 'mle', totalSADs = 500, remove = True)
-plot_obs_pred_sad(methods, datasets, 352899, zipfType = 'mle', stratify = True)
+#plot_obs_pred_sad(methods, datasets, 352899, zipfType = 'mle', stratify = True)
 #NSR2_regression(methods, datasets)
 #plot_obs_pred_sad(methods, datasets, 20, figname = 'test', zipfType = 'mle', stratify = True)
 
