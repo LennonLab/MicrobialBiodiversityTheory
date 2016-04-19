@@ -2148,24 +2148,51 @@ def plot_example_fig(figname = 'Fig1', data_dir= mydir):
     #plt.xscale()
     plt.close()
 
-def plotNvNmaxLognormZipf(figname = 'LognormZipfScale', data_dir= mydir):
+def plotNvNmaxLognormZipf(figname = 'NvNmax', data_dir= mydir):
     INh2Lognorm = import_NSR2_data(data_dir + 'NSR2/Stratified/lognorm_pln_NSR2_stratify.txt')
     INh2Zipf = import_NSR2_data(data_dir + 'NSR2/Stratified/zipf_mle_NSR2_stratify.txt')
+    INh2METE = import_NSR2_data(data_dir + 'NSR2/Stratified/mete_NSR2_stratify.txt')
     fig = plt.figure()
     plt.plot()
     LognormN = np.asarray(list(((INh2Lognorm["N"]))))
-    ZipfN = np.asarray(list(((INh2Zipf["N"]))))
     LognormNmax = np.asarray(list(((INh2Lognorm["NmaxPred"]))))
+    LognormS = np.asarray(list(((INh2Lognorm["S"]))))
+
+    ZipfN = np.asarray(list(((INh2Zipf["N"]))))
     ZipfNmax = np.asarray(list(((INh2Zipf["NmaxPred"]))))
+    ZipfS = np.asarray(list(((INh2Zipf["S"]))))
+
+    METEN = np.asarray(list(((INh2METE["N"]))))
+    METENmax = np.asarray(list(((INh2METE["NmaxPred"]))))
+    METES = np.asarray(list(((INh2METE["S"]))))
 
     plt.scatter(LognormN, LognormNmax,  c='blue', alpha=0.3, label="Lognorm")
     plt.scatter(ZipfN, ZipfNmax,  c='green', alpha=0.3, label="Zipf")
+    plt.scatter(METEN, METENmax,  c='red', alpha=0.3, label="METE")
+    plt.plot([0, 10000000],[0, 10000000], 'k-')
+
     plt.xlabel(r'$log_{10}(N)$', fontsize = 18)
     plt.ylabel(r'$log_{10}(N_{max})$', fontsize = 18)
     plt.xscale('log')
     plt.yscale('log')
     plt.legend(loc='upper left')
     fig_name = str(mydir[:-6]) + '/figures/' + figname + '.png'
+    plt.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
+    plt.close()
+
+    fig = plt.figure()
+    plt.plot()
+    plt.scatter(LognormS, LognormNmax,  c='blue', alpha=0.3, label="Lognorm")
+    plt.scatter(ZipfS, ZipfNmax,  c='green', alpha=0.3, label="Zipf")
+    plt.scatter(METES, METENmax,  c='red', alpha=0.3, label="METE")
+    plt.plot([0, 10000],[0, 10000], 'k-')
+
+    plt.xlabel(r'$log_{10}(S)$', fontsize = 18)
+    plt.ylabel(r'$log_{10}(N_{max})$', fontsize = 18)
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.legend(loc='upper left')
+    fig_name = str(mydir[:-6]) + '/figures/' + 'NvS' + '.png'
     plt.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
     plt.close()
 
