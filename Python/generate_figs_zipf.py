@@ -1824,6 +1824,7 @@ def obs_pred_Nmax_plot(methods,datasets, figname = 'Fig5', zipfType = 'mle', \
                 print "r-squared: " + str(r_value ** 2)
                 print "p-value: " + str(p_value)
                 print "slope: " + str(slope)
+                print "intercept: " + str(intercept)
                 #predict_y = intercept + slope * N
                 #pred_error = y - predict_y
                 #degrees_of_freedom = len(N) - 2
@@ -1833,7 +1834,6 @@ def obs_pred_Nmax_plot(methods,datasets, figname = 'Fig5', zipfType = 'mle', \
                 pred_error = y - predict_y
                 degrees_of_freedom = len(N) - 2
                 residual_std_error = np.sqrt(np.sum(pred_error**2) / degrees_of_freedom)
-                print predict_y
                 if i == 0:
                     plt.plot([0, x_axis_max],[0, x_axis_max], 'k-', color = 'darkgray', linestyle='dashed')
                 plt.plot(N, predict_y, 'k-')
@@ -2208,8 +2208,8 @@ datasets = ['EMPclosed', 'HMP','MGRAST']
 methods = ['geom', 'lognorm', 'mete', 'zipf']
 #plot_subsampled_data(methods, datasets)
 
-#obs_pred_Nmax_plot(methods, datasets, stratify = True, zipfType = 'mle')
-plotNvNmaxLognormZipf()
+obs_pred_Nmax_plot(methods, datasets, stratify = True, zipfType = 'mle')
+#plotNvNmaxLognormZipf()
 #stratifyData(methods,datasets, zipfType = 'mle', totalSADs = 500, remove = True)
 #plot_obs_pred_sad(methods, datasets, 352899, zipfType = 'mle', stratify = True)
 #NSR2_regression(methods, datasets)
