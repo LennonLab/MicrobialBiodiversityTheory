@@ -42,7 +42,7 @@ def s(a, Nmax, Nmin=1):
     return sqrt(pi)/a * exp( (a * log2(sqrt(Nmax/Nmin)))**2) # Using equation 10
 
 
-def getNmax(N, b=0.4, slope=0.9126):
+def getNmax(N, b=0.61482, slope=0.9126):
 
     """Predict Nmax using N and the scaling law of Nmax with N predicted by the lognormal"""
 
