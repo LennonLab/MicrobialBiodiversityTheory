@@ -51,7 +51,8 @@ class predictS:
 
         """Predict Nmax using N and the scaling law of Nmax with N predicted by the lognormal"""
 
-        return 10 ** (b + slope*(log10(self.N)))
+        NmaxCalc = 10 ** (b + slope*(log10(self.N)))
+        return int(round(NmaxCalc))
 
 
     def getS(self, predictNmax=True):
@@ -71,4 +72,4 @@ class predictS:
 
 
 #S = predictS(1000, 900, predictNmax=True).getS()
-#print int(S)
+#print S
