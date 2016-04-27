@@ -1,17 +1,17 @@
 from __future__ import division
 import numpy as np
-import random
+import random, signal, imp, sys, os
 from random import randrange
-import sys
-import os
 
-mydir = os.path.expanduser("~/")
-sys.path.append(mydir + "GitHub/DiversityTools/macroeco_distributions")
-sys.path.append(mydir + "GitHub/DiversityTools/macroecotools")
+mydir = os.path.expanduser("~/github/MicroMETE/")
+models = imp.load_source('models', mydir + 'Python/models.py')
 #import macroeco_distributions
 #import macroecotools
 
 from macroeco_distributions import pln, pln_solver
+
+import importData
+
 
 class simLogNorm:
     def __init__(self, N, S, sample_size):
@@ -88,7 +88,14 @@ class simLogNorm:
         fails = 0
 
         while len(sample) < self.sample_size:
-
+            if fails > self.sample_size:
+                if len(sample) < 50:
+                    print 'Too many attempts, too few successes: ', str(len(sample))
+                    return sample
+                    break
+                else:
+                    #print 'Too many attempts', str(len(sample))
+                    break
             n = int(round(0.75 * self.N))
             RAC = [n, self.N - n]
 
@@ -111,6 +118,7 @@ class simLogNorm:
                 sample.append(RAC)
 
         ad = self.AvgShape(sample)
+        print len(ad), self.S
         #print len(sample),'SADs'
 
         return ad
@@ -118,8 +126,10 @@ class simLogNorm:
 
     def SimLogNormFloat(self):
         '''This script codes the Lognormal Model'''
+        signal.signal(signal.SIGALRM, models.timeout_handler)
         sample = []
         while len(sample) < self.sample_size:
+
 
             n = 0.75 * self.N
             RAC = [n, self.N - n]
@@ -131,21 +141,21 @@ class simLogNorm:
                 v1 = 0.75 * v
                 v2 = v - v1   # forcing all abundance values to be integers
 
+
                 RAC.extend([v1, v2])
 
             if len(RAC) == self.S and int(round(sum(RAC))) == self.N:
                 RAC.sort()
                 RAC.reverse()
                 sample.append(RAC)
-
         ad = self.AvgShape(sample)
 
         return ad
 
 
-N = 1000
-S = 50
-sample_size = 1000
+#N = 1000
+#S = 50
+#sample_size = 1000
 
 #SAD = SimLogNormFloat(N, S, sample_size)
 #SAD = simLogNorm(N, S, sample_size).SimLogNormInt()

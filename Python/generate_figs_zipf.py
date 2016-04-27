@@ -1751,11 +1751,14 @@ def plot_color_by_pt_dens1(x, y, radius, loglog=0, plot_obj=None):
 
     if loglog == 1:
         plot_obj.set_xscale('log')
+        plot_obj.set_yscale('log')
+        minimum = min([min(x), min(y)   ] )
         #plot_obj.set_yscale('log')
         plot_obj.scatter(sorted_plot_data[:, 0], sorted_plot_data[:, 1],
                          c = np.sqrt(sorted_plot_data[:, 2]), edgecolors='none')
-        plot_obj.set_xlim(min(x) * 0.5, max(x) * 2)
-        plot_obj.set_ylim(min(y) * 0.5, max(y) * 2)
+        maximum = max([max(x), max(y)] )
+        plot_obj.set_xlim(0, maximum * 2)
+        plot_obj.set_ylim(0, maximum * 2)
     else:
         plot_obj.scatter(sorted_plot_data[:, 0], sorted_plot_data[:, 1],
                     c = log10(sorted_plot_data[:, 2]), edgecolors='none')
@@ -1969,7 +1972,6 @@ def stratifyData(methods,datasets, totalSADs = 500, zipfType = 'mle', lognormTyp
     HMP_sites = 4504
     EMPclosed_sites = 14979
     Total = MGRAST_sites + HMP_sites + EMPclosed_sites
-
     for i, method in enumerate(methods):
         if method == 'zipf':
             OUT1 = open(data_dir + 'ObsPred/Stratified/'+ method + '_' + zipfType +'_obs_pred_stratify.txt', 'w')
@@ -1980,7 +1982,10 @@ def stratifyData(methods,datasets, totalSADs = 500, zipfType = 'mle', lognormTyp
         else:
             OUT1 = open(data_dir + 'ObsPred/Stratified/'+ method +'_obs_pred_stratify.txt', 'w')
             OUT2 = open(data_dir + 'NSR2/Stratified/'+ method  +'_NSR2_stratify.txt', 'w')
+        count2 = 0
+        count1 = 0
         for j, dataset in enumerate(datasets):
+            lineCount = 0
             removeSADs = []
             get_bad_zipfs = import_NSR2_data(data_dir + 'NSR2/' + 'zipf' + '_'+ 'mle' +'_'+dataset +'_NSR2.txt')
             site = np.asarray(list(((get_bad_zipfs["site"]))))
@@ -2063,29 +2068,48 @@ def stratifyData(methods,datasets, totalSADs = 500, zipfType = 'mle', lognormTyp
 
             randomSites = np.random.choice(uniqueSites, size=n, replace=False)
 
-            count = 0
-            for p, q in enumerate(siteNSR2):
-                print p
-                if q in randomSites:
-                    print>> OUT2, q, N[p], S[p], NmaxObs[p], NmaxPred[p], \
-                        evennessObs[p], evennessPred[p], skewnessObs[p], skewnessPred[p], R2[p]
-                    count += 1
-            for r, s in enumerate(site):
-                if s in randomSites:
-                    obs2.append(obs[r])
-                    pred2.append(pred[r])
-                    site2.append(s)
-            print count
+            #for enumSite, randomSite in enumerate(randomSites):
+
+            print len(np.unique(site)),  len(siteNSR2)
+            for enumSite, randomSite in enumerate(randomSites):
+                for p, q in enumerate(siteNSR2):
+                    if q == randomSite:
+                        print>> OUT2, count1, N[p], S[p], NmaxObs[p], NmaxPred[p], \
+                            evennessObs[p], evennessPred[p], skewnessObs[p], skewnessPred[p], R2[p]
+                for r, s in enumerate(site):
+                    if s == randomSite:
+                        obs2.append(obs[r])
+                        pred2.append(pred[r])
+                        site2.append(s)
+                        print>> OUT1, count1, obs[r], pred[r]
+                count1 += 1
+                    #if (r == 0):
+                    #    print>> OUT1, count_sites, obs[r], pred[r]
+                    #elif r != 0 and obs[r] > obs[r-1]:
+                    #    count_sites += 1
+                    #    print>> OUT1, count_sites, obs[r], pred[r]
+                    #else:
+                    #    print>> OUT1, count_sites, obs[r], pred[r]
+
             print method, dataset
 
             obs = np.asarray(obs2)
             pred = np.asarray(pred2)
-
+            zippedSiteObsPred = zip(site2,obs2,pred2)
             #site = np.asarray(site2)
             k_minus1 = obs2[0]
-            count_sites = 0
-            for k, sp in enumerate(obs2):
-                print>> OUT1, site2[k], obs2[k], pred2[k]
+
+            #for k, zippedTuple in enumerate(zippedSiteObsPred):
+            #    if (k == 0):
+            #        print>> OUT1, count_sites, zippedTuple[1], zippedTuple[2]
+            #    elif k != 0 and obs2[k] > obs2[k-1]:
+            #        count_sites += 1
+            #        print>> OUT1, count_sites, zippedTuple[1], zippedTuple[2]
+            #    else:
+            #        print>> OUT1, count_sites, zippedTuple[1], zippedTuple[2]
+
+            #    count2 += 1
+
             #site =  np.asarray(site2)
         OUT1.close()
         OUT2.close()
@@ -2203,12 +2227,12 @@ def plotNvNmaxLognormZipf(figname = 'NvNmax', data_dir= mydir):
 #datasets = ['HMP','MGRAST']
 datasets = ['EMPclosed', 'HMP','MGRAST']
 #datasets = ['MGRAST']
-#methods = ['geom']
+methods = ['lognorm']
 #methods = ['geom', 'lognorm', 'mete']
-methods = ['geom', 'lognorm', 'mete', 'zipf']
+#methods = ['geom', 'lognorm', 'mete', 'zipf']
 #plot_subsampled_data(methods, datasets)
 
-obs_pred_Nmax_plot(methods, datasets, stratify = True, zipfType = 'mle')
+#obs_pred_Nmax_plot(methods, datasets, stratify = True, zipfType = 'mle')
 #plotNvNmaxLognormZipf()
 #stratifyData(methods,datasets, zipfType = 'mle', totalSADs = 500, remove = True)
 #plot_obs_pred_sad(methods, datasets, 352899, zipfType = 'mle', stratify = True)

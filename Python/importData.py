@@ -1,7 +1,10 @@
 import numpy as np
 
 def import_obs_pred_data(input_filename):   # TAKEN FROM THE mete_sads.py script used for White et al. (2012)
-    data = np.genfromtxt(input_filename, dtype = "f8,f8,f8", names = ['site','obs','pred'], delimiter = " ")
+    if '75' in input_filename:
+        data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8", names = ['site','obs', 'predPln', 'pred7525'], delimiter = " ")
+    else:
+        data = np.genfromtxt(input_filename, dtype = "f8,f8,f8", names = ['site','obs','pred'], delimiter = " ")
     #test = data[0:10000]
     #return test
     return data
