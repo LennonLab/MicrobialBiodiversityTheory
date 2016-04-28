@@ -9,7 +9,7 @@ output: pdf_document
 |                          | $$\mathrm{Evenness}$$  |     $$-0.0112$$    |     $$0.289$$           |  $$1.40 \times10^{-93}$$  | 
 |                          | $$\mathrm{Skewness}$$  |     $$0.0160$$    |     $$0.235$$           | $$6.39 \times10^{-74}$$    |
 |  $$\mathrm{Log-series}$$ | $$\mathrm{N_{max}}$$ |   $$0.769$$    |      $$0.713$$            |  $$0.0$$    |
-|                          | $$\mathrm{Evenness}$$  |   $-0.119$$    |      $$0.645$$            | $$2.49 \times10^{-280}$$    |
+|                          | $$\mathrm{Evenness}$$  |   $$-0.119$$    |      $$0.645$$            | $$2.49 \times10^{-280}$$    |
 |                          | $$\mathrm{Skewness}$$  |  $$0.0434$$    |      $$0.796$$            | $$0.0$$    |
 |   $$\mathrm{Lognormal}$$ | $$\mathrm{N_{max}}$$ |    $$0.943$$   |     $$0.562$$           |  $$2.51 \times10^{-223}$$    |
 |                          | $$\mathrm{Evenness}$$  |    $$-0.486$$   |     $$0.523$$           |  $$1.08 \times10^{-200}$$    |
