@@ -1320,6 +1320,7 @@ def NSR2_regression(methods, datasets, figname = 'Fig4', \
                 y = np.asarray(list(((obs_pred_data["R2"]))))
                 #if i == 0:
                 x = np.log10(np.asarray(list(((obs_pred_data[param])))))
+                print "nmax" + str(np.mean(np.asarray(list(((obs_pred_data["NmaxObs"]))))))
 
                 print len(x),  len(y)
                 mean_x = np.mean(x)
@@ -1328,7 +1329,7 @@ def NSR2_regression(methods, datasets, figname = 'Fig4', \
                 print method, param
                 print "mean modified r2 = " + str(mean_y)
                 print "modified r2 standard error = " + str(std_error)
-                print "mean " + param  + " is " + str(mean_x)
+                print "mean " + param  + " is " + str(np.mean(np.asarray(list(((obs_pred_data[param]))))))
                 ax = fig.add_subplot(len(params), len(methods), count+1)
                 print len(x), len(y)
                 macroecotools.plot_color_by_pt_dens(x, y, 0.1, loglog=0,
@@ -1688,6 +1689,8 @@ def plot_subsampled_data(methods, datasets, data_dir= mydir):
                     plt.scatter(x, y, alpha=0.05)
                     slope, intercept, r_value, p_value, std_err = \
                         stats.linregress(x,y)
+
+                    print "slope is " + str(slope)
                     print "r-value is " + str(r_value)
                     print "p-value is " + str(p_value)
                     plt.xlim(np.amin(x), np.amax(x))
@@ -1824,6 +1827,7 @@ def obs_pred_Nmax_plot(methods,datasets, figname = 'Fig5', zipfType = 'mle', \
                 macroecotools.plot_color_by_pt_dens(N, y, radius, loglog=1,
                                 plot_obj=plt.subplot(3,len(methods),count+1))
                 slope, intercept, r_value, p_value, std_err = stats.linregress(np.log10(N),np.log10(y))
+                print param + ' mean = ' + str(np.mean(y))
                 print "r-squared: " + str(r_value ** 2)
                 print "p-value: " + str(p_value)
                 print "slope: " + str(slope)
@@ -1839,7 +1843,7 @@ def obs_pred_Nmax_plot(methods,datasets, figname = 'Fig5', zipfType = 'mle', \
                 residual_std_error = np.sqrt(np.sum(pred_error**2) / degrees_of_freedom)
                 if i == 0:
                     plt.plot([0, x_axis_max],[0, x_axis_max], 'k-', color = 'darkgray', linestyle='dashed')
-                plt.plot(N, predict_y, 'k-')
+                    plt.plot(N, predict_y, 'k-')
                 if (i ==1  or i ==2) and j ==0:
                     plt.xlim(0, x_axis_max)
                     plt.ylim(0, 1)
@@ -2227,12 +2231,12 @@ def plotNvNmaxLognormZipf(figname = 'NvNmax', data_dir= mydir):
 #datasets = ['HMP','MGRAST']
 datasets = ['EMPclosed', 'HMP','MGRAST']
 #datasets = ['MGRAST']
-methods = ['lognorm']
-#methods = ['geom', 'lognorm', 'mete']
-#methods = ['geom', 'lognorm', 'mete', 'zipf']
+#methods = ['lognorm']
+#methods = ['geom', 'zipf', 'mete']
+methods = ['geom', 'lognorm', 'mete', 'zipf']
 #plot_subsampled_data(methods, datasets)
 
-#obs_pred_Nmax_plot(methods, datasets, stratify = True, zipfType = 'mle')
+obs_pred_Nmax_plot(methods, datasets, stratify = True, zipfType = 'mle')
 #plotNvNmaxLognormZipf()
 #stratifyData(methods,datasets, zipfType = 'mle', totalSADs = 500, remove = True)
 #plot_obs_pred_sad(methods, datasets, 352899, zipfType = 'mle', stratify = True)

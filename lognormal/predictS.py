@@ -47,17 +47,18 @@ class predictS:
         return sqrt(pi)/a * exp( (a * log2(sqrt(Nmax/Nmin)))**2) # Using equation 10
 
 
-    def getNmax(self, b=0.4, slope=0.9126):
+    def getNmax(self, b=0.6148, slope=0.942904468437):
 
         """Predict Nmax using N and the scaling law of Nmax with N predicted by the lognormal"""
 
-        NmaxCalc = 10 ** (b + slope*(log10(self.N)))
+        #NmaxCalc = 10 ** (b + slope*(log10(self.N)))
+        NmaxCalc = (self.N **  slope) * b
         return int(round(NmaxCalc))
 
 
     def getS(self, predictNmax=True):
 
-        guess = 0.2 # initial guess for Preston's alpha
+        guess = 0.1 # initial guess for Pre ston's alpha
         Nmin = 1
 
         if self.predictNmax == True:
