@@ -1,8 +1,9 @@
 ---
 output: pdf_document
-fontsize: 2pt 
-geometry: margin=0.01in
+fontsize: 6pt 
+geometry: margin=0.5in
 ---
+
 
 | $$\mathbf{Dataset}$$      | $$\mathbf{Variable}$$| $$\mathbf{Model}$$|  $$\boldsymbol{r}$$|$$\boldsymbol{p-value}$$ |
 |:------------:|:-----:|:--------:|:-----:|:-------:|
@@ -15,7 +16,7 @@ geometry: margin=0.01in
 |   |                          $$\mathrm{N_{0}/S_{0}}$$   |  $$\mathrm{BS}$$  | $$-0.626$$ |   $$0.0$$   |
 |   |                                                     |$$\mathrm{METE}$$ |$$-0.453$$ |   $$1.87\times10^{-226}$$      |
 |   |                                                     |$$\mathrm{Zipf}$$ | $$0.125$$ |  $$1.03\times10^{-09}$$ |
-|$$\mathrm{EMP\; Closed}$$ |        $$\mathrm{N_{0}}$$    |$$\mathrm{BS}$$  |$$-0.354$$ |  $$0.0$$   |
+|$$\mathrm{EMP}$$ |        $$\mathrm{N_{0}}$$    |$$\mathrm{BS}$$  |$$-0.354$$ |  $$0.0$$   |
 |   |                                                     |$$\mathrm{METE}$$ |  $$-0.0824$$| $$2.02\times10^{-23}$$ |
 |   |                                                     |$$\mathrm{Zipf}$$ |$$0.262$$| $$2.57\times^{-40}$$ |
 |   |                                  $$\mathrm{S_{0}}$$ |  $$\mathrm{BS}$$  | $$0.264$$ |  $$4.89\times10^{-231}$$       |
@@ -24,14 +25,6 @@ geometry: margin=0.01in
 |   |                          $$\mathrm{N_{0}/S_{0}}$$   |$$\mathrm{BS}$$  | $$-0.695$$ |   $$0.0$$   |
 |   |                                                     |$$\mathrm{METE}$$ |$$-0.377$$ |   $$0.0$$   |
 |   |                                                     |$$\mathrm{Zipf}$$ |$$0.334$$ |   $$1.18\times^{-65}$$ |
-|   $$\mathrm{EMP\; Open}$$  |     $$\mathrm{N_{0}}$$     | $$\mathrm{BS}$$   |$$-0.349$$ |   $$0.0$$   |
-|   |                                                     |$$\mathrm{METE}$$ | $$-0.205$$ |   $$6.28\times10^{-140}$$      |
-|   |                                                     |$$\mathrm{Zipf}$$ |$$0.294$$| $$7.66\times^{-113}$$ |
-|   |                              $$\mathrm{S_{0}}$$     |  $$\mathrm{BS}$$   | $$0.0731$$| $$5.00\times10^{-19}$$         |
-|   |                                                     | $$\mathrm{METE}$$ | $$0.103$$ | $$1.57\times10^{-36}$$     |
-|   |                                                     | $$\mathrm{Zipf}$$ | $$0.126$$ |   $$1.79\times10^{-21}$$|
-|   |                          $$\mathrm{N_{0}/S_{0}}$$   | $$\mathrm{BS}$$   |$$-0.763$$ | $$0.0$$      |
-|   |                                                     | $$\mathrm{METE}$$ |$$-0.544$$ | $$0.0$$      |
 |   $$\mathrm{MG-RAST}$$       |    $$\mathrm{N_{0}}$$    |  $$\mathrm{BS}$$   |   $$-0.830$$ | $$2.18\times10^{-295}$$ |
 |   |                                                     |  $$\mathrm{METE}$$ | $$-0.237$$ | $$3.64\times10^{-16}$$ |
 |   |                                                     |  $$\mathrm{Zipf}$$ |  $$0.405$$| $$3.41\times10^{-10}$$ |
@@ -41,32 +34,5 @@ geometry: margin=0.01in
 |   |                          $$\mathrm{N_{0}/S_{0}}$$   | $$\mathrm{BS}$$    |  $$-0.796$$ | $$2.37\times10^{-253}$$ |
 |   |                                                     | $$\mathrm{METE}$$  |$$-0.187$$ | $$1.35\times10^{-10}$$ |
 |   |                                                     | $$\mathrm{Zipf}$$  | $$0.0644$$ |  $$0.339$$ |
-|   |                                                     | $$\mathrm{Zipf}$$ |$$0.403$$ |  $$1.83\times10^{-219}$$ |
-|   $$\mathrm{MG-RAST\; 95}$$% |    $$\mathrm{N_{0}}$$    | $$\mathrm{BS}$$   |   $$-0.788$$ | $$7.12\times10^{-84}$$ |
-|   |                                                     |  $$\mathrm{METE}$$ |   $$-0.365$$ | $$1.015\times10^{-13}$$ |
-|   |                                                     |$$\mathrm{Zipf}$$ | $$0.250$$| $$0.00294$$ |
-|   |                               $$\mathrm{S_{0}}$$    | $$\mathrm{BS}$$   | $$-0.428$$ | $$9.37\times10^{-19}$$ |
-|   |                                                     | $$\mathrm{METE}$$ |$$-0.248$$ | $$7.64\times10^{-07}$$ |
-|   |                                                     | $$\mathrm{Zipf}$$ | $$0.264$$ | $$0.00162$$|
-|   |                           $$\mathrm{N_{0}/S_{0}}$$  | $$\mathrm{BS}$$   |  $$-0.632$$ | $$8.49\times10^{-45}$$ | 
-|   |                                                     | $$\mathrm{METE}$$ |$$-0.253$$ | $$4.32\times10^{-07}$$ | 
-|   |                                                     | $$\mathrm{Zipf}$$ | $$0.0374$$ |  $$0.661$$ |
-|   $$\mathrm{MG-RAST\; 97}$$% |    $$\mathrm{N_{0}}$$    |  $$\mathrm{BS}$$   |   $$-0.803$$ | $$4.17\times10^{-87}$$ |
-|   |                                                     |  $$\mathrm{METE}$$ | $$-0.361$$ | $$3.49\times10^{-13}$$ |
-|   |                                                     |  $$\mathrm{Zipf}$$ |  $$0.356$$| $$1.34\times10^{-05}$$ |
-|   |                          $$\mathrm{S_{0}}$$         |  $$\mathrm{BS}$$   |$$-0.447$$ | $$4.216\times10^{-20}$$ |
-|   |                                                     | $$\mathrm{METE}$$  |  $$-0.259$$ | $$2.87\times10^{-07}$$ |
-|   |                                                     | $$\mathrm{Zipf}$$  | $$0.512$$ |  $$7.10\times10^{-11}$$  |
-|   |                          $$\mathrm{N_{0}/S_{0}}$$   | $$\mathrm{BS}$$    |  $$-0.639$$ | $$4.33\times10^{-45}$$ |
-|   |                                                     | $$\mathrm{METE}$$  |$$-0.242$$ | $$1.79\times10^{-06}$$ |
-|   |                                                     | $$\mathrm{Zipf}$$  | $$-0.135$$ |  $$0.109$$ |
-|   $$\mathrm{MG-RAST\; 99}$$% |    $$\mathrm{N_{0}}$$    | $$\mathrm{BS}$$    |   $$-0.792$$ | $$2.46\times10^{-82}$$ |
-|   |                                                     | $$\mathrm{METE}$$  | $$-0.353$$ | $$1.65\times10^{-12}$$ |
-|   |                                                     | $$\mathrm{Zipf}$$  |  $$0.226$$| $$0.00758$$ |
-|   |                            $$\mathrm{S_{0}}$$       |  $$\mathrm{BS}$$   | $$-0.408$$ | $$1.55\times10^{-82}$$ |
-|   |                                                     |  $$\mathrm{METE}$$ |  $$-0.246$$ | $$1.36\times10^{-06}$$ |
-|   |                                                     | $$\mathrm{Zipf}$$  | $$0.169$$ |  $$0.0471$$ |
-|   |                          $$\mathrm{N_{0}/S_{0}}$$   | $$\mathrm{BS}$$    |  $$-0.667$$ | $$7.85\times10^{-50}$$ |
-|   |                                                     | $$\mathrm{METE}$$  |   $$-0.248$$ | $$1.14\times10^{-06}$$ |
-|   |                                                     |$$\mathrm{Zipf}$$   |   $$0.140$$ |  $$0.0993$$ |
+
 
