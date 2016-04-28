@@ -1065,7 +1065,7 @@ def plot_obs_pred_sad(methods, datasets, n, figname = 'Fig2', data_dir=mydir, \
 
             if method == 'zipf':
                 axis_min = 0
-                axis_max = 10  * max(pred)
+                axis_max = 2  * max(pred)
             else:
                 axis_min = 0
                 axis_max = 2 * max(obs)
@@ -1091,8 +1091,8 @@ def plot_obs_pred_sad(methods, datasets, n, figname = 'Fig2', data_dir=mydir, \
 
             plt.plot([axis_min, axis_max],[axis_min, axis_max], 'k-')
             if method == 'zipf':
-                plt.xlim(0, max(pred))
-                plt.ylim(0, max(pred))
+                plt.xlim(0, axis_max)
+                plt.ylim(0, axis_max)
             else:
                 plt.xlim(0, axis_max)
                 plt.ylim(0, axis_max)
@@ -1102,11 +1102,11 @@ def plot_obs_pred_sad(methods, datasets, n, figname = 'Fig2', data_dir=mydir, \
             r2_all = macroecotools.obs_pred_rsquare(np.log10(obs), np.log10(pred))
             r2text = r"${}^{{2}}_{{m}} = {:.{p}f} $".format('r',r2_all , p=2)
             if method == 'geom':
-                plt.text(0.20, 0.93, r2text,  fontsize=10,
+                plt.text(0.25, 0.90, r2text,  fontsize=14,
                     horizontalalignment='center',
                     verticalalignment='center',transform = ax.transAxes)
             else:
-                plt.text(0.18, 0.93, r2text,  fontsize=10,
+                plt.text(0.21, 0.90, r2text,  fontsize=14,
                     horizontalalignment='center',
                     verticalalignment='center',transform = ax.transAxes)
             plt.tick_params(axis='both', which='major', labelsize=7)
@@ -1300,14 +1300,13 @@ def plot_obs_pred_sad(methods, datasets, n, figname = 'Fig2', data_dir=mydir, \
 
 
 # Make a function to generate the histogram.
-def NSR2_regression(methods, datasets, figname = 'Fig4', \
+def NSR2_regression(methods, datasets, figname = 'Fig3', \
     zipfType = 'mle', lognormType = 'pln', Stratified = True,data_dir= mydir):
     fig = plt.figure()
     count  = 0
     if Stratified == True:
-        params = ['N','S']
+        params = ['N']
         removeSADs = []
-
         for i, param in enumerate(params):
             for j, method in enumerate(methods):
                 if method == 'zipf':
@@ -1330,10 +1329,10 @@ def NSR2_regression(methods, datasets, figname = 'Fig4', \
                 print "mean modified r2 = " + str(mean_y)
                 print "modified r2 standard error = " + str(std_error)
                 print "mean " + param  + " is " + str(np.mean(np.asarray(list(((obs_pred_data[param]))))))
-                ax = fig.add_subplot(len(params), len(methods), count+1)
+                ax = fig.add_subplot(2, 2, count+1)
                 print len(x), len(y)
                 macroecotools.plot_color_by_pt_dens(x, y, 0.1, loglog=0,
-                                plot_obj=plt.subplot(len(params), len(methods), count+1))
+                                plot_obj=plt.subplot(2, 2, count+1))
                 slope, intercept, r_value, p_value, std_err = stats.linregress(x,y)
                 print "r-value is " + str(r_value)
                 print "p-value is " + str(p_value)
@@ -1352,10 +1351,10 @@ def NSR2_regression(methods, datasets, figname = 'Fig4', \
                 plt.axhline(linewidth=2, color='darkgrey',ls='--')
 
                 #plt.hline(0, xmin, xmax, color="0.3", ls='--')
-                if i == 0:
-                    plt.xlabel(r'$log_{10}(N)$', fontsize = 'large')
-                if i == 1:
-                    plt.xlabel(r'$log_{10}(S)$', fontsize = 'large')
+                #if i == 0:
+                #    plt.xlabel(r'$log_{10}(N)$', fontsize = 'large')
+                #if i == 1:
+                #    plt.xlabel(r'$log_{10}(S)$', fontsize = 'large')
                 plt.subplots_adjust(wspace=0.2, hspace=0.3)
                 if i == 0 and j == 0:
                     ax.set_title(r"$\mathbf{Broken-stick}$")
@@ -1372,7 +1371,9 @@ def NSR2_regression(methods, datasets, figname = 'Fig4', \
 
         fig.subplots_adjust(wspace = 0.2, hspace = 0.2, top=0.70)
         plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=0.5)
-        fig.text(0.001, 0.5, r'$r^{2}_{m}$', ha='center', va='center', size = 'large',rotation='vertical')
+        fig.text(0.50, 0.00001, r'$log_{10}(N)$', ha='center', va='center', size = 'x-large')
+        #fig.text(0.001, 0.5, r'$r^{2}_{m}$', ha='center', va='center', size = 'large',rotation='vertical')
+        fig.text(0.0001, 0.5, r'$r^{2}_{m}$', ha='center', va='center', size = 'x-large',rotation='vertical')
         fig_name = str(mydir[:-6]) + '/figures/' + figname  + '.png'
         plt.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
         #plt.xscale()
@@ -2156,7 +2157,7 @@ def plot_example_fig(figname = 'Fig1', data_dir= mydir):
     max_y = max(max(SAD),  max(zipf_SAD))
 
 
-    plt.plot(x, SAD,color = 'r', linestyle = '-', linewidth=2, label="Emperical distribution")
+    plt.plot(x, SAD,color = 'r', linestyle = '-', linewidth=2, label="Observed")
     plt.plot(x, geom,color = 'b', linestyle = '-', linewidth=2, label="Broken-stick")
     plt.plot(x, lognorm_SAD, color = 'b',linestyle = '--', linewidth=2, label="Lognormal")
     plt.plot(x, logSeries, color = 'b',linestyle = '-.', linewidth=2, label="Log-series")
@@ -2236,12 +2237,12 @@ datasets = ['EMPclosed', 'HMP','MGRAST']
 methods = ['geom', 'lognorm', 'mete', 'zipf']
 #plot_subsampled_data(methods, datasets)
 
-obs_pred_Nmax_plot(methods, datasets, stratify = True, zipfType = 'mle')
+#obs_pred_Nmax_plot(methods, datasets, stratify = True, zipfType = 'mle')
 #plotNvNmaxLognormZipf()
 #stratifyData(methods,datasets, zipfType = 'mle', totalSADs = 500, remove = True)
 #plot_obs_pred_sad(methods, datasets, 352899, zipfType = 'mle', stratify = True)
+#352899
 #NSR2_regression(methods, datasets)
-#plot_obs_pred_sad(methods, datasets, 20, figname = 'test', zipfType = 'mle', stratify = True)
 
 # 352899
 #NSR2_regression(methods, datasets)
