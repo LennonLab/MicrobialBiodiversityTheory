@@ -294,7 +294,7 @@ def fig2(n, figname = 'Fig2', data_dir=mydir, \
 
         count += 1
     #fig.tight_layout()
-    #plt.subplots_adjust(bottom=0.1, right=0.9, top=0.9)
+
     #plt.tight_layout(pad=0.4, w_pad=0.8, h_pad=0.5)
     plt.tight_layout(pad=1.5, w_pad=0.8, h_pad=0.8)
     #plt.subplots_adjust(wspace=0.2, hspace=0.1)
