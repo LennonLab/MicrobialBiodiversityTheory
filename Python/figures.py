@@ -217,6 +217,11 @@ def fig2(n, figname = 'Fig2', data_dir=mydir, \
         obs2 = []
         pred2 = []
         site2 = []
+
+        obs_all = np.asarray(obs)
+        pred_all = np.asarray(pred)
+        site_all = np.asarray(site)
+
         if n == 'all' or len(obs) <= n:
             obs2 = list(obs)
             pred2 = list(pred)
@@ -265,7 +270,7 @@ def fig2(n, figname = 'Fig2', data_dir=mydir, \
         r2s = ((INh2["R2"]))
         r2s = r2s.astype(float)
         # insert r2 of all data
-        r2_all = macroecotools.obs_pred_rsquare(np.log10(obs), np.log10(pred))
+        r2_all = macroecotools.obs_pred_rsquare(np.log10(obs_all), np.log10(pred_all))
         #r2text = r"${}^{{2}}_{{m}} = {:.{p}f} $".format('r',r2_all , p=2)
         r2text = r"${:.{p}f} $".format(r2_all , p=2)
         if method == 'geom':
@@ -446,7 +451,145 @@ def fig4(figname = 'Fig4', data_dir=mydir, radius=2):
     fig_name = str(mydir + 'figures/' + figname + '.png')
     plt.savefig(fig_name, dpi=600)#, bbox_inches = 'tight')#, pad_inches=0)
     plt.close()
+
+def figS1(n, figname = 'FigS1', data_dir=mydir, radius=2, zipfType = 'mle', lognormType = 'pln'):
+    methods = ['geom', 'lognorm', 'mete', 'zipf']
+    datasets = ['95', '97', '99']
+    fig = plt.figure()
+    count = 0
+    rows = len(datasets)
+    columns = len(methods)
+    for i, dataset in enumerate(datasets):
+        for j, method in enumerate(methods):
+            print count
+            if method == 'zipf':
+                obs_pred_data = importData.import_obs_pred_data(data_dir + 'data/ObsPred/Stratified/'+ method + '_'+  zipfType+'_obs_pred_stratify.txt')
+                INh2 = importData.import_NSR2_data(data_dir + 'data/NSR2/Stratified/' + method + '_mle' + '_NSR2_stratify.txt')
+            elif method == 'lognorm':
+                obs_pred_data = importData.import_obs_pred_data(data_dir + 'data/ObsPred/Stratified/'+ method + '_'+  lognormType+'_obs_pred_stratify.txt')
+                INh2 = importData.import_NSR2_data(data_dir + 'data/NSR2/Stratified/' + method + '_'+  lognormType + '_NSR2_stratify.txt')
+            else:
+                obs_pred_data = importData.import_obs_pred_data(data_dir + 'data/ObsPred/Stratified/'+ method +'_obs_pred_stratify.txt')
+                INh2 = importData.import_NSR2_data(data_dir + 'data/NSR2/Stratified/' + method + '_NSR2_stratify.txt')
+            obs = np.asarray(list(((obs_pred_data["obs"]))))
+            pred = np.asarray(list(((obs_pred_data["pred"]))))
+            site = np.asarray(list(((obs_pred_data["site"]))))
+
+
+            obs2 = []
+            pred2 = []
+            site2 = []
+
+            obs_all = np.asarray(obs)
+            pred_all = np.asarray(pred)
+            site_all = np.asarray(site)
+
+            if n == 'all' or len(obs) <= n:
+                obs2 = list(obs)
+                pred2 = list(pred)
+                site2 = list(site)
+
+            else:
+                if len(obs) > n:
+                    inds = np.random.choice(range(len(site)), size=n, replace=False)
+                    for ind in inds:
+                        obs2.append(obs[ind])
+                        pred2.append(pred[ind])
+                        site2.append(site[ind])
+
+            obs = np.asarray(obs2)
+            pred = np.asarray(pred2)
+            site =  np.asarray(site2)
+
+            print "number of points " + str(len(obs))
+            if method == 'zipf':
+                axis_min = 0
+                axis_max = 2  * max(pred)
+            else:
+                axis_min = 0
+                axis_max = 2 * max(obs)
+            ax = fig.add_subplot(rows, columns, count+1)
+
+            #if method == 'geom':
+            #    ax.set_title("Broken-stick")
+            #elif method == 'lognorm':
+            #    ax.set_title("Lognormal")
+            #elif method == 'mete':
+            #    ax.set_title("Log-series")
+            #elif method == 'zipf':
+            #    ax.set_title("Zipf")
+            if i == 0 and j == 0:
+                ax.set_title("Broken-stick")
+            elif i == 0 and j == 1:
+                ax.set_title("Lognormal")
+            elif i == 0 and j == 2:
+                ax.set_title("Log-series")
+            elif i == 0 and j == 3:
+                ax.set_title("Zipf")
+
+            if j == 0:
+                if dataset == '95':
+                    ax.set_ylabel("MG-RAST 95%", rotation=90, size=12)
+                elif dataset == '97':
+                    ax.set_ylabel("MG-RAST 97%", rotation=90, size=12)
+                elif dataset == '99':
+                    ax.set_ylabel("MG-RAST 99%", rotation=90, size=12)
+
+            macroecotools.plot_color_by_pt_dens(pred, obs, radius, loglog=1,
+                            plot_obj=plt.subplot(rows,columns,count+1))
+
+            plt.plot([axis_min, axis_max],[axis_min, axis_max], 'k-')
+            if method == 'zipf':
+                plt.xlim(0, axis_max)
+                plt.ylim(0, axis_max)
+            else:
+                plt.xlim(0, axis_max)
+                plt.ylim(0, axis_max)
+            r2s = ((INh2["R2"]))
+            r2s = r2s.astype(float)
+            # insert r2 of all data
+            r2_all = macroecotools.obs_pred_rsquare(np.log10(obs_all), np.log10(pred_all))
+            r2text = r"${:.{p}f} $".format(r2_all , p=2)
+            if method == 'geom':
+                plt.text(0.18, 0.90, r2text,  fontsize=12,
+                    horizontalalignment='center',
+                    verticalalignment='center',transform = ax.transAxes)
+            else:
+                plt.text(0.15, 0.90, r2text,  fontsize=12,
+                    horizontalalignment='center',
+                    verticalalignment='center',transform = ax.transAxes)
+            plt.tick_params(axis='both', which='major', labelsize=8)
+            plt.subplots_adjust(wspace=0.0000000001, hspace=0.5)
+
+            axins = inset_axes(ax, width="30%", height="30%", loc=4)
+
+            hist_r2 = np.histogram(r2s, range=(0, 1))
+            xvals = hist_r2[1] + (hist_r2[1][1] - hist_r2[1][0])
+            xvals = xvals[0:len(xvals)-1]
+            yvals = hist_r2[0]
+            plt.plot(xvals, yvals, 'k-', linewidth=2)
+            plt.axis([0, 1, 0, 1.1 * max(yvals)])
+
+            ax.set(adjustable='box-forced', aspect='equal')
+            plt.setp(axins, xticks=[], yticks=[])
+
+            count += 1
+
+    #plt.tight_layout(pad=0.4, w_pad=0.8, h_pad=0.5)
+    plt.tight_layout(pad=1.5, w_pad=0.8, h_pad=0.8)
+    fig.subplots_adjust(left=0.1)
+    #plt.subplots_adjust(wspace=0.2, hspace=0.1)
+    fig.text(0.50, 0.02, 'Predicted rank-abundance', ha='center', va='center', fontsize=14)
+    fig.text(0.03, 0.5, 'Observed rank-abundance', ha='center', va='center', rotation='vertical', fontsize=14)
+    fig_name = str(mydir + 'figures/' + figname + '.png')
+    plt.savefig(fig_name, dpi=600)#, bbox_inches = 'tight')#, pad_inches=0)
+    plt.close()
+
+
+
+
 #352899
-fig2(352899, figname = 'Fig2', data_dir=mydir, \
-    stratify = True, radius=2, remove = 0, zipfType = 'mle', RGF = False, lognormType = 'pln')
+#fig2(352899, figname = 'Fig2', data_dir=mydir, \
+#    stratify = True, radius=2, remove = 0, zipfType = 'mle', RGF = False, lognormType = 'pln')
 #fig3()
+figS1(n=352899)
