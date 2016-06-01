@@ -6,6 +6,7 @@ from operator import itemgetter
 import models as mo
 import metrics as me
 import macroecotools
+import mete as mete
 
 mydir = os.path.expanduser("~/github/MicroMETE/")
 importS = imp.load_source('predictS', mydir + 'lognormal/predictS.py')
@@ -14,15 +15,8 @@ simLogNormFile = imp.load_source('sim_lognormal', mydir + 'lognormal/sim_lognorm
 '''It works!'''
 #S = importS.predictS(1000, 900, predictNmax=True).getS()
 
-def generate_obs_pred_data(datasets, methods, size = 0, remove = 0, zipfType = 'mle', lognormType = 'pln'):
-    remove = int(remove)
-    #if remove != 0:
-    #    newpath1 = mydir + "ObsPred/Remove_" + str(remove) + 's/'
-    #    if not os.path.exists(newpath1):
-    #        os.makedirs(newpath1)
-    #    newpath2 = mydir + "NSR2/Remove_" + str(remove) + 's/'
-    #    if not os.path.exists(newpath2):
-    #        os.makedirs(newpath2)
+def generate_obs_pred_data(datasets, methods, size = 0, remove_obs = 0, zipfType = 'mle', lognormType = 'pln'):
+    remove_obs = int(remove_obs)
     for method in methods:
         for dataset in datasets:
 
@@ -33,99 +27,99 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove = 0, zipfType = '
                 if dataset == 'EMPclosed' or dataset == 'EMPopen' :
                     IN = mydir +"data/" + dataset + '-Data' + '/' + dataset +'-SADs.txt'
                     if method  == 'lognorm':
-                        if remove == 0:
+                        if remove_obs == 0:
                             OUT1 = open(mydir + "data/ObsPred/" + method + '_' + lognormType +'_'+dataset+'_obs_pred.txt','w+')
                             OUT2 = open(mydir + "data/NSR2/" + method + '_' + lognormType +'_'+dataset+'_NSR2.txt','w+')
                         else:
-                            OUT1 = open(mydir + "data/ObsPred/Remove_" + str(remove)  + 's/'+ method + '_' + lognormType +'_'+dataset +'_obs_pred_' \
-                                + str(remove) + '.txt','w+')
-                            OUT2 = open(mydir + "data/NSR2/Remove_" + str(remove)  + 's/'+ method + '_' + lognormType +'_'+dataset+'_NSR2_' \
-                                + str(remove) + '.txt','w+')
+                            OUT1 = open(mydir + "data/ObsPred/remove_" + str(remove_obs)  + 's/'+ method + '_' + lognormType +'_'+dataset +'_obs_pred_' \
+                                + str(remove_obs) + '.txt','w+')
+                            OUT2 = open(mydir + "data/NSR2/remove_" + str(remove_obs)  + 's/'+ method + '_' + lognormType +'_'+dataset+'_NSR2_' \
+                                + str(remove_obs) + '.txt','w+')
                     else:
-                        if remove == 0:
+                        if remove_obs == 0:
                             OUT1 = open(mydir + "data/ObsPred/" + method +'_'+dataset+'_obs_pred.txt','w+')
                             OUT2 = open(mydir + "data/NSR2/" + method +'_'+dataset+'_NSR2.txt','w+')
                         else:
-                            OUT1 = open(mydir + "data/ObsPred/Remove_" + str(remove)  + 's/'+ method +'_'+dataset +'_obs_pred_' \
-                                + str(remove) + '.txt','w+')
-                            OUT2 = open(mydir + "data/NSR2/Remove_" + str(remove)  + 's/'+ method +'_'+dataset+'_NSR2_' \
-                                + str(remove) + '.txt','w+')
+                            OUT1 = open(mydir + "data/ObsPred/remove_" + str(remove_obs)  + 's/'+ method +'_'+dataset +'_obs_pred_' \
+                                + str(remove_obs) + '.txt','w+')
+                            OUT2 = open(mydir + "data/NSR2/remove_" + str(remove_obs)  + 's/'+ method +'_'+dataset+'_NSR2_' \
+                                + str(remove_obs) + '.txt','w+')
                 elif dataset == "HMP":
                     IN = mydir  + "data/" + dataset + '-Data' + '/' + dataset +'-SADs_NAP.txt'
                     if method == 'lognorm':
-                        if remove == 0:
+                        if remove_obs == 0:
                             OUT1 = open(mydir + "data/ObsPred/" + method + '_' + lognormType+'_'+dataset+'_obs_pred.txt','w+')
                             OUT2 = open(mydir + "data/NSR2/" + method + '_' + lognormType+'_'+dataset+'_NSR2.txt','w+')
                         else:
-                            OUT1 = open(mydir + "data/ObsPred/Remove_" + str(remove)  + 's/'+ method + '_' + lognormType +'_'+dataset+'_obs_pred_' \
-                                + str(remove) + '.txt','w+')
-                            OUT2 = open(mydir + "data/NSR2/Remove_" + str(remove)  + 's/'+ method + '_' + lognormType +'_'+dataset+'_NSR2_' \
-                                + str(remove) + '.txt','w+')
+                            OUT1 = open(mydir + "data/ObsPred/remove_" + str(remove_obs)  + 's/'+ method + '_' + lognormType +'_'+dataset+'_obs_pred_' \
+                                + str(remove_obs) + '.txt','w+')
+                            OUT2 = open(mydir + "data/NSR2/remove_" + str(remove_obs)  + 's/'+ method + '_' + lognormType +'_'+dataset+'_NSR2_' \
+                                + str(remove_obs) + '.txt','w+')
                     else:
-                        if remove == 0:
+                        if remove_obs == 0:
                             OUT1 = open(mydir + "data/ObsPred/" + method +'_'+dataset+'_obs_pred.txt','w+')
                             OUT2 = open(mydir + "data/NSR2/" + method +'_'+dataset+'_NSR2.txt','w+')
                         else:
-                            OUT1 = open(mydir + "data/ObsPred/Remove_" + str(remove)  + 's/'+ method +'_'+dataset+'_obs_pred_' \
-                                + str(remove) + '.txt','w+')
-                            OUT2 = open(mydir + "data/NSR2/Remove_" + str(remove)  + 's/'+ method +'_'+dataset+'_NSR2_' \
-                                + str(remove) + '.txt','w+')
+                            OUT1 = open(mydir + "data/ObsPred/remove_" + str(remove_obs)  + 's/'+ method +'_'+dataset+'_obs_pred_' \
+                                + str(remove_obs) + '.txt','w+')
+                            OUT2 = open(mydir + "data/NSR2/remove_" + str(remove_obs)  + 's/'+ method +'_'+dataset+'_NSR2_' \
+                                + str(remove_obs) + '.txt','w+')
                 else:
                     IN = mydir + 'data/MGRAST-Data/' + dataset +  '/' + 'MGRAST-' + dataset + '-SADs.txt'
                     if method == 'lognorm':
-                        if remove == 0:
+                        if remove_obs == 0:
                             OUT1 = open(mydir + "data/ObsPred/" + method + '_' + lognormType +'_'+ 'MGRAST' + dataset+'_obs_pred.txt','w+')
                             OUT2 = open(mydir + "data/NSR2/" + method + '_' + lognormType +'_'+ 'MGRAST' + dataset+'_NSR2.txt','w+')
                         else:
-                            OUT1 = open(mydir + "data/ObsPred/Remove_" + str(remove)  + 's/'+ method+ '_' + lognormType +'_'+ 'MGRAST' + dataset+'_obs_pred_' \
-                                + str(remove) + '.txt','w+')
-                            OUT2 = open(mydir + "data/NSR2/Remove_" + str(remove)  + 's/'+ method + '_' + lognormType+'_'+ 'MGRAST' + dataset+'_NSR2_'  \
-                                + str(remove) + '.txt','w+')
+                            OUT1 = open(mydir + "data/ObsPred/remove_" + str(remove_obs)  + 's/'+ method+ '_' + lognormType +'_'+ 'MGRAST' + dataset+'_obs_pred_' \
+                                + str(remove_obs) + '.txt','w+')
+                            OUT2 = open(mydir + "data/NSR2/remove_" + str(remove_obs)  + 's/'+ method + '_' + lognormType+'_'+ 'MGRAST' + dataset+'_NSR2_'  \
+                                + str(remove_obs) + '.txt','w+')
                     else:
-                        if remove == 0:
+                        if remove_obs == 0:
                             OUT1 = open(mydir + "data/ObsPred/" + method +'_'+ 'MGRAST' + dataset+'_obs_pred.txt','w+')
                             OUT2 = open(mydir + "data/NSR2/" + method +'_'+ 'MGRAST' + dataset+'_NSR2.txt','w+')
                         else:
-                            OUT1 = open(mydir + "data/ObsPred/Remove_" + str(remove)  + 's/'+ method +'_'+ 'MGRAST' + dataset+'_obs_pred_' \
-                                + str(remove) + '.txt','w+')
-                            OUT2 = open(mydir + "data/NSR2/Remove_" + str(remove)  + 's/'+ method +'_'+ 'MGRAST' + dataset+'_NSR2_'  \
-                                + str(remove) + '.txt','w+')
+                            OUT1 = open(mydir + "data/ObsPred/remove_" + str(remove_obs)  + 's/'+ method +'_'+ 'MGRAST' + dataset+'_obs_pred_' \
+                                + str(remove_obs) + '.txt','w+')
+                            OUT2 = open(mydir + "data/NSR2/remove_" + str(remove_obs)  + 's/'+ method +'_'+ 'MGRAST' + dataset+'_NSR2_'  \
+                                + str(remove_obs) + '.txt','w+')
             elif (method == 'zipf' and dataset != 'MGRAST'):
 
                 if dataset == 'EMPclosed' or dataset == 'EMPopen':
                     IN = mydir + "data/" + dataset + '-Data' + '/' + dataset +'-SADs.txt'
-                    if remove == 0:
+                    if remove_obs == 0:
                         OUT1 = open(mydir + "data/ObsPred/" + method + '_' + zipfType + '_'+dataset+'_obs_pred.txt','w+')
                         OUT2 = open(mydir + "data/NSR2/" + method + '_' + zipfType +'_'+dataset+'_NSR2.txt','w+')
                     else:
-                        OUT1 = open(mydir + "data/ObsPred/Remove_" + str(remove)  + 's/'+ method + '_' + zipfType +'_' + dataset+'_obs_pred_' \
-                            + str(remove) + '.txt','w+')
-                        OUT2 = open(mydir + "data/NSR2/Remove_" + str(remove)  + 's/'+ method + '_' + zipfType +'_'+ dataset+'_NSR2_'  \
-                            + str(remove) + '.txt','w+')
+                        OUT1 = open(mydir + "data/ObsPred/remove_" + str(remove_obs)  + 's/'+ method + '_' + zipfType +'_' + dataset+'_obs_pred_' \
+                            + str(remove_obs) + '.txt','w+')
+                        OUT2 = open(mydir + "data/NSR2/remove_" + str(remove_obs)  + 's/'+ method + '_' + zipfType +'_'+ dataset+'_NSR2_'  \
+                            + str(remove_obs) + '.txt','w+')
                 elif dataset == 'HMP':
                     IN = mydir + "data/" + dataset + '-Data' + '/' + dataset +'-SADs_NAP.txt'
-                    if remove == 0:
+                    if remove_obs == 0:
                         OUT1 = open(mydir + "data/ObsPred/" + method + '_' + zipfType + '_'+dataset+'_obs_pred.txt','w+')
                         OUT2 = open(mydir + "data/NSR2/" + method + '_' + zipfType +'_'+dataset+'_NSR2.txt','w+')
                     else:
-                        OUT1 = open(mydir + "data/ObsPred/Remove_" + str(remove)  + 's/'+ method + '_' + zipfType +'_' + dataset+'_obs_pred_' \
-                            + str(remove) + '.txt','w+')
-                        OUT2 = open(mydir + "data/NSR2/Remove_" + str(remove)  + 's/'+ method + '_' + zipfType +'_'+ dataset+'_NSR2_'  \
-                            + str(remove) + '.txt','w+')
+                        OUT1 = open(mydir + "data/ObsPred/remove_" + str(remove_obs)  + 's/'+ method + '_' + zipfType +'_' + dataset+'_obs_pred_' \
+                            + str(remove_obs) + '.txt','w+')
+                        OUT2 = open(mydir + "data/NSR2/remove_" + str(remove_obs)  + 's/'+ method + '_' + zipfType +'_'+ dataset+'_NSR2_'  \
+                            + str(remove_obs) + '.txt','w+')
                 else:
                     IN = mydir  + "data/"+ 'MGRAST-Data/' + dataset +  '/' + 'MGRAST-' + dataset + '-SADs.txt'
-                    if remove == 0:
+                    if remove_obs == 0:
                         OUT1 = open(mydir + "data/ObsPred/" + method + '_' + zipfType +'_'+ 'MGRAST' + dataset+'_obs_pred.txt','w+')
                         OUT2 = open(mydir + "data/NSR2/" + method + '_' + zipfType +'_'+ 'MGRAST' + dataset+'_NSR2.txt','w+')
                     else:
-                        OUT1 = open(mydir + "data/ObsPred/Remove_" + str(remove)  + 's/'+ method + '_' + zipfType +'_'+ 'MGRAST' + dataset+'_obs_pred_' \
-                            + str(remove) + '.txt','w+')
-                        OUT2 = open(mydir + "data/NSR2/Remove_" + str(remove)  + 's/'+ method + '_' + zipfType +'_'+ 'MGRAST' + dataset+'_NSR2_' \
-                            + str(remove) + '.txt','w+')
+                        OUT1 = open(mydir + "data/ObsPred/remove_" + str(remove_obs)  + 's/'+ method + '_' + zipfType +'_'+ 'MGRAST' + dataset+'_obs_pred_' \
+                            + str(remove_obs) + '.txt','w+')
+                        OUT2 = open(mydir + "data/NSR2/remove_" + str(remove_obs)  + 's/'+ method + '_' + zipfType +'_'+ 'MGRAST' + dataset+'_NSR2_' \
+                            + str(remove_obs) + '.txt','w+')
 
             elif dataset == 'MGRAST':
                 IN = mydir + "data/"+ 'MGRAST-Data/MGRAST/MGRAST-SADs.txt'
-                if remove == 0:
+                if remove_obs == 0:
                     if method == 'zipf':
                         OUT1 = open(mydir + "data/ObsPred/" + method + '_' + zipfType +'_'+ 'MGRAST_obs_pred.txt','w+')
                         OUT2 = open(mydir + "data/NSR2/" + method + '_' + zipfType +'_'+ 'MGRAST_NSR2.txt','w+')
@@ -137,20 +131,20 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove = 0, zipfType = '
                         OUT2 = open(mydir + "data/NSR2/" + method +'_'+ 'MGRAST_NSR2.txt','w+')
                 else:
                     if method == 'zipf':
-                        OUT1 = open(mydir + "data/ObsPred/Remove_" + str(remove)  + 's/'+ method + '_' + zipfType +'_' + dataset+'_obs_pred_' \
-                            + str(remove) + '.txt','w+')
-                        OUT2 = open(mydir + "data/NSR2/Remove_" + str(remove)  + 's/'+ method + '_' + zipfType +'_' + dataset+'_NSR2_' \
-                            + str(remove) + '.txt','w+')
+                        OUT1 = open(mydir + "data/ObsPred/remove_" + str(remove_obs)  + 's/'+ method + '_' + zipfType +'_' + dataset+'_obs_pred_' \
+                            + str(remove_obs) + '.txt','w+')
+                        OUT2 = open(mydir + "data/NSR2/remove_" + str(remove_obs)  + 's/'+ method + '_' + zipfType +'_' + dataset+'_NSR2_' \
+                            + str(remove_obs) + '.txt','w+')
                     elif method == 'lognorm':
-                        OUT1 = open(mydir + "data/ObsPred/Remove_" + str(remove)  + 's/'+ method + '_' + lognormType +'_' + dataset+'_obs_pred_' \
-                            + str(remove) + '.txt','w+')
-                        OUT2 = open(mydir + "data/NSR2/Remove_" + str(remove)  + 's/'+ method + '_' + lognormType +'_' + dataset+'_NSR2_' \
-                            + str(remove) + '.txt','w+')
+                        OUT1 = open(mydir + "data/ObsPred/remove_" + str(remove_obs)  + 's/'+ method + '_' + lognormType +'_' + dataset+'_obs_pred_' \
+                            + str(remove_obs) + '.txt','w+')
+                        OUT2 = open(mydir + "data/NSR2/remove_" + str(remove_obs)  + 's/'+ method + '_' + lognormType +'_' + dataset+'_NSR2_' \
+                            + str(remove_obs) + '.txt','w+')
                     else:
-                        OUT1 = open(mydir + "data/ObsPred/Remove_" + str(remove)  + 's/'+ method +'_' + dataset+'_obs_pred_' \
-                            + str(remove) + '.txt','w+')
-                        OUT2 = open(mydir + "data/NSR2/Remove_" + str(remove)  + 's/'+ method +'_' + dataset+'_NSR2_' \
-                            + str(remove) + '.txt','w+')
+                        OUT1 = open(mydir + "data/ObsPred/remove_" + str(remove_obs)  + 's/'+ method +'_' + dataset+'_obs_pred_' \
+                            + str(remove_obs) + '.txt','w+')
+                        OUT2 = open(mydir + "data/NSR2/remove_" + str(remove_obs)  + 's/'+ method +'_' + dataset+'_NSR2_' \
+                            + str(remove_obs) + '.txt','w+')
 
             num_lines = sum(1 for line in open(IN))
 
@@ -158,7 +152,7 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove = 0, zipfType = '
             random_sites = np.random.randint(num_lines, size=size)
 
             line_count = 0
-
+            print OUT1, OUT2
             for j,line in enumerate(open(IN)):
                 if dataset == "HMP":
                     #line = line.split()
@@ -174,9 +168,8 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove = 0, zipfType = '
                     if j not in random_sites:
                         continue
                 obs = map(int, line)
-                if remove != 0:
-                    if int(remove) in obs:
-                        obs = obs.remove(int(remove))
+                if remove_obs != 0:
+                    obs = [e for e in obs if int(e) > remove_obs]
                 if obs is None:
                     continue
                 if len(obs) == 0:
@@ -215,7 +208,6 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove = 0, zipfType = '
                 elif method == 'lognorm' and lognormType == 'pln':
                     signal.alarm(20)
                     a = datetime.datetime.now()
-                    print "testing"
                     try:
                         # Whatever your function that might hang
                         # use S
@@ -263,7 +255,7 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove = 0, zipfType = '
 
                         #line = map(int, line)
                         # Start the timer. Once 1 second is over, a SIGALRM signal is sent.
-                        signal.alarm(4)
+                        signal.alarm(6)
                         # This try/except loop ensures that
                         #   you'll catch TimeoutException when it's sent.
                         try:
@@ -288,9 +280,11 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove = 0, zipfType = '
                 if r2 == -float('inf') or r2 == float('inf') or r2 == float('Nan'):
                     print r2 + " is Nan or inf, removing..."
                     continue
+                print method
                 if method == 'zipf':
+
                     if dataset == 'EMPclosed' or dataset == 'EMPopen' or dataset == 'HMP':
-                        OUT2 = open(mydir +"data/" + "NSR2/" + method + '_' + zipfType +'_'+dataset+'_NSR2.txt','a+')
+
                         if zipfType == 'glm' or zipfType == 'rgf':
                             if dataset == 'HMP':
                                 print>> OUT2, j, N, S, NmaxObs, NmaxPred, evennessObs, \
@@ -303,9 +297,9 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove = 0, zipfType = '
                                 print>> OUT2, j, N, S, NmaxObs, NmaxPred,evennessObs, \
                                     evennessPred, skewnessObs, skewnessPred, gamma, r2, site_name
                             else:
+                                print NmaxObs, NmaxPred, r2
                                 print>> OUT2, j, N, S, NmaxObs, NmaxPred, evennessObs, \
                                     evennessPred, skewnessObs, skewnessPred, gamma, r2
-                        OUT2.close()
                     else:
                         if zipfType == 'glm' or zipfType == 'rgf':
                             print>> OUT2, j, N, S,NmaxObs, NmaxPred, evennessObs, \
@@ -406,8 +400,180 @@ def getLogNormSim(testNumber = 100, sample_size = 1000):
     #    print>> OUT, int(site_x), int(sites_pln[x]),int(obs7525[x]), int(pred7525[x]), int(pred_pln[x])
     OUT.close()
 
+def stratifyData(totalSADs = 500, zipfType = 'mle', \
+    lognormType = 'pln', remove = True, data_dir= mydir, remove_obs = 0):
+    datasets = ['EMPclosed','HMP', 'MGRAST']
+    methods = ['geom', 'mete', 'zipf', 'lognorm']
+    # Number of lines in each file
+    MGRAST_sites = 1174
+    HMP_sites = 4504
+    EMPclosed_sites = 14979
+    Total = MGRAST_sites + HMP_sites + EMPclosed_sites
+    for i, method in enumerate(methods):
+        if method == 'zipf':
+            if remove_obs == 0:
+                OUT1 = open(data_dir + 'data/ObsPred/Stratified/'+ method + '_' + zipfType +'_obs_pred_stratify.txt', 'wr')
+                OUT2 = open(data_dir + 'data/NSR2/Stratified/'+ method  + '_' + zipfType +'_NSR2_stratify.txt', 'wr')
+            else:
+                OUT1 = open(data_dir + 'data/ObsPred/Remove_' + str(remove_obs) + \
+                    's/Stratified/'+ method + '_' + zipfType +'_obs_pred_' + str(remove_obs) + '_stratify.txt', 'wr')
+                OUT2 = open(data_dir + 'data/NSR2/Remove_' + str(remove_obs) + \
+                    's/Stratified/'+ method  + '_' + zipfType +'_NSR2_stratify_' +  str(remove_obs) + '_stratify.txt', 'wr')
+        elif method == 'lognorm':
+            if remove_obs == 0:
+                OUT1 = open(data_dir + 'data/ObsPred/Stratified/'+ method + '_' + lognormType +'_obs_pred_stratify.txt', 'wr')
+                OUT2 = open(data_dir + 'data/NSR2/Stratified/'+ method  + '_' + lognormType +'_NSR2_stratify.txt', 'wr')
+            else:
+                OUT1 = open(data_dir + 'data/ObsPred/Remove_' + str(remove_obs) + \
+                    's/Stratified/'+ method + '_' + lognormType +'_obs_pred_' + str(remove_obs) + '_stratify.txt', 'wr')
+                OUT2 = open(data_dir + 'data/NSR2/Remove_' + str(remove_obs) + \
+                    's/Stratified/'+ method  + '_' + lognormType +'_NSR2_stratify_' +  str(remove_obs) + '_stratify.txt', 'wr')
+        else:
+            if remove_obs == 0:
+                OUT1 = open(data_dir + 'data/ObsPred/Stratified/'+ method +'_obs_pred_stratify.txt', 'wr')
+                OUT2 = open(data_dir + 'NSR2/Stratified/'+ method  +'_NSR2_stratify.txt', 'wr')
+            else:
+                OUT1 = open(data_dir + 'data/ObsPred/Remove_' + str(remove_obs) + \
+                    's/Stratified/'+ method + '_obs_pred_' + str(remove_obs) + '_stratify.txt', 'wr')
+                OUT2 = open(data_dir + 'data/NSR2/Remove_' + str(remove_obs) + \
+                    's/Stratified/'+ method  + '_NSR2_stratify_' +  str(remove_obs) + '_stratify.txt', 'wr')
+        count2 = 0
+        count1 = 0
+        for j, dataset in enumerate(datasets):
+            lineCount = 0
+            removeSADs = []
+            print datasets
+            if remove_obs == 0:
+                get_bad_zipfs = importData.import_NSR2_data(data_dir + 'data/NSR2/' + 'zipf' + '_'+ 'mle' +'_'+dataset +'_NSR2.txt')
+            else:
+                get_bad_zipfs = importData.import_NSR2_data(data_dir + 'data/NSR2/Remove_' +str(remove_obs) + 's/zipf_mle_'+dataset  +'_NSR2_' +  str(remove_obs) +'.txt')
+            site = np.asarray(list(((get_bad_zipfs["site"]))))
+            N = np.asarray(list(((get_bad_zipfs["N"]))))
+            S = np.asarray(list(((get_bad_zipfs["S"]))))
+            r2s = np.asarray(list(((get_bad_zipfs["R2"]))))
+            zipNsite = zip(site, N, S, r2s)
+            for x in zipNsite:
+                if float(x[3]) < 0.2:
+                    removeSADs.append(int(x[0]))
+            removeSADs = np.asarray(removeSADs)
+            if dataset == 'MGRAST':
+                n = 239 - len(removeSADs)
+            else:
+                n = totalSADs
+            print "sites to remove selected"
+            if remove_obs == 0:
+                if method == 'zipf':
+                    if ( str(dataset) == 'EMPclosed') or ( str(dataset) == 'HMP') or \
+                        ( str(dataset) == 'EMPopen'):
+                        obs_pred_data = importData.import_obs_pred_data(data_dir + 'data/ObsPred/' + method + '_'+ zipfType +'_'+dataset+'_obs_pred.txt')
+                        nsr2_data = importData.import_NSR2_data(data_dir + 'data/NSR2/' + method + '_'+ zipfType +'_'+ dataset+'_NSR2.txt')
+                    elif str(dataset) == 'MGRAST':
+                        obs_pred_data = importData.import_obs_pred_data(data_dir + 'data/ObsPred/' + method + '_'+ zipfType + '_' + 'MGRAST_obs_pred.txt')
+                        nsr2_data = importData.import_NSR2_data(data_dir + 'data/NSR2/' + method+ '_'+ zipfType  + '_MGRAST_NSR2.txt')
+                    else:
+                        obs_pred_data = importData.import_obs_pred_data(data_dir + 'data/ObsPred/' + method + '_'+ zipfType + '_' + 'MGRAST' + dataset +'_obs_pred.txt')
+                        nsr2_data = importData.import_NSR2_data(data_dir + 'data/NSR2/' + method+ '_'+ zipfType  + '_MGRAST'+dataset+'_NSR2.txt')
+                elif method == 'lognorm':
+                    if ( str(dataset) == 'EMPclosed') or ( str(dataset) == 'HMP') or \
+                        ( str(dataset) == 'EMPopen'):
+                        obs_pred_data = importData.import_obs_pred_data(data_dir + 'data/ObsPred/' + method + '_'+ lognormType +'_'+dataset+'_obs_pred.txt')
+                        nsr2_data = importData.import_NSR2_data(data_dir + 'data/NSR2/' + method + '_'+ lognormType +'_'+ dataset+'_NSR2.txt')
+                    elif str(dataset) == 'MGRAST':
+                        obs_pred_data = importData.import_obs_pred_data(data_dir + 'data/ObsPred/' + method + '_'+ lognormType + '_' + 'MGRAST_obs_pred.txt')
+                        nsr2_data = importData.import_NSR2_data(data_dir + 'data/NSR2/' + method+ '_'+ lognormType  + '_MGRAST_NSR2.txt')
+                    else:
+                        obs_pred_data = importData.import_obs_pred_data(data_dir + 'data/ObsPred/' + method + '_'+ lognormType + '_' + 'MGRAST' + dataset +'_obs_pred.txt')
+                        nsr2_data = importData.import_NSR2_data(data_dir + 'data/NSR2/' + method+ '_'+ lognormType  + '_MGRAST'+dataset+'_NSR2.txt')
+                else:
+                    if ( str(dataset) == 'EMPclosed') or ( str(dataset) == 'HMP') or \
+                        ( str(dataset) == 'EMPopen'):
+                        obs_pred_data = importData.import_obs_pred_data(data_dir + 'data/ObsPred/' + method+'_'+dataset+'_obs_pred.txt')
+                        nsr2_data = importData.import_NSR2_data(data_dir + 'data/NSR2/' + method+'_'+dataset+'_NSR2.txt')
+                    elif str(dataset) == 'MGRAST':
+                        obs_pred_data = importData.import_obs_pred_data(data_dir + 'data/ObsPred/' + method + '_' + 'MGRAST_obs_pred.txt')
+                        nsr2_data = importData.import_NSR2_data(data_dir + 'data/NSR2/' + method+'_MGRAST_NSR2.txt')
+                    else:
+                        obs_pred_data = importData.import_obs_pred_data(data_dir + 'data/ObsPred/' + method + '_' + 'MGRAST' + dataset +'_obs_pred.txt')
+                        nsr2_data = importData.import_NSR2_data(data_dir + 'data/NSR2/' + method+'_MGRAST'+dataset+'_NSR2.txt')
+            else:
+                if method == 'zipf':
+                    obs_pred_data = importData.import_obs_pred_data(data_dir + 'data/ObsPred/Remove_' \
+                        + str(remove_obs) + 's/' + method + '_'+ zipfType +'_'+dataset+'_obs_pred_' +  str(remove_obs) +'.txt')
+                    nsr2_data = importData.import_NSR2_data(data_dir + 'data/NSR2/Remove_' \
+                        + str(remove_obs) + 's/' + method + '_'+ zipfType +'_'+dataset+'_NSR2_' +  str(remove_obs) +'.txt')
+                elif method == 'lognorm':
+                    obs_pred_data = importData.import_obs_pred_data(data_dir + 'data/ObsPred/Remove_' \
+                        + str(remove_obs) + 's/' + method + '_'+ lognormType +'_'+dataset+'_obs_pred_' +  str(remove_obs) +'.txt')
+                    nsr2_data = importData.import_NSR2_data(data_dir + 'data/NSR2/Remove_' \
+                        + str(remove_obs) + 's/' + method + '_'+ lognormType +'_'+dataset+'_NSR2_' +  str(remove_obs) +'.txt')
+                else:
+                    obs_pred_data = importData.import_obs_pred_data(data_dir + 'data/ObsPred/Remove_' \
+                        + str(remove_obs) + 's/' + method +'_'+dataset+'_obs_pred_' +  str(remove_obs) +'.txt')
+                    nsr2_data = importData.import_NSR2_data(data_dir + 'data/NSR2/Remove_' \
+                        + str(remove_obs) + 's/' + method +'_'+dataset+'_NSR2_' +  str(remove_obs) +'.txt')
+            siteNSR2 = np.asarray( map(float, list(((nsr2_data["site"])))))
+            N = np.asarray(list(((nsr2_data["N"]))))
+            S = np.asarray(list(((nsr2_data["S"]))))
+            NmaxObs = np.asarray(list(((nsr2_data["NmaxObs"]))))
+            NmaxPred = np.asarray(list(((nsr2_data["NmaxPred"]))))
+            evennessObs = np.asarray(list(((nsr2_data["evennessObs"]))))
+            evennessPred = np.asarray(list(((nsr2_data["evennessPred"]))))
+            skewnessObs = np.asarray(list(((nsr2_data["skewnessObs"]))))
+            skewnessPred = np.asarray(list(((nsr2_data["skewnessPred"]))))
+            R2 = np.asarray(list(((nsr2_data["R2"]))))
 
-datasets = ['EMPclosed']
-methods = ['lognorm']
+            site = ((obs_pred_data["site"]))
+            obs = list(((obs_pred_data["obs"])))
+            pred = list(((obs_pred_data["pred"])))
+            pred
+            obs2 = []
+            pred2 = []
+            site2 = []
+            if remove == True:
+                siteNSR2_cleaned = np.setdiff1d(siteNSR2, removeSADs)
+                uniqueSites = np.unique(siteNSR2_cleaned)
+            else:
+                uniqueSites = np.unique(siteNSR2)
 
-generate_obs_pred_data(datasets, methods, remove = 1)
+            randomSites = np.random.choice(uniqueSites, size=n, replace=False)
+
+            #for enumSite, randomSite in enumerate(randomSites):
+
+            print len(np.unique(site)),  len(siteNSR2)
+            for enumSite, randomSite in enumerate(randomSites):
+                for p, q in enumerate(siteNSR2):
+                    if q == randomSite:
+                        print>> OUT2, count1, N[p], S[p], NmaxObs[p], NmaxPred[p], \
+                            evennessObs[p], evennessPred[p], skewnessObs[p], skewnessPred[p], R2[p]
+                for r, s in enumerate(site):
+                    if s == randomSite:
+                        obs2.append(obs[r])
+                        pred2.append(pred[r])
+                        site2.append(s)
+                        print>> OUT1, count1, obs[r], pred[r]
+                count1 += 1
+                    #if (r == 0):
+                    #    print>> OUT1, count_sites, obs[r], pred[r]
+                    #elif r != 0 and obs[r] > obs[r-1]:
+                    #    count_sites += 1
+                    #    print>> OUT1, count_sites, obs[r], pred[r]
+                    #else:
+                    #    print>> OUT1, count_sites, obs[r], pred[r]
+
+            print method, dataset
+
+            obs = np.asarray(obs2)
+            pred = np.asarray(pred2)
+            zippedSiteObsPred = zip(site2,obs2,pred2)
+            #site = np.asarray(site2)
+            k_minus1 = obs2[0]
+
+        OUT1.close()
+        OUT2.close()
+
+
+#stratifyData(remove_obs = 1)
+#datasets = ['EMPclosed','HMP', 'MGRAST']
+datasets = ['EMPclosed', 'HMP']
+methods = ['zipf']
+generate_obs_pred_data(datasets, methods, remove_obs = 1)
