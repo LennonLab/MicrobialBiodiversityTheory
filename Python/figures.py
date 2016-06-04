@@ -1,4 +1,4 @@
-
+from __future__ import division
 import imp, os, signal, datetime, random
 import importData
 import macroecotools
@@ -16,129 +16,8 @@ import models as mo
 mydir = os.path.expanduser("~/github/MicroMETE/")
 importPredictS = imp.load_source('sim_lognormal', mydir + 'lognormal/predictS.py')
 
-def Supp(figname = 'Supp', data_dir=mydir, radius=2):
-    # TAKEN FROM THE mete_sads.py script used for White et al. (2012)
-    # Used for Figure 3 Locey and White (2013)
-    """Multiple obs-predicted plotter"""
-    fig = plt.figure()
-    count = 0
 
-    plot_dim = 2
-    IN_Obs_Pred = importData.import_obs_pred_data(mydir + \
-        'data/ObsPred/Stratified/lognorm_75_25_obs_pred_stratify_test.txt')
-    site = np.asarray(list(((IN_Obs_Pred["site"]))))
-    obs = np.asarray(list(((IN_Obs_Pred["obs"]))))
-    pred7525 = np.asarray(list(((IN_Obs_Pred["pred7525"]))))
-    predPln = np.asarray(list(((IN_Obs_Pred["predPln"]))))
-    toIterate = [pred7525, predPln]
-    for x in range(2):
-        axis_min = 0
-        axis_max = 2 * max(obs)
-        #print plot_dim
-        ax = fig.add_subplot(plot_dim, plot_dim, count+1)
-        if x == 0:
-            ax.set_title(r"$\mathbf{75:25\, Simulation}$")
-        else:
-            ax.set_title(r"$\mathbf{Lognormal\, MLE}$")
-
-        macroecotools.plot_color_by_pt_dens(toIterate[x], obs, radius, loglog=1,
-                        plot_obj=plt.subplot(plot_dim,plot_dim,count+1))
-        #
-        #plt.text(0.1, 0.9,'matplotlib', ha='center', va='center', transform=ax.transAxes)
-
-
-        plt.plot([axis_min, axis_max],[axis_min, axis_max], 'k-')
-
-        plt.xlim(0, axis_max)
-        plt.ylim(0, axis_max)
-        #r2s = ((INh2["R2"]))
-        #r2s = r2s.astype(float)
-        # insert r2 of all data
-        r2_all = macroecotools.obs_pred_rsquare(np.log10(obs), np.log10(toIterate[x]))
-        r2text = r"${}^{{2}}_{{m}} = {:.{p}f} $".format('r',r2_all , p=2)
-
-        plt.text(0.18, 0.93, r2text,  fontsize=10,
-            horizontalalignment='center',
-            verticalalignment='center',transform = ax.transAxes)
-        plt.tick_params(axis='both', which='major', labelsize=7)
-        plt.subplots_adjust(wspace=0.5, hspace=0.3)
-
-        axins = inset_axes(ax, width="30%", height="30%", loc=4)
-
-        #hist_r2 = np.histogram(r2s, range=(0, 1))
-        #xvals = hist_r2[1] + (hist_r2[1][1] - hist_r2[1][0])
-        #xvals = xvals[0:len(xvals)-1]
-        #yvals = hist_r2[0]
-        #plt.plot(xvals, yvals, 'k-', linewidth=2)
-        #plt.axis([0, 1, 0, 1.1 * max(yvals)])
-        ax.set(adjustable='box-forced', aspect='equal')
-        #plt.setp(axins, xticks=[], yticks=[])
-
-        count += 1
-    fig.text(0.50, 0.04, r'$Predicted \; rank-abundance$', ha='center', va='center')
-    fig.text(0.05, 0.5, r'$Observed \; rank-abundance$', ha='center', va='center', rotation='vertical')
-    fig_name = str(mydir + 'figures/' + figname + '.png')
-    plt.savefig(fig_name, dpi=600)#, bbox_inches = 'tight')#, pad_inches=0)
-    plt.close()
-
-def figSuppp(figname = 'SuppFig3', data_dir=mydir, radius=2):
-    fig = plt.figure()
-    plot_dim = 2
-    count = 0
-
-    IN_Obs_Pred = importData.import_NSR2_data(mydir + \
-        'data/NSR2/Stratified/lognorm_pln_NSR2_stratify.txt')
-    N = np.asarray(list(((IN_Obs_Pred["N"]))))
-    S = np.asarray(list(((IN_Obs_Pred["S"]))))
-    NmaxObs = np.asarray(list(((IN_Obs_Pred["NmaxObs"]))))
-    NmaxPred = []
-    SPred = []
-    for i in range(len(N)):
-        NmaxPred_i = importPredictS.predictS(N[i], NmaxObs[i], predictNmax=True).getNmax()
-        SPred_i = importPredictS.predictS(N[i], NmaxObs[i], predictNmax=True).getS()
-        NmaxPred.append(NmaxPred_i)
-        SPred.append(SPred_i)
-    NmaxPred = np.asarray(NmaxPred)
-    SPred = np.asarray(SPred)
-    toIteratePred = [NmaxPred, SPred]
-    toIterateObs = [NmaxObs, S]
-    for x in range(2):
-        axis_min = 0
-        axis_max = 2 * max(toIteratePred[x])
-        #print plot_dim
-        ax = fig.add_subplot(plot_dim-1, plot_dim, count+1)
-        if x == 0:
-            ax.set_title(r"$\mathbf{N_{max}}$")
-        else:
-            ax.set_title(r"$\mathbf{S}$")
-
-        macroecotools.plot_color_by_pt_dens(toIteratePred[x], toIterateObs[x], radius, loglog=1,
-                        plot_obj=plt.subplot(plot_dim-1,plot_dim,count+1))
-        plt.plot([axis_min, axis_max],[axis_min, axis_max], 'k-')
-        plt.xlim(axis_min, axis_max)
-        plt.ylim(0, axis_max)
-        r2_all = macroecotools.obs_pred_rsquare(np.log10(toIterateObs[x]), np.log10(toIteratePred[x]))
-        r2text = r"${}^{{2}}_{{m}} = {:.{p}f} $".format('r',r2_all , p=2)
-        plt.text(0.18, 0.93, r2text,  fontsize=10,
-            horizontalalignment='center',
-            verticalalignment='center',transform = ax.transAxes)
-        plt.tick_params(axis='both', which='major', labelsize=7)
-        plt.subplots_adjust(wspace=0.5, hspace=0.3)
-
-        #axins = inset_axes(ax, width="30%", height="30%", loc=4)
-
-        ax.set(adjustable='box-forced', aspect='equal')
-        #plt.setp(axins, xticks=[], yticks=[])
-
-        count += 1
-    fig.text(0.50, 0.04, r'$Predicted$', ha='center', va='center')
-    fig.text(0.05, 0.5, r'$Observed$', ha='center', va='center', rotation='vertical')
-
-    fig_name = str(mydir + 'figures/' + figname + '.png')
-    plt.savefig(fig_name, dpi=600)#, bbox_inches = 'tight')#, pad_inches=0)
-    plt.close()
-
-def fig1(figname = 'Fig1', data_dir= mydir):
+def fig1(figname = 'Fig1', data_dir= mydir, saveAs = 'eps'):
     SAD = [10000, 8000, 6000, 5000, 1000, 200, 100,  20, 18, 16, 14, 12, 10, 4,5,
         4, 4, 3, 3, 2, 2, 2, 2, 2,2, 1, 1, 1, 1, 1,1,1,1, 1, 1, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
     SAD.sort()
@@ -167,7 +46,8 @@ def fig1(figname = 'Fig1', data_dir= mydir):
     plt.plot(x, geom,color = '#00008B', linestyle = '-', linewidth=2, label="Broken-stick")
     plt.plot(x, lognorm_SAD, color = '#0000CD',linestyle = '--', linewidth=2, label="Lognormal")
     plt.plot(x, logSeries, color = '#FF4500',linestyle = '-.', linewidth=2, label="Log-series")
-    plt.plot(x, zipf_SAD, color = '#8B0000',linestyle = ':',linewidth=2,  label="Zipf")
+    plt.plot(x, zipf_SAD, color = 'red',linestyle = '-',linewidth=2,  label="Zipf")
+    #8B0000
 
     plt.tight_layout()
     #plt.xlabel(r'$Rank \; Abundance$', fontsize = 18)
@@ -183,13 +63,15 @@ def fig1(figname = 'Fig1', data_dir= mydir):
     plt.legend(frameon=False, fontsize= 18)
 
     #fig.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-    fig_name = str(mydir + 'figures/' + figname + '.png')
-    plt.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
+    fig_name = str(mydir + 'figures/' + figname + '_RGB.' + saveAs)
+    plt.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600, \
+        format = saveAs)
     #plt.xscale()
     plt.close()
 
 def fig2(n, figname = 'Fig2', data_dir=mydir, \
-    stratify = True, radius=2, remove = 0, zipfType = 'mle', RGF = False, lognormType = 'pln'):
+    stratify = True, radius=2, remove = 0, zipfType = 'mle', RGF = False, \
+    lognormType = 'pln', saveAs = 'eps'):
     # TAKEN FROM THE mete_sads.py script used for White et al. (2012)
     # Used for Figure 3 Locey and White (2013)
     """Multiple obs-predicted plotter"""
@@ -303,15 +185,16 @@ def fig2(n, figname = 'Fig2', data_dir=mydir, \
     #plt.tight_layout(pad=0.4, w_pad=0.8, h_pad=0.5)
     plt.tight_layout(pad=1.5, w_pad=0.8, h_pad=0.8)
     #plt.subplots_adjust(wspace=0.2, hspace=0.1)
-    fig.text(0.50, 0.02, 'Predicted rank-abundance', ha='center', va='center', fontsize=14)
-    fig.text(0.08, 0.5, 'Observed rank-abundance', ha='center', va='center', rotation='vertical', fontsize=14)
-    fig_name = str(mydir + 'figures/' + figname + '.png')
-    plt.savefig(fig_name, dpi=600)#, bbox_inches = 'tight')#, pad_inches=0)
+    fig.text(0.50, 0.02, 'Predicted abundance', ha='center', va='center', fontsize=14)
+    fig.text(0.08, 0.5, 'Observed abundance', ha='center', va='center', rotation='vertical', fontsize=14)
+    fig_name = str(mydir + 'figures/' + figname + '_RGB.' + saveAs)
+    plt.savefig(fig_name, dpi=600, format = saveAs)#, bbox_inches = 'tight')#, pad_inches=0)
     plt.close()
 
 
 def fig3(figname = 'Fig3', \
-    zipfType = 'mle', lognormType = 'pln', Stratified = True, data_dir= mydir):
+    zipfType = 'mle', lognormType = 'pln', Stratified = True, data_dir= mydir, \
+    saveAs = 'eps'):
     methods = ['geom', 'lognorm', 'mete', 'zipf']
     fig = plt.figure()
     count  = 0
@@ -331,7 +214,7 @@ def fig3(figname = 'Fig3', \
             x = np.log10(np.asarray(list(((obs_pred_data[param])))))
             print "nmax" + str(np.mean(np.asarray(list(((obs_pred_data["NmaxObs"]))))))
 
-            print len(x),  len(y)
+
             mean_x = np.mean(x)
             mean_y = np.mean(y)
             std_error = sp.stats.sem(y)
@@ -344,15 +227,34 @@ def fig3(figname = 'Fig3', \
             macroecotools.plot_color_by_pt_dens(x, y, 0.1, loglog=0,
                             plot_obj=plt.subplot(2, 2, count+1))
             slope, intercept, r_value, p_value, std_err = stats.linregress(x,y)
-            print "r-value is " + str(r_value)
+            print "slope is " + str(slope)
+            print "r2-value is " + str(r_value **2)
             print "p-value is " + str(p_value)
 
-            plt.xlim(np.amin(x), np.amax(x))
-            if method == 'lognorm' or method == 'zipf':
-                plt.ylim(0,1.5)
-            else:
-                plt.ylim(-1,1)
+            print "NmaxPred ", method
+            NmaxPred = np.log10(np.asarray(list(((obs_pred_data["NmaxPred"])))))
+            slope1, intercept1, r_value1, p_value1, std_err1 = stats.linregress(x,NmaxPred)
+            print "slope is " + str(slope1)
+            print "r2-value is " + str(r_value1 **2)
+            print "p-value is " + str(p_value1)
+            print "evennessPred ",method
+            evennessPred = np.log10(np.asarray(list(((obs_pred_data["evennessPred"])))))
+            slope2, intercept2, r_value2, p_value2, std_err2 = stats.linregress(x,evennessPred)
+            print "slope is " + str(slope2)
+            print "r2-value is " + str(r_value2 **2)
+            print "p-value is " + str(p_value2)
 
+            print "skewnessPred ",method
+            skewnessPred = np.log10(np.asarray(list(((obs_pred_data["skewnessPred"])))))
+            slope3, intercept3, r_value3, p_value3, std_err3 = stats.linregress(x,skewnessPred)
+            print "slope is " + str(slope3)
+            print "r2-value is " + str(r_value3 **2)
+            print "p-value is " + str(p_value3)
+
+
+            plt.xlim(np.amin(x), np.amax(x))
+
+            plt.ylim(-1.5,1.5)
             predict_y = intercept + slope * x
             pred_error = y - predict_y
             degrees_of_freedom = len(x) - 2
@@ -381,14 +283,15 @@ def fig3(figname = 'Fig3', \
 
     #fig.subplots_adjust(wspace = 0.00001, hspace = 0.1, top=0.70)
     plt.tight_layout(pad=0.8, w_pad=0.8, h_pad=0.8)
-    fig_name = str(mydir + 'figures/' + figname  + '.png')
-    plt.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
+    fig_name = str(mydir + 'figures/' + figname  + '_RGB.' + saveAs)
+    plt.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600, \
+        format = saveAs)
     #plt.xscale()
     plt.close()
 
 
 
-def fig4(figname = 'Fig4', data_dir=mydir, radius=2):
+def fig4(figname = 'Fig4', data_dir=mydir, radius=2, saveAs = 'eps'):
     fig = plt.figure()
     plot_dim = 1
     count = 0
@@ -430,7 +333,6 @@ def fig4(figname = 'Fig4', data_dir=mydir, radius=2):
         plt.plot([axis_min, axis_max],[axis_min, axis_max], 'k-')
         plt.xlim(axis_min, axis_max)
         plt.ylim(0, axis_max)
-        print max(NmaxPred)
         r2_all = macroecotools.obs_pred_rsquare(np.log10(NmaxObs), np.log10(NmaxPred))
         r2text = r"${:.{p}f} $".format(r2_all , p=2)
         plt.text(0.18, 0.91, r2text,  fontsize=13,
@@ -448,11 +350,12 @@ def fig4(figname = 'Fig4', data_dir=mydir, radius=2):
     fig.text(0.50, 0.03, 'Predicted, ' +r'$log_{10}(N_{max})$', ha='center', va='center', fontsize = 16)
     fig.text(0.09, 0.5, 'Observed, ' +r'$log_{10}(N_{max})$', ha='center', va='center', rotation='vertical',\
         fontsize = 16)
-    fig_name = str(mydir + 'figures/' + figname + '.png')
-    plt.savefig(fig_name, dpi=600)#, bbox_inches = 'tight')#, pad_inches=0)
+    fig_name = str(mydir + 'figures/' + figname + '_RGB.' + saveAs)
+    plt.savefig(fig_name, dpi=600, format = saveAs)#, bbox_inches = 'tight')#, pad_inches=0)
     plt.close()
 
-def figS1(n, figname = 'FigS1', data_dir=mydir, radius=2, zipfType = 'mle', lognormType = 'pln'):
+def figS1(n, figname = 'FigS1', data_dir=mydir, radius=2, zipfType = 'mle', \
+    saveAs = 'eps', lognormType = 'pln'):
     methods = ['geom', 'lognorm', 'mete', 'zipf']
     datasets = ['95', '97', '99']
     fig = plt.figure()
@@ -576,14 +479,15 @@ def figS1(n, figname = 'FigS1', data_dir=mydir, radius=2, zipfType = 'mle', logn
     plt.tight_layout(pad=1.5, w_pad=0.8, h_pad=0.8)
     fig.subplots_adjust(left=0.1)
     #plt.subplots_adjust(wspace=0.2, hspace=0.1)
-    fig.text(0.50, 0.02, 'Predicted rank-abundance', ha='center', va='center', fontsize=14)
-    fig.text(0.03, 0.5, 'Observed rank-abundance', ha='center', va='center', rotation='vertical', fontsize=14)
-    fig_name = str(mydir + 'figures/' + figname + '.png')
-    plt.savefig(fig_name, dpi=600)#, bbox_inches = 'tight')#, pad_inches=0)
+    fig.text(0.50, 0.02, 'Predicted abundance', ha='center', va='center', fontsize=14)
+    fig.text(0.03, 0.5, 'Observed abundance', ha='center', va='center', rotation='vertical', fontsize=14)
+    fig_name = str(mydir + 'figures/' + figname + '_RGB.' + saveAs)
+    plt.savefig(fig_name, dpi=600, format = saveAs)#, bbox_inches = 'tight')#, pad_inches=0)
     plt.close()
 
-def fig2(n, figname = 'FigS2', data_dir=mydir, \
-    stratify = True, radius=2, remove = 1, zipfType = 'mle', RGF = False, lognormType = 'pln'):
+def figS2(n, figname = 'FigS2', data_dir=mydir, \
+    stratify = True, radius=2, remove = 1, zipfType = 'mle', RGF = False, \
+    saveAs = 'eps', lognormType = 'pln'):
     # TAKEN FROM THE mete_sads.py script used for White et al. (2012)
     # Used for Figure 3 Locey and White (2013)
     """Multiple obs-predicted plotter"""
@@ -593,17 +497,17 @@ def fig2(n, figname = 'FigS2', data_dir=mydir, \
     methods = ['geom', 'lognorm', 'mete', 'zipf']
     for i, method in enumerate(methods):
         if method == 'zipf':
-            obs_pred_data = importData.import_obs_pred_data(data_dir + 'data/ObsPred/Stratified/'+ method + '_'+  zipfType+'_obs_pred_stratify.txt')
-            INh2 = importData.import_NSR2_data(data_dir + 'data/NSR2/Stratified/' + method + '_mle' + '_NSR2_stratify.txt')
+            obs_pred_data = importData.import_obs_pred_data(data_dir + 'data/ObsPred/Remove_1s/Stratified/'+ method + '_'+  zipfType+'_obs_pred_1_stratify.txt')
+            INh2 = importData.import_NSR2_data(data_dir + 'data/NSR2/Remove_1s/Stratified/' + method + '_mle' + '_NSR2_1_stratify.txt')
         #if method == 'rgf':
         #    obs_pred_data = import_obs_pred_data(data_dir + 'ObsPred/Stratified/'+ 'zipf' + '_'+  method+'_obs_pred_stratify.txt')
         #    INh2 = import_NSR2_data(data_dir + 'NSR2/Stratified/' +'zipf' + '_'+  method + '_NSR2_stratify.txt')
         elif method == 'lognorm':
-            obs_pred_data = importData.import_obs_pred_data(data_dir + 'data/ObsPred/Stratified/'+ method + '_'+  lognormType+'_obs_pred_stratify.txt')
-            INh2 = importData.import_NSR2_data(data_dir + 'data/NSR2/Stratified/' + method + '_'+  lognormType + '_NSR2_stratify.txt')
+            obs_pred_data = importData.import_obs_pred_data(data_dir + 'data/ObsPred/Remove_1s/Stratified/'+ method + '_'+  lognormType+'_obs_pred_1_stratify.txt')
+            INh2 = importData.import_NSR2_data(data_dir + 'data/NSR2/Remove_1s/Stratified/' + method + '_'+  lognormType + '_NSR2_1_stratify.txt')
         else:
-            obs_pred_data = importData.import_obs_pred_data(data_dir + 'data/ObsPred/Stratified/'+ method +'_obs_pred_stratify.txt')
-            INh2 = importData.import_NSR2_data(data_dir + 'data/NSR2/Stratified/' + method + '_NSR2_stratify.txt')
+            obs_pred_data = importData.import_obs_pred_data(data_dir + 'data/ObsPred/Remove_1s/Stratified/'+ method +'_obs_pred_1_stratify.txt')
+            INh2 = importData.import_NSR2_data(data_dir + 'data/NSR2/Remove_1s/Stratified/' + method + '_NSR2_1_stratify.txt')
         obs = np.asarray(list(((obs_pred_data["obs"]))))
         pred = np.asarray(list(((obs_pred_data["pred"]))))
         site = np.asarray(list(((obs_pred_data["site"]))))
@@ -650,7 +554,6 @@ def fig2(n, figname = 'FigS2', data_dir=mydir, \
             ax.set_title("Log-series")
         elif method == 'zipf':
             ax.set_title("Zipf")
-        print len(pred), len(obs)
         macroecotools.plot_color_by_pt_dens(pred, obs, radius, loglog=1,
                         plot_obj=plt.subplot(plot_dim,plot_dim,count+1))
 
@@ -665,6 +568,9 @@ def fig2(n, figname = 'FigS2', data_dir=mydir, \
         r2s = r2s.astype(float)
         # insert r2 of all data
         r2_all = macroecotools.obs_pred_rsquare(np.log10(obs_all), np.log10(pred_all))
+        print method
+        print "Mean r2 " + str(np.mean(r2s))
+        print "Standard dev. " + str(np.std(r2s))
         #r2text = r"${}^{{2}}_{{m}} = {:.{p}f} $".format('r',r2_all , p=2)
         r2text = r"${:.{p}f} $".format(r2_all , p=2)
         if method == 'geom':
@@ -697,14 +603,17 @@ def fig2(n, figname = 'FigS2', data_dir=mydir, \
     #plt.tight_layout(pad=0.4, w_pad=0.8, h_pad=0.5)
     plt.tight_layout(pad=1.5, w_pad=0.8, h_pad=0.8)
     #plt.subplots_adjust(wspace=0.2, hspace=0.1)
-    fig.text(0.50, 0.02, 'Predicted rank-abundance', ha='center', va='center', fontsize=14)
-    fig.text(0.08, 0.5, 'Observed rank-abundance', ha='center', va='center', rotation='vertical', fontsize=14)
-    fig_name = str(mydir + 'figures/' + figname + '.png')
-    plt.savefig(fig_name, dpi=600)#, bbox_inches = 'tight')#, pad_inches=0)
+    fig.text(0.50, 0.02, 'Predicted abundance', ha='center', va='center', fontsize=14)
+    fig.text(0.08, 0.5, 'Observed abundance', ha='center', va='center', rotation='vertical', fontsize=14)
+    fig_name = str(mydir + 'figures/' + figname + '_RGB.' + saveAs)
+    plt.savefig(fig_name, dpi=600, format = saveAs)#, bbox_inches = 'tight')#, pad_inches=0)
     plt.close()
 
 #352899
+#fig4()
 #fig2(352899, figname = 'Fig2', data_dir=mydir, \
 #    stratify = True, radius=2, remove = 0, zipfType = 'mle', RGF = False, lognormType = 'pln')
-#fig3()
-figS2()
+fig3()
+#figS1(352899)
+#fig1()
+#figS2(352899)
