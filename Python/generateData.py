@@ -400,10 +400,16 @@ def getLogNormSim(testNumber = 100, sample_size = 1000):
     #    print>> OUT, int(site_x), int(sites_pln[x]),int(obs7525[x]), int(pred7525[x]), int(pred_pln[x])
     OUT.close()
 
-def stratifyData(totalSADs = 500, zipfType = 'mle', \
+def stratifyData(zipfType = 'mle', \
     lognormType = 'pln', remove = True, data_dir= mydir, remove_obs = 0):
+    if remove_obs == 0:
+        totalSADs = 239
+    else:
+        totalSADs = 108
     datasets = ['EMPclosed','HMP', 'MGRAST']
-    methods = ['geom', 'mete', 'zipf', 'lognorm']
+    #datasets = ['EMPclosed','HMP']
+    #methods = ['geom', 'mete', 'zipf', 'lognorm']
+    methods = [ 'lognorm']
     # Number of lines in each file
     MGRAST_sites = 1174
     HMP_sites = 4504
@@ -418,7 +424,7 @@ def stratifyData(totalSADs = 500, zipfType = 'mle', \
                 OUT1 = open(data_dir + 'data/ObsPred/Remove_' + str(remove_obs) + \
                     's/Stratified/'+ method + '_' + zipfType +'_obs_pred_' + str(remove_obs) + '_stratify.txt', 'wr')
                 OUT2 = open(data_dir + 'data/NSR2/Remove_' + str(remove_obs) + \
-                    's/Stratified/'+ method  + '_' + zipfType +'_NSR2_stratify_' +  str(remove_obs) + '_stratify.txt', 'wr')
+                    's/Stratified/'+ method  + '_' + zipfType +'_NSR2_' +  str(remove_obs) + '_stratify.txt', 'wr')
         elif method == 'lognorm':
             if remove_obs == 0:
                 OUT1 = open(data_dir + 'data/ObsPred/Stratified/'+ method + '_' + lognormType +'_obs_pred_stratify.txt', 'wr')
@@ -427,22 +433,22 @@ def stratifyData(totalSADs = 500, zipfType = 'mle', \
                 OUT1 = open(data_dir + 'data/ObsPred/Remove_' + str(remove_obs) + \
                     's/Stratified/'+ method + '_' + lognormType +'_obs_pred_' + str(remove_obs) + '_stratify.txt', 'wr')
                 OUT2 = open(data_dir + 'data/NSR2/Remove_' + str(remove_obs) + \
-                    's/Stratified/'+ method  + '_' + lognormType +'_NSR2_stratify_' +  str(remove_obs) + '_stratify.txt', 'wr')
+                    's/Stratified/'+ method  + '_' + lognormType +'_NSR2_' +  str(remove_obs) + '_stratify.txt', 'wr')
         else:
             if remove_obs == 0:
                 OUT1 = open(data_dir + 'data/ObsPred/Stratified/'+ method +'_obs_pred_stratify.txt', 'wr')
-                OUT2 = open(data_dir + 'NSR2/Stratified/'+ method  +'_NSR2_stratify.txt', 'wr')
+                OUT2 = open(data_dir + 'data/NSR2/Stratified/'+ method  +'_NSR2_stratify.txt', 'wr')
             else:
                 OUT1 = open(data_dir + 'data/ObsPred/Remove_' + str(remove_obs) + \
                     's/Stratified/'+ method + '_obs_pred_' + str(remove_obs) + '_stratify.txt', 'wr')
                 OUT2 = open(data_dir + 'data/NSR2/Remove_' + str(remove_obs) + \
-                    's/Stratified/'+ method  + '_NSR2_stratify_' +  str(remove_obs) + '_stratify.txt', 'wr')
+                    's/Stratified/'+ method  + '_NSR2_' +  str(remove_obs) + '_stratify.txt', 'wr')
         count2 = 0
         count1 = 0
         for j, dataset in enumerate(datasets):
             lineCount = 0
             removeSADs = []
-            print datasets
+            print method, dataset
             if remove_obs == 0:
                 get_bad_zipfs = importData.import_NSR2_data(data_dir + 'data/NSR2/' + 'zipf' + '_'+ 'mle' +'_'+dataset +'_NSR2.txt')
             else:
@@ -453,11 +459,16 @@ def stratifyData(totalSADs = 500, zipfType = 'mle', \
             r2s = np.asarray(list(((get_bad_zipfs["R2"]))))
             zipNsite = zip(site, N, S, r2s)
             for x in zipNsite:
-                if float(x[3]) < 0.2:
-                    removeSADs.append(int(x[0]))
+                if remove_obs != 0:
+                    continue
+                else:
+                    if float(x[3]) < 0.2:
+                        removeSADs.append(int(x[0]))
             removeSADs = np.asarray(removeSADs)
-            if dataset == 'MGRAST':
+            if dataset == 'MGRAST' and remove_obs == 0:
                 n = 239 - len(removeSADs)
+            elif dataset == 'MGRAST' and remove_obs == 1:
+                n = 108 - len(removeSADs)
             else:
                 n = totalSADs
             print "sites to remove selected"
@@ -532,9 +543,10 @@ def stratifyData(totalSADs = 500, zipfType = 'mle', \
             if remove == True:
                 siteNSR2_cleaned = np.setdiff1d(siteNSR2, removeSADs)
                 uniqueSites = np.unique(siteNSR2_cleaned)
+
             else:
                 uniqueSites = np.unique(siteNSR2)
-
+            print n, len(uniqueSites)
             randomSites = np.random.choice(uniqueSites, size=n, replace=False)
 
             #for enumSite, randomSite in enumerate(randomSites):
@@ -572,8 +584,8 @@ def stratifyData(totalSADs = 500, zipfType = 'mle', \
         OUT2.close()
 
 
-#stratifyData(remove_obs = 1)
+stratifyData(remove_obs = 1)
 #datasets = ['EMPclosed','HMP', 'MGRAST']
-datasets = ['EMPclosed', 'HMP']
-methods = ['zipf']
-generate_obs_pred_data(datasets, methods, remove_obs = 1)
+#datasets = ['EMPclosed']
+#methods = ['zipf']
+#generate_obs_pred_data(datasets, methods, remove_obs = 1)
