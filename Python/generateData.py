@@ -7,6 +7,7 @@ import models as mo
 import metrics as me
 import macroecotools
 import mete as mete
+from scipy import stats
 
 mydir = os.path.expanduser("~/github/MicroMETE/")
 importS = imp.load_source('predictS', mydir + 'lognormal/predictS.py')
@@ -583,8 +584,297 @@ def stratifyData(zipfType = 'mle', \
         OUT1.close()
         OUT2.close()
 
+def stratifyData1000(zipfType = 'mle', iterations = 1000,  \
+    lognormType = 'pln', remove = True, data_dir= mydir, remove_obs = 0, seqSim = False):
+    # do this for the NSR2 only
+    # size of each dataset
+    if seqSim == False:
+        datasets = ['EMPclosed','HMP', 'MGRAST']
+    else:
+        datasets = ['SeqSim']
+    methods = ['geom', 'mete', 'zipf', 'lognorm']
+    #methods = ['zipf']
+    # Number of lines in each file
+    if remove_obs == 0 and seqSim == False:
+        totalSADs = 200
+    else:
+        totalSADs = 100
+    MGRAST_sites = 1174
+    HMP_sites = 4504
+    EMPclosed_sites = 14979
+    Total = MGRAST_sites + HMP_sites + EMPclosed_sites
+    for i, method in enumerate(methods):
+        print method
+        count_iter = iterations
+        if seqSim == False:
+            if method == 'zipf':
+                if remove_obs == 0:
+                    OUT2 = open(data_dir + 'data/NSR2/Stratified_Test/'+ method  + '_' + zipfType +'_NSR2_stratify.txt', 'wr')
+                else:
+                    OUT2 = open(data_dir + 'data/NSR2/Stratified_Test/Remove_' + str(remove_obs) + \
+                        's/'+ method  + '_' + zipfType +'_NSR2_' +  str(remove_obs) + '_stratify.txt', 'wr')
+            elif method == 'lognorm':
+                if remove_obs == 0:
+                    OUT2 = open(data_dir + 'data/NSR2/Stratified_Test/'+ method  + '_' + lognormType +'_NSR2_stratify.txt', 'wr')
+                else:
+                    OUT2 = open(data_dir + 'data/NSR2/Stratified_Test/Remove_' + str(remove_obs) + \
+                        's/'+ method  + '_' + lognormType +'_NSR2_' +  str(remove_obs) + '_stratify.txt', 'wr')
+            else:
+                if remove_obs == 0:
+                    OUT2 = open(data_dir + 'data/NSR2/Stratified_Test/'+ method  +'_NSR2_stratify.txt', 'wr')
+                else:
+                    OUT2 = open(data_dir + 'data/NSR2/Stratified_Test/Remove_' + str(remove_obs) + \
+                        's/'+ method  + '_NSR2_' +  str(remove_obs) + '_stratify.txt', 'wr')
+        else:
+            if method == 'zipf':
+                OUT2 = open(data_dir + 'data/NSR2/Stratified_Test/SequenceSimilarity/'+ method  + '_' + zipfType + '_' +seqSim +'_NSR2_stratify.txt', 'wr')
+            elif method == 'lognorm':
+                OUT2 = open(data_dir + 'data/NSR2/Stratified_Test/SequenceSimilarity/'+ method  + '_' + lognormType + '_' +seqSim  +'_NSR2_stratify.txt', 'wr')
+            else:
+                OUT2 = open(data_dir + 'data/NSR2/Stratified_Test/SequenceSimilarity/'+ method + '_' +seqSim +'_NSR2_stratify.txt', 'wr')
 
-stratifyData(remove_obs = 1)
+        count2 = 0
+        count1 = 0
+        N_iter = []
+        S_iter = []
+        NmaxObs_iter = []
+        NmaxPred_iter = []
+        evennessObs_iter = []
+        evennessPred_iter = []
+        skewnessObs_iter = []
+        skewnessPred_iter = []
+        R2_iter = []
+
+        slope1 = []
+        intercept1 = []
+        r_value1 = []
+        p_value1  = []
+        std_err1 = []
+        slope2 = []
+        intercept2 = []
+        r_value2 = []
+        p_value2  = []
+        std_err2 = []
+        slope3 = []
+        intercept3 = []
+        r_value3 = []
+        p_value3  = []
+        std_err3 = []
+        R2_std_iter = []
+        for iteration in range(0, iterations):
+            for j, dataset in enumerate(datasets):
+                lineCount = 0
+                removeSADs = []
+                if remove_obs == 0 and seqSim == False:
+                    get_bad_zipfs = importData.import_NSR2_data(data_dir + 'data/NSR2/' + 'zipf' + '_'+ 'mle' +'_'+dataset +'_NSR2.txt')
+                elif seqSim != False:
+                    get_bad_zipfs = importData.import_NSR2_data(data_dir + 'data/NSR2/' + 'zipf_mle_MGRAST' + seqSim +'_NSR2.txt')
+                else:
+                    get_bad_zipfs = importData.import_NSR2_data(data_dir + 'data/NSR2/Remove_' +str(remove_obs) + 's/zipf_mle_'+dataset  +'_NSR2_' +  str(remove_obs) +'.txt')
+                site = np.asarray(list(((get_bad_zipfs["site"]))))
+                N = np.asarray(list(((get_bad_zipfs["N"]))))
+                S = np.asarray(list(((get_bad_zipfs["S"]))))
+                r2s = np.asarray(list(((get_bad_zipfs["R2"]))))
+                zipNsite = zip(site, N, S, r2s)
+                for x in zipNsite:
+                    if remove_obs != 0:
+                        continue
+                    else:
+                        if float(x[3]) < 0.2:
+                            removeSADs.append(int(x[0]))
+                removeSADs = np.asarray(removeSADs)
+                #if dataset == 'MGRAST' and remove_obs == 0:
+                #    n = 239 - len(removeSADs)
+                #elif dataset == 'MGRAST' and remove_obs == 1:
+                #    n = 108 - len(removeSADs)
+                #else:
+                n = totalSADs
+                if remove_obs == 0:
+                    if method == 'zipf':
+                        if ( str(dataset) == 'EMPclosed') or ( str(dataset) == 'HMP') or \
+                            ( str(dataset) == 'EMPopen'):
+                            nsr2_data = importData.import_NSR2_data(data_dir + 'data/NSR2/' + method + '_'+ zipfType +'_'+ dataset+'_NSR2.txt')
+                        elif str(dataset) == 'MGRAST':
+                            nsr2_data = importData.import_NSR2_data(data_dir + 'data/NSR2/' + method+ '_'+ zipfType  + '_MGRAST_NSR2.txt')
+                        elif seqSim != False:
+                            nsr2_data = importData.import_NSR2_data(data_dir + 'data/NSR2/' + method+ '_'+ zipfType  + '_MGRAST'+ seqSim +'_NSR2.txt')
+                        else:
+                            nsr2_data = importData.import_NSR2_data(data_dir + 'data/NSR2/' + method+ '_'+ zipfType  + '_MGRAST'+dataset+'_NSR2.txt')
+                    elif method == 'lognorm':
+                        if ( str(dataset) == 'EMPclosed') or ( str(dataset) == 'HMP') or \
+                            ( str(dataset) == 'EMPopen'):
+                            nsr2_data = importData.import_NSR2_data(data_dir + 'data/NSR2/' + method + '_'+ lognormType +'_'+ dataset+'_NSR2.txt')
+                        elif str(dataset) == 'MGRAST':
+                            nsr2_data = importData.import_NSR2_data(data_dir + 'data/NSR2/' + method+ '_'+ lognormType  + '_MGRAST_NSR2.txt')
+                        elif seqSim != False:
+                            nsr2_data = importData.import_NSR2_data(data_dir + 'data/NSR2/' + method+ '_'+ lognormType  + '_MGRAST'+ seqSim +'_NSR2.txt')
+                        else:
+                            nsr2_data = importData.import_NSR2_data(data_dir + 'data/NSR2/' + method+ '_'+ lognormType  + '_MGRAST'+dataset+'_NSR2.txt')
+                    else:
+                        if ( str(dataset) == 'EMPclosed') or ( str(dataset) == 'HMP') or \
+                            ( str(dataset) == 'EMPopen'):
+                            nsr2_data = importData.import_NSR2_data(data_dir + 'data/NSR2/' + method+'_'+dataset+'_NSR2.txt')
+                        elif str(dataset) == 'MGRAST':
+                            nsr2_data = importData.import_NSR2_data(data_dir + 'data/NSR2/' + method+'_MGRAST_NSR2.txt')
+                        elif seqSim != False:
+                            nsr2_data = importData.import_NSR2_data(data_dir + 'data/NSR2/' + method + '_MGRAST'+ seqSim +'_NSR2.txt')
+                        else:
+                            nsr2_data = importData.import_NSR2_data(data_dir + 'data/NSR2/' + method+'_MGRAST'+dataset+'_NSR2.txt')
+                else:
+                    if method == 'zipf':
+                        nsr2_data = importData.import_NSR2_data(data_dir + 'data/NSR2/Remove_' \
+                            + str(remove_obs) + 's/' + method + '_'+ zipfType +'_'+dataset+'_NSR2_' +  str(remove_obs) +'.txt')
+                    elif method == 'lognorm':
+                        nsr2_data = importData.import_NSR2_data(data_dir + 'data/NSR2/Remove_' \
+                            + str(remove_obs) + 's/' + method + '_'+ lognormType +'_'+dataset+'_NSR2_' +  str(remove_obs) +'.txt')
+                    else:
+                        nsr2_data = importData.import_NSR2_data(data_dir + 'data/NSR2/Remove_' \
+                            + str(remove_obs) + 's/' + method +'_'+dataset+'_NSR2_' +  str(remove_obs) +'.txt')
+
+                siteNSR2 = np.asarray( map(float, list(((nsr2_data["site"])))))
+                N = np.asarray(list(((nsr2_data["N"]))))
+                S = np.asarray(list(((nsr2_data["S"]))))
+                NmaxObs = np.asarray(list(((nsr2_data["NmaxObs"]))))
+                NmaxPred = np.asarray(list(((nsr2_data["NmaxPred"]))))
+                if seqSim == False:
+                    evennessObs = np.asarray(list(((nsr2_data["evennessObs"]))))
+                    evennessPred = np.asarray(list(((nsr2_data["evennessPred"]))))
+                    skewnessObs = np.asarray(list(((nsr2_data["skewnessObs"]))))
+                    skewnessPred = np.asarray(list(((nsr2_data["skewnessPred"]))))
+                    R2 = np.asarray(list(((nsr2_data["R2"]))))
+                else:
+                    R2 = np.asarray(list(((nsr2_data["R2"]))))
+                # add regressions.
+                # N vs biodiversity metri
+
+                obs2 = []
+                pred2 = []
+                site2 = []
+                if remove == True:
+                    siteNSR2_cleaned = np.setdiff1d(siteNSR2, removeSADs)
+                    uniqueSites = np.unique(siteNSR2_cleaned)
+
+                else:
+                    uniqueSites = np.unique(siteNSR2)
+                randomSites = np.random.choice(uniqueSites, size=n, replace=False)
+                #for enumSite, randomSite in enumerate(randomSites):
+
+                N_iter_sample = []
+                S_iter_sample = []
+                NmaxObs_iter_sample = []
+                NmaxPred_iter_sample = []
+                evennessObs_iter_sample = []
+                evennessPred_iter_sample = []
+                skewnessObs_iter_sample = []
+                skewnessPred_iter_sample = []
+                R2_iter_sample = []
+                R2_iter_sample_Nmax = []
+
+
+                for enumSite, randomSite in enumerate(randomSites):
+                    for p, q in enumerate(siteNSR2):
+
+                        if q == randomSite :
+                            if seqSim == False:
+                                N_iter_sample.append( N[p])
+                                S_iter_sample.append(S[p])
+                                NmaxObs_iter_sample.append(NmaxObs[p])
+                                NmaxPred_iter_sample.append( NmaxPred[p])
+                                evennessObs_iter_sample.append(evennessObs[p])
+                                evennessPred_iter_sample.append(evennessPred[p])
+                                skewnessObs_iter_sample.append(skewnessObs[p])
+                                skewnessPred_iter_sample.append(skewnessPred[p])
+                                R2_iter_sample.append(R2[p])
+                            else:
+                                N_iter_sample.append( N[p])
+                                S_iter_sample.append(S[p])
+                                R2_iter_sample.append(R2[p])
+
+                if seqSim == False:
+                    N_iter.append(np.mean(N_iter_sample))
+                    S_iter.append(np.mean(S_iter_sample))
+                    NmaxObs_iter.append(np.mean(NmaxObs_iter_sample))
+                    NmaxPred_iter.append(np.mean(NmaxPred_iter_sample))
+                    evennessObs_iter.append(np.mean(evennessObs_iter_sample))
+                    evennessPred_iter.append(np.mean(evennessPred_iter_sample))
+                    skewnessObs_iter.append(np.mean(skewnessObs_iter_sample))
+                    skewnessPred_iter.append(np.mean(skewnessPred_iter_sample))
+                    R2_iter.append(np.mean(R2_iter_sample))
+                    R2_std_iter.append(np.std(R2_iter_sample))
+                else:
+                    N_iter.append(np.mean(N_iter_sample))
+                    S_iter.append(np.mean(S_iter_sample))
+                    R2_iter.append(np.mean(R2_iter_sample))
+                    R2_std_iter.append(np.std(R2_iter_sample))
+                if seqSim == False:
+                    slope1_iter, intercept1_iter, r_value1_iter, p_value1_iter, std_err1_iter = stats.linregress(np.log10(N_iter_sample),np.log10(NmaxPred_iter_sample))
+                    slope2_iter, intercept2_iter, r_value2_iter, p_value2_iter, std_err2_iter = stats.linregress(np.log10(N_iter_sample),np.log10(evennessPred_iter_sample))
+                    slope3_iter, intercept3_iter, r_value3_iter, p_value3_iter, std_err3_iter = stats.linregress(np.log10(N_iter_sample),np.log10(skewnessPred_iter_sample))
+
+                    slope1.append(slope1_iter)
+                    intercept1.append(intercept1_iter)
+                    r_value1.append(r_value1_iter)
+                    p_value1.append(p_value1_iter)
+                    std_err1.append(std_err2_iter)
+                    slope2.append(slope2_iter)
+                    intercept2.append(intercept2_iter)
+                    r_value2.append(r_value2_iter)
+                    p_value2.append(p_value2_iter)
+                    std_err2.append(std_err2_iter)
+                    slope3.append(slope3_iter)
+                    intercept3.append(intercept3_iter)
+                    r_value3.append(r_value3_iter)
+                    p_value3.append(p_value3_iter)
+                    std_err3.append(std_err3_iter)
+
+                #R2_Nmax_iter_sample = macroecotools.obs_pred_rsquare(np.log10(NmaxObs_iter_sample), np.log10(NmaxPred_iter_sample))
+                #R2_Nmax_iter.append(R2_Nmax_iter_sample)
+
+                count1 += 1
+
+            print str(count_iter)  + " iteration(s) to go!"
+            count_iter -=1
+
+        for k in range(0, iterations):
+            if seqSim == False:
+                print>> OUT2, k, int(np.mean([N_iter[k], N_iter[k+iterations], N_iter[k + (2* iterations)]] )), \
+                                int(np.mean([S_iter[k], S_iter[k+iterations], S_iter[k + (2* iterations)] ])), \
+                                int(np.mean([NmaxObs_iter[k], NmaxObs_iter[k+iterations], NmaxObs_iter[k + (2* iterations)] ])), \
+                                int(np.mean([NmaxPred_iter[k], NmaxPred_iter[k+iterations], NmaxPred_iter[k + (2* iterations)] ])),\
+                                np.mean([evennessObs_iter[k], evennessObs_iter[k+iterations], evennessObs_iter[k + (2* iterations)] ]), \
+                                np.mean([evennessPred_iter[k], evennessPred_iter[k+iterations], evennessPred_iter[k + (2* iterations)] ]), \
+                                np.mean([skewnessObs_iter[k], skewnessObs_iter[k+iterations], skewnessObs_iter[k + (2* iterations)] ]), \
+                                np.mean([skewnessPred_iter[k], skewnessPred_iter[k+iterations], skewnessPred_iter[k + (2* iterations)] ]), \
+                                np.mean([R2_iter[k], R2_iter[k+iterations], R2_iter[k + (2* iterations)] ]), \
+                                np.mean([R2_std_iter[k], R2_std_iter[k+iterations], R2_std_iter[k + (2* iterations)] ]), \
+                                np.mean([slope1[k], slope1[k+iterations], slope1[k + (2* iterations)] ]), \
+                                np.mean([intercept1[k], intercept1[k+iterations], intercept1[k + (2* iterations)] ]),\
+                                np.mean([r_value1[k], r_value1[k+iterations], r_value1[k + (2* iterations)] ]),\
+                                np.mean([p_value1[k], p_value1[k+iterations], p_value1[k + (2* iterations)] ]),\
+                                np.mean([std_err1[k], std_err1[k+iterations], std_err1[k + (2* iterations)] ]), \
+                                np.mean([slope2[k], slope2[k+iterations], slope2[k + (2* iterations)] ]),\
+                                np.mean([intercept2[k], intercept2[k+iterations], intercept2[k + (2* iterations)] ]),\
+                                np.mean([r_value2[k], r_value2[k+iterations], r_value2[k + (2* iterations)] ]),\
+                                np.mean([p_value2[k], p_value2[k+iterations], p_value2[k + (2* iterations)] ]),\
+                                np.mean([std_err2[k], std_err2[k+iterations], std_err2[k + (2* iterations)] ]),\
+                                np.mean([slope3[k], slope3[k+iterations], slope3[k + (2* iterations)] ]), \
+                                np.mean([intercept3[k], intercept3[k+iterations], intercept3[k + (2* iterations)] ]),\
+                                np.mean([r_value3[k], r_value3[k+iterations], r_value3[k + (2* iterations)] ]), \
+                                np.mean([p_value3[k], p_value3[k+iterations], p_value3[k + (2* iterations)] ]), \
+                                np.mean([std_err3[k], std_err3[k+iterations], std_err3[k + (2* iterations)] ])
+            else:
+                print>> OUT2, k, int(N_iter[k]), \
+                                int(S_iter[k]), \
+                                R2_iter[k], \
+                                R2_std_iter[k]
+        OUT2.close()
+
+#stratifyData1000(remove_obs = 0, seqSim = '95')
+#stratifyData1000(remove_obs = 0, seqSim = '97')
+stratifyData1000(remove_obs = 0, seqSim = '99')
+#stratifyData1000(remove_obs = 1)
+#stratifyData1000(remove_obs = 1)
+
 #datasets = ['EMPclosed','HMP', 'MGRAST']
 #datasets = ['EMPclosed']
 #methods = ['zipf']
