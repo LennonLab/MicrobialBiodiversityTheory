@@ -565,13 +565,13 @@ def get_GeomSeries(N,S,zeros):
 
 def generate_obs_pred_data(datasets, methods, size = 0, remove = 0, zipfType = 'mle', lognormType = 'pln'):
     remove = int(remove)
-    if remove != 0:
-        newpath1 = mydir + "ObsPred/Remove_" + str(remove) + 's/'
-        if not os.path.exists(newpath1):
-            os.makedirs(newpath1)
-        newpath2 = mydir + "NSR2/Remove_" + str(remove) + 's/'
-        if not os.path.exists(newpath2):
-            os.makedirs(newpath2)
+    #if remove != 0:
+    #    newpath1 = mydir + "ObsPred/Remove_" + str(remove) + 's/'
+    #    if not os.path.exists(newpath1):
+    #        os.makedirs(newpath1)
+    #    newpath2 = mydir + "NSR2/Remove_" + str(remove) + 's/'
+    #    if not os.path.exists(newpath2):
+    #        os.makedirs(newpath2)
     for method in methods:
         for dataset in datasets:
 
@@ -2104,18 +2104,6 @@ def stratifyData(methods,datasets, totalSADs = 500, zipfType = 'mle', lognormTyp
             #site = np.asarray(site2)
             k_minus1 = obs2[0]
 
-            #for k, zippedTuple in enumerate(zippedSiteObsPred):
-            #    if (k == 0):
-            #        print>> OUT1, count_sites, zippedTuple[1], zippedTuple[2]
-            #    elif k != 0 and obs2[k] > obs2[k-1]:
-            #        count_sites += 1
-            #        print>> OUT1, count_sites, zippedTuple[1], zippedTuple[2]
-            #    else:
-            #        print>> OUT1, count_sites, zippedTuple[1], zippedTuple[2]
-
-            #    count2 += 1
-
-            #site =  np.asarray(site2)
         OUT1.close()
         OUT2.close()
 
