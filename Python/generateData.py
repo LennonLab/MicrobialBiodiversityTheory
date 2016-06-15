@@ -2,19 +2,249 @@ from __future__ import division
 import os, sys, signal, collections, argparse, optparse, math, datetime, imp
 import importData as importData
 import numpy as np
+import pandas as pd
 from operator import itemgetter
-import models as mo
-import metrics as me
+import ModelsAndMetrics as mo
 import macroecotools
 import mete as mete
 from scipy import stats
 
 mydir = os.path.expanduser("~/github/MicroMETE/")
-importS = imp.load_source('predictS', mydir + 'lognormal/predictS.py')
-simLogNormFile = imp.load_source('sim_lognormal', mydir + 'lognormal/sim_lognormal.py')
 
-'''It works!'''
-#S = importS.predictS(1000, 900, predictNmax=True).getS()
+
+"""This code was written using MIT liscenced code from the following Weecology
+repos: METE (https://github.com/weecology/METE) and macroecotools
+(https://github.com/weecology/macroecotools). """
+
+
+def HMP_OTU_to_sparese_SbyS():
+    otu_count = pd.read_table('~/github/MicroMETE/data/HMP-Data/hmp1.v35.hq.otu.counts.txt', sep='\t', index_col=False)
+    sparsesbys = pd.melt(otu_count, id_vars=['collection'])
+    sparsesbys = sparsesbys[sparsesbys['value'] > 0]
+    sparsesbys.columns = ['Sample', 'OTU', 'Count']
+    sparsesbys.to_csv("../data/HMP-Data/HMPsparseSbyS.txt", sep='\t', index=False)
+
+def Match_NAP_to_sparse_SbyS(timeseries):
+    IN = mydir + 'HMP-Data/ppAll_V35_map.txt'
+    metadata = pd.read_table(IN, sep='\t', index_col=False)
+    timeseries = bool(timeseries)
+    metadata = metadata[np.isfinite(metadata['NAP'])]
+    metadata[['NAP']] = metadata[['NAP']].astype(str)
+    metadata.drop_duplicates(cols='NAP', take_last=True)
+    if timeseries == True:
+        pass
+    else:
+        metadata[['VisitNo']] = metadata[['VisitNo']].astype(float)
+        metadata = metadata.loc[metadata['VisitNo'] == float(1)]
+        metadata.to_csv("../data/HMP-Data/ppAll_V35_map_noTimeseries.txt", sep='\t', index=False)
+    print metadata.shape
+    # Pull the RSID number & convert to numpy array
+    NAPs = metadata[['NAP']].values
+    NAPs = NAPs.flatten()
+    #print NAPs
+    #RSIDs = map(str, RSIDs)
+    IN_OTU = mydir + 'HMP-Data/HMPsparseSbyS.txt'
+    if timeseries == True:
+        OUT = open(mydir + 'HMP-Data/HMPsparseSbyS_NAP.txt','w+')
+    else:
+        OUT = open(mydir + 'HMP-Data/HMPsparseSbyS_NAP_noTimeseries.txt','w+')
+    for j, line in enumerate(open(IN_OTU)):
+        if '.PPS' in line:
+            continue
+        else:
+            line_split = line.split()
+            OTU = line_split[1]
+            count = line_split[2]
+            NAP = str(line_split[0].split('.')[0])
+            try:
+                float(NAP)
+                NAP_test = str(NAP) + '.0'
+                if NAP_test  in NAPs:
+                    print>> OUT, line_split[0], OTU, count
+            except ValueError:
+                print "Not a float"
+
+def get_SADs(path, name, closedref=True):
+    SADdict = {}
+    DATA = path + name + '-data.txt'
+
+    with open(DATA) as f:
+
+        for d in f:
+            if d.strip():
+                d = d.split()
+                if name == 'GENTRY':
+                    site = d[0]
+                    #species = d[1] # Dataset name plus species identifier
+                    abundance = float(d[-1])
+
+                else:
+                    site = d[0]
+                    if closedref == True:
+                        for i in d:
+                            if 'unclassified' in i:
+                                #print 'unclassified'
+                                continue
+                            elif 'unidentified' in i:
+                                #print 'unidentified'
+                                continue
+
+                    abundance = float(d[-1])
+
+                if abundance > 0:
+                    if site in SADdict:
+                        SADdict[site].append(abundance)
+                    else:
+                        SADdict[site] = [abundance]
+
+    SADs = SADdict.values()
+    filteredSADs = []
+    for sad in SADs:
+        if len(sad) >= 10:
+            filteredSADs.append(sad)
+    return filteredSADs
+
+
+def get_SADs_HMP(path, timeseries):
+    timeseries = bool(timeseries)
+    if timeseries == True:
+        IN = path + 'HMP-Data/HMPsparseSbyS_NAP.txt'
+        OUT =  open(path+'HMP-Data/' + 'HMP-SADs_NAP.txt', 'w+')
+    else:
+        IN = path + 'HMP-Data/HMPsparseSbyS_NAP_noTimeseries.txt'
+        OUT =  open(path+'HMP-Data/' + 'HMP-SADs_NAP_noTimeseries.txt', 'w+')
+    SADdict = {}
+    with open(IN) as f:
+        for d in f:
+            if d.strip():
+                d = d.split()
+                site = d[0]
+                abundance = int(d[-1])
+                if abundance > 0:
+                    if site not in SADdict:
+                        #SADdict[site] = [abundance]
+                        SADdict[site] = [abundance]
+                    else:
+                        SADdict[site].append(abundance)
+
+    filtered_SADdict = {}
+
+    for key, value in SADdict.iteritems():
+        if len(value) >= 10:
+            filtered_SADdict[key] = value
+
+    print "You have " + str(len(SADdict)) + " sites"
+
+    # first value of the line is the site name, rest is SAD
+    # site name filtered out in generate obs pred data
+    for key, value in filtered_SADdict.iteritems():
+        output = value.insert(0,key)
+        print>> OUT, value
+
+
+def get_SADs_mgrast(path, thresholds):
+
+    datasets = ['BOVINE', 'CATLIN', 'CHU', 'HYDRO', 'LAUB']
+
+    for t in thresholds:
+        SADdict = {}
+
+        for d in datasets:
+            name = d+t
+            print name
+
+            filepath  = path + 'MGRAST-Data/'+t+'/'+name+'/'+name+'-data.txt'
+            with open(filepath) as f:
+                for d in f:
+                    if d.strip():
+                        d = d.split()
+                        site = d[0]
+                        abundance = int(d[-1])
+
+                        if abundance > 0:
+                            if site in SADdict:
+                                SADdict[site].append(abundance)
+                            else:
+                                SADdict[site] = [abundance]
+        SADs = SADdict.values()
+        filteredSADs = []
+
+        for sad in SADs:
+            if len(sad) >= 10:
+                filteredSADs.append(sad)
+
+        print t, len(filteredSADs)
+
+        OUT =  open(path+'MGRAST-Data/'+t+'/MGRAST-'+t+'-SADs.txt', 'w')
+
+        for sad in SADs:
+            print>> OUT, sad
+
+def merge_SADs_mgrast(path):
+    SADdict = {}
+    fungi_list = map(str,np.arange(4484945.3, 4485075.3,1))
+    filepath  = path + 'MGRAST-Data/MGRAST/MGRAST-data.txt'
+    with open(filepath, 'r') as f:
+        for d in f:
+            if d.strip():
+                d = d.split()
+                site = d[0]
+                abundance = d[-1]
+                if ('-' in str(site))  or (str(site) in fungi_list):
+                     continue
+                abundance = int(abundance)
+                if abundance > 0:
+                    if site in SADdict:
+                        SADdict[site].append(abundance)
+                    else:
+                        SADdict[site] = [abundance]
+        SADs = SADdict.values()
+        filteredSADs = []
+
+        for sad in SADs:
+            if len(sad) >= 10:
+                filteredSADs.append(sad)
+
+        print  len(filteredSADs)
+
+        OUT =  open(path+'MGRAST-Data/MGRAST/MGRAST-SADs.txt', 'w')
+
+        for sad in SADs:
+            print>> OUT, sad
+
+
+def EMP_SADs(path, name, mgrast):
+    minS = 10
+    IN = path + '/' + name + '-SSADdata.txt'
+    n = sum(1 for line in open(IN))
+
+    SiteDict = {}
+
+    with open(IN) as f:
+        for d in f:
+            n -= 1
+            if d.strip():
+
+                d = d.split()
+                #species = d[0]
+                sample = d[1]
+                abundance = float(d[2])
+
+                if abundance > 0:
+
+                    if sample not in SiteDict:
+                        SiteDict[sample] = [abundance]
+
+                    else:
+                        SiteDict[sample].append(abundance)
+    SADs = SiteDict.values()
+    filteredSADs = []
+    for sad in SADs:
+        if len(sad) >= minS:
+            filteredSADs.append(sad)
+    return filteredSADs
+
+
 
 def generate_obs_pred_data(datasets, methods, size = 0, remove_obs = 0, zipfType = 'mle', lognormType = 'pln'):
     remove_obs = int(remove_obs)
@@ -178,8 +408,8 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove_obs = 0, zipfType
                 N = sum(obs)
                 S = len(obs)
                 NmaxObs = np.amax(obs)
-                evennessObs = me.e_simpson(obs)
-                skewnessObs = me.skewness(obs)
+                evennessObs = mo.e_simpson(obs)
+                skewnessObs = mo.skewness(obs)
 
 
                 if S <= 10 or N <= S:
@@ -274,14 +504,15 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove_obs = 0, zipfType
                             signal.alarm(0)
                 print pred
                 NmaxPred = np.amax(pred)
-                evennessPred = me.e_simpson(pred)
-                skewnessPred = me.skewness(pred)
+                evennessPred = mo.e_simpson(pred)
+                skewnessPred = mo.skewness(pred)
                 r2 = macroecotools.obs_pred_rsquare(np.log10(obs), np.log10(pred))
                 print " r2:", r2
                 if r2 == -float('inf') or r2 == float('inf') or r2 == float('Nan'):
                     print r2 + " is Nan or inf, removing..."
                     continue
-                print method
+                if dataset == 'EMPclosed' and r2 < 0.2:
+                    continue
                 if method == 'zipf':
 
                     if dataset == 'EMPclosed' or dataset == 'EMPopen' or dataset == 'HMP':
@@ -324,82 +555,6 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove_obs = 0, zipfType
             OUT2.close()
         print dataset
 
-
-
-def getLogNormSim(testNumber = 100, sample_size = 1000):
-    '''This function randomly samples a number of sites set by testNumber from
-    'Stratified' dataset using the 75-25 simulation for the lognormal.
-    Because some SADs take a very long time to generate (> 2 minutes), the function
-    runs on a timer with a timeout function that moves to the next randomly chosed
-    SAD (sampled without replacement), stopping when after testNumber of successful
-    runs.
-    '''
-    IN_NSR2 = importData.import_NSR2_data(mydir + 'data/NSR2/Stratified/lognorm_pln_NSR2_stratify.txt')
-    IN_Obs_Pred = importData.import_obs_pred_data(mydir + 'data/ObsPred/Stratified/lognorm_pln_obs_pred_stratify.txt')
-    OUT = open(mydir + 'data/ObsPred/Stratified/lognorm_75_25_obs_pred_stratify_test.txt', 'w+')
-    siteNSR2 = np.asarray(list(((IN_NSR2["site"]))))
-    N = np.asarray(list(((IN_NSR2["N"]))))
-    S = np.asarray(list(((IN_NSR2["S"]))))
-    siteObsPred = np.asarray(list(((IN_Obs_Pred["site"]))))
-    obs = np.asarray(list(((IN_Obs_Pred["obs"]))))
-    pred = np.asarray(list(((IN_Obs_Pred["pred"]))))
-
-    uniqueSites = np.unique(siteNSR2)
-    #randomSites = np.random.choice(uniqueSites, size=testNumber, replace=False)
-    obs7525 = []
-    pred7525 = []
-    sites7525 = []
-
-    pred_pln = []
-    sites_pln =[]
-    signal.signal(signal.SIGALRM, mo.timeout_handler)
-
-    count = testNumber
-    while count > 0:
-        #randomSite = np.random.choice(uniqueSites, size=1, replace=False)
-        index = random.randint(0,len(uniqueSites)-1)
-        randomSite = uniqueSites[index]
-        uniqueSites = np.delete(uniqueSites,index)
-        for i, site in enumerate(siteNSR2):
-            if site == randomSite:
-                N_i = N[i]
-                S_i = S[i]
-                a = datetime.datetime.now()
-                #siteNSR2_i = siteNSR2[i]
-                SAD =  simLogNormFile.simLogNorm(N_i, S_i, sample_size).SimLogNormInt()
-                if len(SAD) != S_i:
-                    continue
-                print 'countdown: ' + str(count)
-                print site, S_i, len(SAD)
-                count -= 1
-                for j in SAD:
-                    pred7525.append(j)
-                    sites7525.append(site)
-
-    zipSitesPred7527 = zip(sites7525, pred7525)
-    #print zipSitesPred7527
-    indexes = np.unique(sites7525, return_index=True)[1]
-    uniqueSites7525 = [sites7525[index] for index in sorted(indexes)]
-    zipOsPredPln = zip(siteObsPred, obs, pred)
-    zipOsPredPlnFilter = [x for x in zipOsPredPln if x[0] in uniqueSites7525]
-    #print zipOsPredPlnFilter
-    #print len(zipOsPredPlnFilter)
-    #zipSitesPred7527Sort = sorted(L, key=itemgetter(0))
-
-    countTest = 0
-    for spot, uniqueSite7525 in enumerate(uniqueSites7525):
-        for r, s in enumerate(siteObsPred):
-            if int(s) == uniqueSite7525:
-                print>> OUT, int(zipSitesPred7527[spot][0]),int(obs[r]), int(pred[r]), int(zipSitesPred7527[countTest][1])
-                countTest += 1
-                #obs7525.append(obs[r])
-                #pred_pln.append(pred[r])
-                #sites_pln.append(s)
-    #print "pred sites obs752527 pred7525    "
-    #print len(pred_pln), len(sites_pln), len(obs7525), len(pred7525)
-    #for x, site_x in enumerate(sites7525):
-    #    print>> OUT, int(site_x), int(sites_pln[x]),int(obs7525[x]), int(pred7525[x]), int(pred_pln[x])
-    OUT.close()
 
 def stratifyData(zipfType = 'mle', \
     lognormType = 'pln', remove = True, data_dir= mydir, remove_obs = 0):
@@ -550,8 +705,6 @@ def stratifyData(zipfType = 'mle', \
             print n, len(uniqueSites)
             randomSites = np.random.choice(uniqueSites, size=n, replace=False)
 
-            #for enumSite, randomSite in enumerate(randomSites):
-
             print len(np.unique(site)),  len(siteNSR2)
             for enumSite, randomSite in enumerate(randomSites):
                 for p, q in enumerate(siteNSR2):
@@ -565,13 +718,7 @@ def stratifyData(zipfType = 'mle', \
                         site2.append(s)
                         print>> OUT1, count1, obs[r], pred[r]
                 count1 += 1
-                    #if (r == 0):
-                    #    print>> OUT1, count_sites, obs[r], pred[r]
-                    #elif r != 0 and obs[r] > obs[r-1]:
-                    #    count_sites += 1
-                    #    print>> OUT1, count_sites, obs[r], pred[r]
-                    #else:
-                    #    print>> OUT1, count_sites, obs[r], pred[r]
+
 
             print method, dataset
 
@@ -593,7 +740,6 @@ def stratifyData1000(zipfType = 'mle', iterations = 1000,  \
     else:
         datasets = ['SeqSim']
     methods = ['geom', 'mete', 'zipf', 'lognorm']
-    #methods = ['zipf']
     # Number of lines in each file
     if remove_obs == 0 and seqSim == False:
         totalSADs = 200
