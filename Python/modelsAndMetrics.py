@@ -7,16 +7,69 @@ from scipy.stats import nbinom
 import numpy as np
 import pandas as pd
 from macroeco_distributions import pln, pln_solver, negbin_solver, trunc_geom
+from scipy.optimize import fsolve
+import scipy.optimize as opt
+from numpy import log, log2, exp, sqrt, log10
+from math import erf, pi
 
 
-mydir = os.path.dirname(os.path.realpath(__file__))
-mydir = str(mydir[:-6]) + 'data/'
+mydir = os.path.expanduser("~/github/MicroMETE/data/")
 
 
 """This code was written using MIT liscenced code from the following Weecology
 repos: METE (https://github.com/weecology/METE) and macroecotools
 (https://github.com/weecology/macroecotools). """
 
+
+
+class predictS:
+    def __init__(self, N, Nmax, predictNmax = True):
+        self.N = N
+        self.Nmax = Nmax
+        self.predictNmax = predictNmax
+
+    def alpha(self, a, Nmax, Nmin=1):
+
+        """Numerically solve for Preston's a. Needed to estimate S using the lognormal"""
+
+        y = sqrt(pi*Nmin*Nmax)/(2.0*a) * exp((a * log2(sqrt(Nmax/Nmin)))**2.0)
+        y = y * exp((log(2.0)/(2.0*a))**2.0)
+        y = y * erf(a * log2(sqrt(Nmax/Nmin)) - log(2.0)/(2.0*a))
+        y += erf(a * log2(sqrt(Nmax/Nmin)) + log(2.0)/(2.0*a))
+        y -= self.N
+
+        return y # find alpha
+
+    def s(self, a, Nmax, Nmin=1):
+
+        """Predict S from the lognormal using Nmax as the only empirical input"""
+
+        return sqrt(pi)/a * exp( (a * log2(sqrt(Nmax/Nmin)))**2) # Using equation 10
+
+
+    def getNmax(self, b=0.6148, slope=0.942904468437):
+
+        """Predict Nmax using N and the scaling law of Nmax with N predicted by the lognormal"""
+
+        #NmaxCalc = 10 ** (b + slope*(log10(self.N)))
+        NmaxCalc = (self.N **  slope) * b
+        return int(round(NmaxCalc))
+
+
+    def getS(self, predictNmax=True):
+
+        guess = 0.1 # initial guess for Pre ston's alpha
+        Nmin = 1
+
+        if self.predictNmax == True:
+            Nmax = self.getNmax()
+        else:
+            Nmax = self.Nmax
+
+        a = opt.fsolve(self.alpha, guess, (Nmax, Nmin))[0]
+        S2 = self.s(a, Nmax, 1)
+
+        return int(round(S2))
 
 class TimeoutException(Exception):   # Custom exception class
     pass
