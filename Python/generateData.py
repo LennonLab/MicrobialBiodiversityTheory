@@ -4,7 +4,7 @@ import importData as importData
 import numpy as np
 import pandas as pd
 from operator import itemgetter
-import ModelsAndMetrics as mo
+import modelsAndMetrics as mo
 import macroecotools
 import mete as mete
 from scipy import stats
@@ -17,15 +17,15 @@ repos: METE (https://github.com/weecology/METE) and macroecotools
 (https://github.com/weecology/macroecotools). """
 
 
-def HMP_OTU_to_sparese_SbyS():
-    otu_count = pd.read_table('~/github/MicroMETE/data/HMP-Data/hmp1.v35.hq.otu.counts.txt', sep='\t', index_col=False)
+def HMP_OTU_to_sparese_SbyS(path=mydir):
+    otu_count = pd.read_table(path + 'data/HMP-Data/hmp1.v35.hq.otu.counts.txt', sep='\t', index_col=False)
     sparsesbys = pd.melt(otu_count, id_vars=['collection'])
     sparsesbys = sparsesbys[sparsesbys['value'] > 0]
     sparsesbys.columns = ['Sample', 'OTU', 'Count']
-    sparsesbys.to_csv("../data/HMP-Data/HMPsparseSbyS.txt", sep='\t', index=False)
+    sparsesbys.to_csv(path + "data/HMP-Data/HMPsparseSbyS.txt", sep='\t', index=False)
 
-def Match_NAP_to_sparse_SbyS(timeseries):
-    IN = mydir + 'HMP-Data/ppAll_V35_map.txt'
+def Match_NAP_to_sparse_SbyS(path=mydir, timeseries=True):
+    IN = path + 'data/HMP-Data/ppAll_V35_map.txt'
     metadata = pd.read_table(IN, sep='\t', index_col=False)
     timeseries = bool(timeseries)
     metadata = metadata[np.isfinite(metadata['NAP'])]
@@ -36,18 +36,16 @@ def Match_NAP_to_sparse_SbyS(timeseries):
     else:
         metadata[['VisitNo']] = metadata[['VisitNo']].astype(float)
         metadata = metadata.loc[metadata['VisitNo'] == float(1)]
-        metadata.to_csv("../data/HMP-Data/ppAll_V35_map_noTimeseries.txt", sep='\t', index=False)
+        metadata.to_csv(path + "data/HMP-Data/ppAll_V35_map_noTimeseries.txt", sep='\t', index=False)
     print metadata.shape
     # Pull the RSID number & convert to numpy array
     NAPs = metadata[['NAP']].values
     NAPs = NAPs.flatten()
-    #print NAPs
-    #RSIDs = map(str, RSIDs)
-    IN_OTU = mydir + 'HMP-Data/HMPsparseSbyS.txt'
+    IN_OTU = path + 'data/HMP-Data/HMPsparseSbyS.txt'
     if timeseries == True:
-        OUT = open(mydir + 'HMP-Data/HMPsparseSbyS_NAP.txt','w+')
+        OUT = open(path + 'data/HMP-Data/HMPsparseSbyS_NAP.txt','w+')
     else:
-        OUT = open(mydir + 'HMP-Data/HMPsparseSbyS_NAP_noTimeseries.txt','w+')
+        OUT = open(path + 'data/HMP-Data/HMPsparseSbyS_NAP_noTimeseries.txt','w+')
     for j, line in enumerate(open(IN_OTU)):
         if '.PPS' in line:
             continue
@@ -83,10 +81,8 @@ def get_SADs(path, name, closedref=True):
                     if closedref == True:
                         for i in d:
                             if 'unclassified' in i:
-                                #print 'unclassified'
                                 continue
                             elif 'unidentified' in i:
-                                #print 'unidentified'
                                 continue
 
                     abundance = float(d[-1])
@@ -105,14 +101,14 @@ def get_SADs(path, name, closedref=True):
     return filteredSADs
 
 
-def get_SADs_HMP(path, timeseries):
+def get_SADs_HMP(path= mydir, timeseries=True):
     timeseries = bool(timeseries)
     if timeseries == True:
-        IN = path + 'HMP-Data/HMPsparseSbyS_NAP.txt'
+        IN = path + 'data/HMP-Data/HMPsparseSbyS_NAP.txt'
         OUT =  open(path+'HMP-Data/' + 'HMP-SADs_NAP.txt', 'w+')
     else:
-        IN = path + 'HMP-Data/HMPsparseSbyS_NAP_noTimeseries.txt'
-        OUT =  open(path+'HMP-Data/' + 'HMP-SADs_NAP_noTimeseries.txt', 'w+')
+        IN = path + 'data/HMP-Data/HMPsparseSbyS_NAP_noTimeseries.txt'
+        OUT =  open(path+'data/HMP-Data/' + 'HMP-SADs_NAP_noTimeseries.txt', 'w+')
     SADdict = {}
     with open(IN) as f:
         for d in f:
@@ -142,7 +138,7 @@ def get_SADs_HMP(path, timeseries):
         print>> OUT, value
 
 
-def get_SADs_mgrast(path, thresholds):
+def get_SADs_mgrast(path = mydir, thresholds=1):
 
     datasets = ['BOVINE', 'CATLIN', 'CHU', 'HYDRO', 'LAUB']
 
@@ -153,7 +149,7 @@ def get_SADs_mgrast(path, thresholds):
             name = d+t
             print name
 
-            filepath  = path + 'MGRAST-Data/'+t+'/'+name+'/'+name+'-data.txt'
+            filepath  = path + 'data/MGRAST-Data/'+t+'/'+name+'/'+name+'-data.txt'
             with open(filepath) as f:
                 for d in f:
                     if d.strip():
@@ -180,10 +176,10 @@ def get_SADs_mgrast(path, thresholds):
         for sad in SADs:
             print>> OUT, sad
 
-def merge_SADs_mgrast(path):
+def merge_SADs_mgrast(path = mydir):
     SADdict = {}
     fungi_list = map(str,np.arange(4484945.3, 4485075.3,1))
-    filepath  = path + 'MGRAST-Data/MGRAST/MGRAST-data.txt'
+    filepath  = path + 'data/MGRAST-Data/MGRAST/MGRAST-data.txt'
     with open(filepath, 'r') as f:
         for d in f:
             if d.strip():
@@ -213,9 +209,9 @@ def merge_SADs_mgrast(path):
             print>> OUT, sad
 
 
-def EMP_SADs(path, name, mgrast):
+def EMP_SADs(path= mydir, name, mgrast):
     minS = 10
-    IN = path + '/' + name + '-SSADdata.txt'
+    IN = path + 'data' + name + '-SSADdata.txt'
     n = sum(1 for line in open(IN))
 
     SiteDict = {}
@@ -386,7 +382,6 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove_obs = 0, zipfType
             print OUT1, OUT2
             for j,line in enumerate(open(IN)):
                 if dataset == "HMP":
-                    #line = line.split()
                     line = line.strip().split(',')
                     line = [x.strip(' ') for x in line]
                     line = [x.strip('[]') for x in line]
@@ -459,11 +454,9 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove_obs = 0, zipfType
                     pred = np.ceil(zipf_glm)
                     pred.astype(int)
                     print line_count
-                    #numpy.ceil
                 elif method == 'zipf' and zipfType == 'rgf':
                     a = datetime.datetime.now()
 
-                    #line = map(int, line)
                     # Start the timer. Once 1 second is over, a SIGALRM signal is sent.
                     signal.alarm(3)
                     # This try/except loop ensures that
@@ -484,7 +477,6 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove_obs = 0, zipfType
 
                 elif method == 'zipf' and zipfType == 'mle':
 
-                        #line = map(int, line)
                         # Start the timer. Once 1 second is over, a SIGALRM signal is sent.
                         signal.alarm(6)
                         # This try/except loop ensures that
@@ -492,7 +484,6 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove_obs = 0, zipfType
                         try:
                             # Whatever your function that might hang
                             # use S
-                            #rv = stats.zipf(Zipf_solve_line)
                             zipf_class = mo.zipf(obs, 'fmin')
                             pred_tuple = zipf_class.from_cdf()
                             pred = pred_tuple[0]
@@ -556,17 +547,14 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove_obs = 0, zipfType
         print dataset
 
 
-def stratifyData(zipfType = 'mle', \
+def stratifyData(datasets, zipfType = 'mle', \
     lognormType = 'pln', remove = True, data_dir= mydir, remove_obs = 0):
     if remove_obs == 0:
         totalSADs = 239
     else:
         totalSADs = 108
-    datasets = ['EMPclosed','HMP', 'MGRAST']
-    #datasets = ['EMPclosed','HMP']
-    #methods = ['geom', 'mete', 'zipf', 'lognorm']
-    methods = [ 'lognorm']
-    # Number of lines in each file
+    methods = ['geom', 'mete', 'zipf', 'lognorm']
+
     MGRAST_sites = 1174
     HMP_sites = 4504
     EMPclosed_sites = 14979
@@ -718,8 +706,6 @@ def stratifyData(zipfType = 'mle', \
                         site2.append(s)
                         print>> OUT1, count1, obs[r], pred[r]
                 count1 += 1
-
-
             print method, dataset
 
             obs = np.asarray(obs2)
@@ -890,8 +876,6 @@ def stratifyData1000(zipfType = 'mle', iterations = 1000,  \
                     R2 = np.asarray(list(((nsr2_data["R2"]))))
                 else:
                     R2 = np.asarray(list(((nsr2_data["R2"]))))
-                # add regressions.
-                # N vs biodiversity metri
 
                 obs2 = []
                 pred2 = []
@@ -903,7 +887,6 @@ def stratifyData1000(zipfType = 'mle', iterations = 1000,  \
                 else:
                     uniqueSites = np.unique(siteNSR2)
                 randomSites = np.random.choice(uniqueSites, size=n, replace=False)
-                #for enumSite, randomSite in enumerate(randomSites):
 
                 N_iter_sample = []
                 S_iter_sample = []
@@ -1014,14 +997,3 @@ def stratifyData1000(zipfType = 'mle', iterations = 1000,  \
                                 R2_iter[k], \
                                 R2_std_iter[k]
         OUT2.close()
-
-#stratifyData1000(remove_obs = 0, seqSim = '95')
-#stratifyData1000(remove_obs = 0, seqSim = '97')
-stratifyData1000(remove_obs = 0, seqSim = '99')
-#stratifyData1000(remove_obs = 1)
-#stratifyData1000(remove_obs = 1)
-
-#datasets = ['EMPclosed','HMP', 'MGRAST']
-#datasets = ['EMPclosed']
-#methods = ['zipf']
-#generate_obs_pred_data(datasets, methods, remove_obs = 1)

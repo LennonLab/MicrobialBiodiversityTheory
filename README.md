@@ -1,55 +1,64 @@
-# MicroMETE
-Project repository for data and Python code associated with the testing of maximum entropy theory in microbial ecology. 
+# MicrobialBiodiversityTheory
+Project repository for data and Python code associated with the following preprint:
 
+Shoemaker WR, Locey KJ, Lennon JT. (2016) A unifying ecological theory of microbial biodiversity. PeerJ Preprints 4:e1450v3 https://doi.org/10.7287/peerj.preprints.1450v3
 
-## Re-running the Analyses/ Generating the Figures
+## Re-running the analyses and re-generating the figures
 
 Files in the data folder ending with ".zip" will have to be unzipped before the code can be run.
 
-The code accepts the following arguments from the user. 
+To Figure2 and supplementary  figures 1 and 2 you will need to request data, as the files are too large to store on GitHub. The data will need to be unzipped and in the main folder in a sub-folder named "data."
+
+The code accepts the following arguments from the user.
 
 **Flags**
 
-**-f:** If the data is already in the file path, a figure will be generated using this argument. The argument specifies which figure is generated. 
+**-a** or **--analysis:** Runs the analysis required for the figure.
+
+**-f:**  The figure you want to generate. Indicate what figure you want to generate after the flag using the table below.
 
 | Argument |          Figure         |
 |:--------:|:-----------------------:|
 |     1    |         Figure 1        |
 |     2    |         Figure 2        |
+|    3    |  Figure 3  |
+|    4    | Figure 4 |
 |    S1    |  Supplementary figure 1 |
 |    S2    |  Supplementary figure 2 |
-|    S3    |  Supplementary figure 3 |
-|    S4    |  Supplementary figure 4 |
-|    S5    |  Supplementary figure 5 |
-| S6       | Supplementary figure 6  |
-| S7       | Supplementary figure 7  |
-| S8       | Supplementary figure 8  |
-| S9       | Supplementary figure 9  |
-| S10      | Supplementary figure 10 |
-
- 
-**-a:**  Argument for rerunning the analysis used to generate the observed vs. predicted file and NSR2 file for a given figure. Inputs are 'Yes' or 'No.' Default is 'No.'
 
 
-**-r:** Run all analyses and generate all figures used in the main body and supplement of the paper.  
+### Order of operations
 
+If you want to regenerate the data (warning, this is very computationally intensive and will take several days to complete) start with step 1, otherwise run step 2 for the figures.
 
+1) Run the following command.
 
-**Ex:** To generate the analysis and figure for supplemental figure 7, the script would be run with the following arguments.  
+	python runAnalysis.py -a
 
-	python generate_figs_zipf.py -a yes -f S7
+2) Run this command
+
+	python runAnalysis.py -f
+
+  and indicate what figure  you want after "-f"
+
 
 ## Dependencies
 
-Python version 2.7.10-2 is used. 
+Python version 2.7.10-2 is used.
 
-The following Python modules are used in this analysis.
+The following Python modules/versions are used in this analysis.
 
-+ numpy 1.10.1-py27_0
++ numpy 1.10.1
 
-+ matplotlib 1.4.2-np19py27_0
++ matplotlib 1.4.2
+
++ Pandas 0.16.2
 
 + scipy 0.16.0
+
++ setuptools 18.4
+
++ statsmodels 0.6.1
 
 + [macroeco_distributions](https://github.com/weecology/macroecotools)
 
@@ -81,4 +90,4 @@ THE SOFTWARE.
 
 ## Attributes
 
-To write the code in this repository we used MIT liscensed code from the GitHub repositories [METE](https://github.com/weecology/macroecotools) and [macroecotools](https://github.com/weecology/macroecotools) on 9/20/2015. 
+To write the code in this repository we used MIT liscensed code from the GitHub repositories [METE](https://github.com/weecology/macroecotools) and [macroecotools](https://github.com/weecology/macroecotools) on 9/20/2015.
