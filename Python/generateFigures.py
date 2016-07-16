@@ -5,12 +5,13 @@ import macroecotools
 import mete
 import scipy as sp
 from scipy import stats, optimize
-
+import pandas as pd
 import numpy as np
 import  matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid.inset_locator import inset_axes
 import modelsAndMetrics as mo
-
+import itertools
+import matplotlib.ticker as mticker
 
 mydir = os.path.expanduser("~/github/MicroMETE/")
 
@@ -22,18 +23,20 @@ def fig1(figname = 'Fig1', data_dir= mydir, saveAs = 'eps'):
     x = range(1, len(SAD) +1)
     N = sum(SAD)
     S = len(SAD)
-    geom = mo.get_GeomSeries(N, S, False)
 
-    logSeries = mete.get_mete_rad(S, N)[0]
+    geom = np.log10(mo.get_GeomSeries(N, S, False))
+
+    logSeries = np.log10(mete.get_mete_rad(S, N)[0])
 
 
     lognorm_pred = mo.lognorm(SAD, 'pln')
-    lognorm_SAD = lognorm_pred.get_rad_from_obs()
+    lognorm_SAD = np.log10(lognorm_pred.get_rad_from_obs())
     zipf_class = mo.zipf(SAD, 'fmin')
     pred_tuple = zipf_class.from_cdf()
-    zipf_SAD = pred_tuple[0]
+    zipf_SAD = np.log10(pred_tuple[0])
     gamma = pred_tuple[1]
 
+    SAD = np.log10(SAD)
     fig = plt.figure()
     plt.plot()
 
@@ -50,9 +53,12 @@ def fig1(figname = 'Fig1', data_dir= mydir, saveAs = 'eps'):
     plt.ylabel('Abundance, ' +r'$log_{10}$', fontsize = 22)
     output = "dorm_fix_prob.png"
     plt.legend(loc='upper right')
-    plt.yscale('log')
+
+    #plt.yscale('log')
+    #plt.yscale('log')
     plt.xlim(1, len(SAD))
-    plt.ylim(1, max_y)
+    plt.ylim(-0.25 , max_y)
+
     plt.tick_params(axis='both', which='major', labelsize=14)
     plt.legend(frameon=False, fontsize= 18)
 
@@ -664,6 +670,74 @@ def statOutput( data_dir=mydir, lognormType = 'pln', remove =0, seqSim = False):
             print "percent error " + str(P_errorSkew)
 
 
+def figS3(data_dir=mydir, saveAs = 'eps'):
+    models = ['geom', 'lognorm', 'mete', 'zipf']
+    #models = ['geom']
+    fig = plt.figure()
+    count = 0
+    for count_model, model in enumerate(models):
+        IN = pd.read_csv(data_dir + 'data/Subsample_N/' + model +'_SubSampled_Data.txt', sep = ' ',
+        names = ['Percent', 'N', 'S', 'Nmax_obs', 'Nmax_pred', 'r2'], index_col =None)
+
+        P_0_5 = IN.loc[IN['Percent'] == 0.5][['r2']].values.tolist()
+        P_0_25 = IN.loc[IN['Percent'] == 0.250000][['r2']].values.tolist()
+        P_0_125 = IN.loc[IN['Percent'] == 0.125000][['r2']].values.tolist()
+        P_0_0625 = IN.loc[IN['Percent'] == 0.062500][['r2']].values.tolist()
+        P_0_03125 = IN.loc[IN['Percent'] == 0.031250][['r2']].values.tolist()
+        P_0_015625 = IN.loc[IN['Percent'] == 0.015625][['r2']].values.tolist()
+        N_0_5 = list(itertools.repeat(50, len(P_0_5)))
+        N_0_25 = list(itertools.repeat(25, len(P_0_25)))
+        N_0_125 = list(itertools.repeat(12.5, len(P_0_125)))
+        N_0_0625 = list(itertools.repeat(6.25, len(P_0_0625)))
+        N_0_03125 = list(itertools.repeat(3.125, len(P_0_03125)))
+        N_0_015625 = list(itertools.repeat(1.5625, len(P_0_015625)))
+
+        x = np.asarray(list(itertools.chain(N_0_015625, N_0_03125, N_0_0625, N_0_125, N_0_25, N_0_5)))
+        y = np.asarray(list(itertools.chain(P_0_015625, P_0_03125, P_0_0625, P_0_125, P_0_25, P_0_5)))
+        x = np.asarray([float(i) for i in x])
+        x = np.log10(x)
+        y = np.asarray([float(i) for i in y])
+        ax = fig.add_subplot(2, 2, count + 1)
+        #plt.scatter(x, y, alpha=0.05)
+        plt.hexbin(x, y, mincnt=1, gridsize = 20, bins='log', cmap=plt.cm.jet)
+
+
+        slope, intercept, r_value, p_value, std_err = \
+            stats.linregress(x,y)
+
+        print "slope is " + str(slope)
+        print "r-value is " + str(r_value)
+        print "p-value is " + str(p_value)
+        plt.xlim(np.amin(x), np.amax(x))
+        plt.ylim(np.amin(y), np.amax(y))
+        predict_y = intercept + slope * x
+        print model
+        pred_error = y - predict_y
+        plt.plot(x, predict_y, 'k-')
+
+        degrees_of_freedom = len(x) - 2
+        residual_std_error = np.sqrt(np.sum(pred_error**2) / \
+            degrees_of_freedom)
+        plt.xticks(fontsize = 10) # work on current fig
+        plt.yticks(fontsize = 10)
+
+        if model == 'geom':
+            ax.set_title("Broken-stick")
+        elif model == 'lognorm':
+            ax.set_title("Lognormal")
+        elif model == 'mete':
+            ax.set_title("Log-series")
+        elif model == 'zipf':
+            ax.set_title("Zipf")
+
+        count += 1
+    name = str(data_dir + '/figures' + '/FigS3_RGB.' + saveAs)
+    plt.tight_layout(pad=1.5, w_pad=0.8, h_pad=0.8)
+
+    fig.text(0.50, 0.001, 'Percent of ' + r'$N,\; log_{10}$', ha='center', va='center', fontsize=16)
+    fig.text(0.02, 0.5, r'$r_m^2$', ha='center', va='center', rotation='vertical', fontsize=16)
+    plt.savefig(name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600, format = saveAs)
+#fig5()
 
 
 #352899
@@ -677,3 +751,4 @@ def statOutput( data_dir=mydir, lognormType = 'pln', remove =0, seqSim = False):
 #test(seqSim = '97')
 #test(seqSim = '99')
 #test(remove = 0)
+figS3()

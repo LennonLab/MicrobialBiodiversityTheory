@@ -8,7 +8,7 @@ import modelsAndMetrics as mo
 import macroecotools
 import mete as mete
 from scipy import stats
-
+import random
 mydir = os.path.expanduser("~/github/MicroMETE/")
 
 
@@ -209,7 +209,7 @@ def merge_SADs_mgrast(path = mydir):
             print>> OUT, sad
 
 
-def EMP_SADs(path= mydir, name, mgrast):
+def EMP_SADs(name, mgrast, path= mydir):
     minS = 10
     IN = path + 'data' + name + '-SSADdata.txt'
     n = sum(1 for line in open(IN))
@@ -997,3 +997,119 @@ def stratifyData1000(zipfType = 'mle', iterations = 1000,  \
                                 R2_iter[k], \
                                 R2_std_iter[k]
         OUT2.close()
+
+
+def subsample_N(data_dir= mydir, SAD_numbers=10, iterations=100):
+    percents = [0.500000, 0.250000, 0.125000, 0.062500, 0.031250, 0.015625]
+    models = ['geom', 'mete', 'lognorm', 'zipf']
+    for model in models:
+        OUT = open(data_dir + 'data/Subsample_N/'+ model + '_SubSampled_Data_2.txt', 'w+')
+        if model == 'geom':
+            IN = pd.DataFrame(importData.import_obs_pred_data(data_dir + 'data/ObsPred/Stratified/geom_obs_pred_stratify.txt'))
+        elif model == 'mete':
+            IN = pd.DataFrame(importData.import_obs_pred_data(data_dir + 'data/ObsPred/Stratified/mete_obs_pred_stratify.txt'))
+        elif model == 'lognorm':
+            IN = pd.DataFrame(importData.import_obs_pred_data(data_dir + 'data/ObsPred/Stratified/lognorm_pln_obs_pred_stratify.txt'))
+        elif model == 'zipf':
+            IN = pd.DataFrame(importData.import_obs_pred_data(data_dir + 'data/ObsPred/Stratified/zipf_mle_obs_pred_stratify.txt'))
+        else:
+            continue
+        sites = set(IN['site'].tolist())
+        S = IN.groupby('site')['obs'].count()
+        N = IN.groupby('site')['obs'].sum()
+        S_and_N = pd.concat([S, N], axis=1)
+        S_and_N.columns = ['S', 'N']
+        S_and_N = S_and_N[(S_and_N['S'] *  0.015625 > 10) & (S_and_N['N'] > S_and_N['S'] )]
+        sites =  S_and_N.index
+        sites = map(int, sites)
+        iteration_count = iterations
+        while (iteration_count > 0):
+            sites_sample = map(int, random.sample(sites, SAD_numbers))
+            N_0_iter = []
+            S_0_iter = []
+            N_max_obs_iter = []
+            N_max_pred_iter = []
+            r2_iter = []
+
+            for site_sample in sites_sample:
+                SAD = list(IN.loc[IN.site == site_sample].obs)
+                N_0 = sum(SAD)
+                S_0 = len(SAD)
+                N_max = max(SAD)
+                line_ra = map(lambda x: x/sum(SAD), SAD)
+
+                gm_lines = SAD_numbers
+                means = [N_0, S_0, N_max]
+                failed_percents = 0
+
+                N_0_list_percent = []
+                S_0_list_percent = []
+                N_max_obs_list_percent = []
+                N_max_pred_list_percent = []
+                r2_list_percent = []
+                for k, percent in enumerate(percents):
+                    sample_size = round(percent * N_0)
+                    sample_k = np.random.multinomial(sample_size, line_ra, size = None)
+                    sample_k_sorted = -np.sort( -sample_k[sample_k != 0] )
+                    N_k = sum(sample_k_sorted)
+                    S_k = sample_k_sorted.size
+                    print model, N_k, S_k, ' countdown: ', percent, iteration_count
+                    Nmax_k_obs = max(sample_k_sorted)
+                    result_k = mete.get_mete_rad(S_k, N_k)
+                    pred_mete = result_k[0]
+                    if model == 'geom':
+                        pred = mo.get_GeomSeries(N_k, S_k, False) # False mean no zeros allowed
+                    elif model == 'mete':
+                        result = mete.get_mete_rad(S_k, N_k)
+                        pred = result[0]
+
+                    elif model == 'lognorm':
+                        lognorm_pred = mo.lognorm(sample_k_sorted, 'pln')
+                        pred = lognorm_pred.get_rad_from_obs()
+
+                    elif model == 'zipf':
+                        # Start the timer. Once 1 second is over, a SIGALRM signal is sent.
+                        signal.alarm(6)
+                        # This try/except loop ensures that
+                        #   you'll catch TimeoutException when it's sent.
+                        try:
+                            # Whatever your function that might hang
+                            # use S
+                            zipf_class = mo.zipf(sample_k_sorted, 'fmin')
+                            pred_tuple = zipf_class.from_cdf()
+                            pred = pred_tuple[0]
+                            gamma = pred_tuple[1]
+                        except mo.TimeoutException:
+                            continue # continue the for loop if function takes more than x seconds
+                        else:
+                            # Reset the alarm
+                            signal.alarm(0)
+                    else:
+                        pass
+
+                    Nmax_k_pred = max(pred)
+                    r2_k = macroecotools.obs_pred_rsquare(np.log10(sample_k_sorted), np.log10(pred))
+                    if any( (r2 == -float('inf') ) or (r2 == float('inf') ) or (r2 == float('Nan') ) for r2 in r2_list_percent):
+                        iteration_count += 1
+                        continue
+                    N_0_list_percent.append(N_k)
+                    S_0_list_percent.append(S_k)
+                    N_max_obs_list_percent.append(Nmax_k_obs)
+                    N_max_pred_list_percent.append(Nmax_k_pred)
+                    r2_list_percent.append(r2_k)
+
+                N_0_iter.append(N_0_list_percent)
+                S_0_iter.append(S_0_list_percent)
+                N_max_obs_iter.append(N_max_obs_list_percent)
+                N_max_pred_iter.append(N_max_pred_list_percent)
+                r2_iter.append(r2_list_percent)
+            iteration_count -= 1
+            N_0_zip = zip(*N_0_iter)
+            S_0_zip = zip(*S_0_iter)
+            N_max_obs_zip = zip(*N_max_obs_iter)
+            N_max_pred_zip = zip(*N_max_pred_iter)
+            r2_zip = zip(*r2_iter)
+            for i, percent in enumerate(percents):
+                print>> OUT, percent, np.mean(N_0_zip[i]),np.mean(S_0_zip[i]), \
+                    np.mean(N_max_obs_zip[i]),np.mean(N_max_pred_zip[i]), \
+                    np.mean(r2_zip[i])
