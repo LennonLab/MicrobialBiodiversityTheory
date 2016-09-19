@@ -737,7 +737,59 @@ def figS3(data_dir=mydir, saveAs = 'eps'):
     fig.text(0.50, 0.001, 'Percent of ' + r'$N,\; log_{10}$', ha='center', va='center', fontsize=16)
     fig.text(0.02, 0.5, r'$r_m^2$', ha='center', va='center', rotation='vertical', fontsize=16)
     plt.savefig(name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600, format = saveAs)
-#fig5()
+
+def fig1_Presentation(figname = 'Fig1', data_dir= mydir, saveAs = 'png'):
+    SAD = [10000, 8000, 6000, 5000, 1000, 200, 100,  20, 18, 16, 14, 12, 10, 4,5,
+        4, 4, 3, 3, 2, 2, 2, 2, 2,2, 1, 1, 1, 1, 1,1,1,1, 1, 1, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+    SAD.sort()
+    SAD.reverse()
+    x = range(1, len(SAD) +1)
+    N = sum(SAD)
+    S = len(SAD)
+
+    geom = np.log10(mo.get_GeomSeries(N, S, False))
+
+    logSeries = np.log10(mete.get_mete_rad(S, N)[0])
+
+
+    lognorm_pred = mo.lognorm(SAD, 'pln')
+    lognorm_SAD = np.log10(lognorm_pred.get_rad_from_obs())
+    zipf_class = mo.zipf(SAD, 'fmin')
+    pred_tuple = zipf_class.from_cdf()
+    zipf_SAD = np.log10(pred_tuple[0])
+    gamma = pred_tuple[1]
+
+    SAD = np.log10(SAD)
+    fig = plt.figure()
+    plt.plot()
+
+    max_y = max(max(SAD),  max(zipf_SAD))
+
+    plt.plot(x, SAD,color = '#A9A9A9', linestyle = '-', linewidth=4, label="Observed")
+    plt.plot(x, geom,color = 'blue', linestyle = '-', linewidth=4, label="Broken-stick")
+    plt.plot(x, lognorm_SAD, color = 'black',linestyle = '-', linewidth=4, label="Lognormal")
+    plt.plot(x, logSeries, color = '#228B22',linestyle = '-', linewidth=4, label="Log-series")
+    plt.plot(x, zipf_SAD, color = 'red',linestyle = '-',linewidth=4,  label="Zipf")
+
+    plt.tight_layout()
+    plt.xlabel('Rank Abundance', fontsize = 22)
+    plt.ylabel('Abundance, ' +r'$log_{10}$', fontsize = 22)
+    output = "dorm_fix_prob.png"
+    plt.legend(loc='upper right')
+
+    #plt.yscale('log')
+    #plt.yscale('log')
+    plt.xlim(1, len(SAD))
+    plt.ylim(-0.25 , max_y)
+
+    plt.tick_params(axis='both', which='major', labelsize=14)
+    plt.legend(frameon=False, fontsize= 18)
+
+    fig_name = str(mydir + 'figures/' + figname + '_RGB_Presentation.' + saveAs)
+    plt.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600, \
+        format = saveAs)
+    plt.close()
+
 
 
 #352899
@@ -751,4 +803,5 @@ def figS3(data_dir=mydir, saveAs = 'eps'):
 #test(seqSim = '97')
 #test(seqSim = '99')
 #test(remove = 0)
-figS3()
+#figS3()
+fig1_Presentation()
