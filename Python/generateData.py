@@ -4,6 +4,7 @@ import importData as importData
 import numpy as np
 import pandas as pd
 from operator import itemgetter
+import macroeco_distributions as md
 import modelsAndMetrics as mo
 import macroecotools
 import mete as mete
@@ -406,7 +407,6 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove_obs = 0, zipfType
                 evennessObs = mo.e_simpson(obs)
                 skewnessObs = mo.skewness(obs)
 
-
                 if S <= 10 or N <= S:
                     num_lines -= 1
                     continue
@@ -421,24 +421,31 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove_obs = 0, zipfType
                     print method, dataset, N, S, ' countdown: ', num_lines
 
                 if method == 'geom': # Predicted geometric series
-                    pred = mo.get_GeomSeries(N, S, False) # False mean no zeros allowed
+                    pred = mo.get_Geom(N, S, False) # False mean no zeros allowed
 
                 elif method == 'mete': # Predicted log-series
                     logSeries = mete.get_mete_rad(S, N)
                     pred = logSeries[0]
+                    p = logSeries[1]
+                    beta = math.log(p) * -1
+                    ll = sum(np.log(mete.trunc_logser_pmf(range(1, int(N) + 1), p, N)))
                 elif method == 'lognorm' and lognormType == 'glm':
                     lognorm_pred = mo.lognorm(obs, lognormType)
                     pred = lognorm_pred.lognorm_glm()
                     pred = np.ceil(pred)
                     pred.astype(int)
                 elif method == 'lognorm' and lognormType == 'pln':
-                    signal.alarm(20)
+                    signal.alarm(21)
                     a = datetime.datetime.now()
                     try:
                         # Whatever your function that might hang
                         # use S
                         lognorm_pred = mo.lognorm(obs, lognormType)
-                        pred = lognorm_pred.get_rad_from_obs()
+                        get_rad = lognorm_pred.get_rad_from_obs()
+                        pred = get_rad[0]
+                        mu = get_rad[1]
+                        sigma = get_rad[2]
+                        ll = md.pln_ll(obs, mu, sigma)
                         b = datetime.datetime.now()
                         c = b - a
                         print str(c.seconds) + " seconds"
@@ -458,17 +465,18 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove_obs = 0, zipfType
                     a = datetime.datetime.now()
 
                     # Start the timer. Once 1 second is over, a SIGALRM signal is sent.
-                    signal.alarm(3)
+                    signal.alarm(5)
                     # This try/except loop ensures that
                     #   you'll catch TimeoutException when it's sent.
                     try:
                         # Whatever your function that might hang
                         zipf_class_ = mo.zipf(obs, 'fmin')
-                        pred = zipf_class_.zipf_rgf()
+                        zipf_return = zipf_class_.zipf_rgf()
+                        pred = zipf_return[0]
+                        gamma = zipf_return[1]
                         b = datetime.datetime.now()
                         c = b - a
                         print str(c.seconds) + " seconds"
-                        print obs
                     except mo.TimeoutException:
                         continue # continue the for loop if function takes more than x seconds
                     else:
@@ -488,16 +496,19 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove_obs = 0, zipfType
                             pred_tuple = zipf_class.from_cdf()
                             pred = pred_tuple[0]
                             gamma = pred_tuple[1]
+                            ll = md.zipf_ll(obs, gamma)
                         except mo.TimeoutException:
                             continue # continue the for loop if function takes more than x seconds
                         else:
                             # Reset the alarm
                             signal.alarm(0)
-                print pred
                 NmaxPred = np.amax(pred)
                 evennessPred = mo.e_simpson(pred)
                 skewnessPred = mo.skewness(pred)
                 r2 = macroecotools.obs_pred_rsquare(np.log10(obs), np.log10(pred))
+
+
+
                 print " r2:", r2
                 if r2 == -float('inf') or r2 == float('inf') or r2 == float('Nan'):
                     print r2 + " is Nan or inf, removing..."
@@ -518,18 +529,34 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove_obs = 0, zipfType
                         else:
                             if dataset == 'HMP':
                                 print>> OUT2, j, N, S, NmaxObs, NmaxPred,evennessObs, \
-                                    evennessPred, skewnessObs, skewnessPred, gamma, r2, site_name
+                                    evennessPred, skewnessObs, skewnessPred, gamma, \
+                                    ll, r2, site_name
                             else:
-                                print NmaxObs, NmaxPred, r2
                                 print>> OUT2, j, N, S, NmaxObs, NmaxPred, evennessObs, \
-                                    evennessPred, skewnessObs, skewnessPred, gamma, r2
+                                    evennessPred, skewnessObs, skewnessPred, gamma, ll, r2
                     else:
                         if zipfType == 'glm' or zipfType == 'rgf':
                             print>> OUT2, j, N, S,NmaxObs, NmaxPred, evennessObs, \
                                 evennessPred, skewnessObs, skewnessPred, r2
                         else:
                             print>> OUT2, j, N, S,NmaxObs, NmaxPred, evennessObs, \
-                                evennessPred, skewnessObs, skewnessPred, gamma, r2
+                                evennessPred, skewnessObs, skewnessPred, gamma, ll, r2
+                elif method == 'mete':
+                    if dataset == 'HMP':
+                        print>> OUT2, j, N, S, NmaxObs, NmaxPred, evennessObs, \
+                            evennessPred, skewnessObs, skewnessPred, p, ll, r2, site_name
+                    else:
+                        print>> OUT2, j, N, S, NmaxObs, NmaxPred, evennessObs, \
+                            evennessPred, skewnessObs, skewnessPred, p, ll, r2
+                elif method == 'lognorm'
+                    if dataset == 'HMP':
+                        print>> OUT2, j, N, S, NmaxObs, NmaxPred, evennessObs, \
+                            evennessPred, skewnessObs, skewnessPred, mu, sigma, \
+                            ll, r2, site_name
+                    else:
+                        print>> OUT2, j, N, S, NmaxObs, NmaxPred, evennessObs, \
+                            evennessPred, skewnessObs, skewnessPred, mu, sigma, \
+                            ll, r2
                 else:
                     if dataset == 'HMP':
                         print>> OUT2, j, N, S, NmaxObs, NmaxPred, evennessObs, \
@@ -1058,14 +1085,14 @@ def subsample_N(data_dir= mydir, SAD_numbers=10, iterations=100):
                     result_k = mete.get_mete_rad(S_k, N_k)
                     pred_mete = result_k[0]
                     if model == 'geom':
-                        pred = mo.get_GeomSeries(N_k, S_k, False) # False mean no zeros allowed
+                        pred = mo.get_Geom(N_k, S_k, False) # False mean no zeros allowed
                     elif model == 'mete':
                         result = mete.get_mete_rad(S_k, N_k)
                         pred = result[0]
 
                     elif model == 'lognorm':
                         lognorm_pred = mo.lognorm(sample_k_sorted, 'pln')
-                        pred = lognorm_pred.get_rad_from_obs()
+                        pred = lognorm_pred.get_rad_from_obs()[0]
 
                     elif model == 'zipf':
                         # Start the timer. Once 1 second is over, a SIGALRM signal is sent.
