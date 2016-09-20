@@ -24,13 +24,13 @@ def fig1(figname = 'Fig1', data_dir= mydir, saveAs = 'eps'):
     N = sum(SAD)
     S = len(SAD)
 
-    geom = np.log10(mo.get_GeomSeries(N, S, False))
+    geom = np.log10(mo.get_Geom(N, S, False))
 
     logSeries = np.log10(mete.get_mete_rad(S, N)[0])
 
 
     lognorm_pred = mo.lognorm(SAD, 'pln')
-    lognorm_SAD = np.log10(lognorm_pred.get_rad_from_obs())
+    lognorm_SAD = np.log10(lognorm_pred.get_rad_from_obs()[0])
     zipf_class = mo.zipf(SAD, 'fmin')
     pred_tuple = zipf_class.from_cdf()
     zipf_SAD = np.log10(pred_tuple[0])
@@ -747,13 +747,13 @@ def fig1_Presentation(figname = 'Fig1', data_dir= mydir, saveAs = 'png'):
     N = sum(SAD)
     S = len(SAD)
 
-    geom = np.log10(mo.get_GeomSeries(N, S, False))
+    geom = np.log10(mo.get_Geom(N, S, False))
 
     logSeries = np.log10(mete.get_mete_rad(S, N)[0])
 
 
     lognorm_pred = mo.lognorm(SAD, 'pln')
-    lognorm_SAD = np.log10(lognorm_pred.get_rad_from_obs())
+    lognorm_SAD = np.log10(lognorm_pred.get_rad_from_obs()[0])
     zipf_class = mo.zipf(SAD, 'fmin')
     pred_tuple = zipf_class.from_cdf()
     zipf_SAD = np.log10(pred_tuple[0])

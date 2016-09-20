@@ -291,7 +291,7 @@ class zipf:
 
         rad = self.get_pred_iterative(pmf, S)
 
-        return rad
+        return (rad, gamma)
 
 class lognorm:
 
@@ -384,9 +384,9 @@ class lognorm:
         elif self.dist == 'pln':
             mu, sigma = pln_solver(self.obs)
             pred_rad = self.get_rad_pln(len(self.obs), mu, sigma)
-        return pred_rad
+        return (pred_rad, mu, sigma)
 
-def get_GeomSeries(N,S,zeros):
+def get_Geom(N,S,zeros):
 
     rank = range(1,S+1)
     cdf = [(S-i+0.5)/S for i in rank]
