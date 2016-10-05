@@ -3,6 +3,7 @@ import imp, os, signal, datetime, random
 import importData
 import macroecotools
 import mete
+import math
 import scipy as sp
 from scipy import stats, optimize
 import pandas as pd
@@ -12,6 +13,9 @@ from mpl_toolkits.axes_grid.inset_locator import inset_axes
 import modelsAndMetrics as mo
 import itertools
 import matplotlib.ticker as mticker
+import matplotlib.gridspec as gridspec
+from sklearn.neighbors import KernelDensity
+
 
 mydir = os.path.expanduser("~/github/MicroMETE/")
 
@@ -675,6 +679,7 @@ def figS3(data_dir=mydir, saveAs = 'eps'):
     #models = ['geom']
     fig = plt.figure()
     count = 0
+    fig.subplots_adjust(bottom= 0.30, top = 0.30, left = 0.30)
     for count_model, model in enumerate(models):
         IN = pd.read_csv(data_dir + 'data/Subsample_N/' + model +'_SubSampled_Data.txt', sep = ' ',
         names = ['Percent', 'N', 'S', 'Nmax_obs', 'Nmax_pred', 'r2'], index_col =None)
@@ -700,8 +705,6 @@ def figS3(data_dir=mydir, saveAs = 'eps'):
         ax = fig.add_subplot(2, 2, count + 1)
         #plt.scatter(x, y, alpha=0.05)
         plt.hexbin(x, y, mincnt=1, gridsize = 20, bins='log', cmap=plt.cm.jet)
-
-
         slope, intercept, r_value, p_value, std_err = \
             stats.linregress(x,y)
 
@@ -738,70 +741,148 @@ def figS3(data_dir=mydir, saveAs = 'eps'):
     fig.text(0.02, 0.5, r'$r_m^2$', ha='center', va='center', rotation='vertical', fontsize=16)
     plt.savefig(name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600, format = saveAs)
 
-def fig1_Presentation(figname = 'Fig1', data_dir= mydir, saveAs = 'png'):
-    SAD = [10000, 8000, 6000, 5000, 1000, 200, 100,  20, 18, 16, 14, 12, 10, 4,5,
-        4, 4, 3, 3, 2, 2, 2, 2, 2,2, 1, 1, 1, 1, 1,1,1,1, 1, 1, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-    SAD.sort()
-    SAD.reverse()
-    x = range(1, len(SAD) +1)
-    N = sum(SAD)
-    S = len(SAD)
-
-    geom = np.log10(mo.get_Geom(N, S, False))
-
-    logSeries = np.log10(mete.get_mete_rad(S, N)[0])
-
-
-    lognorm_pred = mo.lognorm(SAD, 'pln')
-    lognorm_SAD = np.log10(lognorm_pred.get_rad_from_obs()[0])
-    zipf_class = mo.zipf(SAD, 'fmin')
-    pred_tuple = zipf_class.from_cdf()
-    zipf_SAD = np.log10(pred_tuple[0])
-    gamma = pred_tuple[1]
-
-    SAD = np.log10(SAD)
+def figS4(data_dir=mydir, figname = 'FigS4', saveAs = 'eps'):
+    models = ['lognorm', 'mete', 'zipf']
     fig = plt.figure()
-    plt.plot()
+    count = 0
+    gs = gridspec.GridSpec(4, 4)
+    #gs.update(wspace=0.1, hspace=0.1)
+    for i in range(0, 4, 2):
+        for j in range(0, 4, 2):
+            if count < 2:
+                ax = plt.subplot(gs[i:i+2, j:j+2], adjustable='box-forced')
+                count += 1
+            else:
+                ax = plt.subplot(gs[i:i+2, 1:3], adjustable='box-forced')
+            if i == 0 and j == 0:
+                NSR2 = importData.import_NSR2_data(data_dir + \
+                'data/NSR2/Stratified/lognorm_pln_NSR2_stratify.txt')
+                ax.set_title("Lognormal", fontsize = 18)
+                ll = np.asarray(list(((NSR2["ll"]))))
+                ll = ll[np.isneginf(ll) == False]
+                print 'Lognorm: mean = ' + str(np.mean(ll)) + ' std = ' + str(np.std(ll))
+            elif i == 0 and j == 2:
+                NSR2 = importData.import_NSR2_data(data_dir + \
+                'data/NSR2/Stratified/zipf_mle_NSR2_stratify.txt')
+                ax.set_title("Zipf", fontsize = 18)
+                ll = np.asarray(list(((NSR2["ll"]))))
+                ll = ll[np.isneginf(ll) == False]
+                print 'Zipf: mean = ' + str(np.mean(ll)) + ' std = ' + str(np.std(ll))
+            elif i == 2 and j == 0:
+                NSR2 = importData.import_NSR2_data(data_dir + \
+                'data/NSR2/Stratified/mete_NSR2_stratify.txt')
+                ax.set_title("Log-series", fontsize = 18)
+                ll = np.asarray(list(((NSR2["ll"]))))
+                ll = ll[np.isneginf(ll) == False]
+                print 'Log-series: mean = ' + str(np.mean(ll)) + ' std = ' + str(np.std(ll))
+            else:
+                continue
 
-    max_y = max(max(SAD),  max(zipf_SAD))
+            ax.set( adjustable='box-forced')
+            KDE = mo.CV_KDE(ll)
+            #ax.hist(ll, 30, fc='gray', histtype='stepfilled', alpha=0.5, normed=True)
+            ax.plot(KDE[0], KDE[1], linewidth=3, alpha=0.8 , color = 'blue')
+            ax.yaxis.set_major_formatter(mticker.FormatStrFormatter('%.0E'))
+            ax.xaxis.set_major_formatter(mticker.FormatStrFormatter('%.0E'))
 
-    plt.plot(x, SAD,color = '#A9A9A9', linestyle = '-', linewidth=4, label="Observed")
-    plt.plot(x, geom,color = 'blue', linestyle = '-', linewidth=4, label="Broken-stick")
-    plt.plot(x, lognorm_SAD, color = 'black',linestyle = '-', linewidth=4, label="Lognormal")
-    plt.plot(x, logSeries, color = '#228B22',linestyle = '-', linewidth=4, label="Log-series")
-    plt.plot(x, zipf_SAD, color = 'red',linestyle = '-',linewidth=4,  label="Zipf")
+            ax.set_xlim([min(KDE[0]), 0])
+            plt.xticks(fontsize = 7)
+            plt.yticks(fontsize = 7)
+            ax.set_xlabel('Log-likelihood', fontsize = 16)
+            ax.set_ylabel('Probability', fontsize = 16)
+            plt.setp(ax.get_xticklabels()[::2], visible=False)
+            plt.setp(ax.get_yticklabels()[::2], visible=False)
 
-    plt.tight_layout()
-    plt.xlabel('Rank Abundance', fontsize = 22)
-    plt.ylabel('Abundance, ' +r'$log_{10}$', fontsize = 22)
-    output = "dorm_fix_prob.png"
-    plt.legend(loc='upper right')
+    fig_name = str(mydir + 'figures/' + figname + '_RGB.' + saveAs)
+    fig.subplots_adjust(left=0.1, bottom = 0.1,hspace=0.1)
+    fig.tight_layout()#pad=1.2, w_pad=0.8, h_pad=0.8
+    #fig.text(0.50, 0.017, 'Log-likelihood', ha='center', va='center', fontsize=15)
+    #fig.text(0.04, 0.5, 'Probability', ha='center', va='center', rotation='vertical', fontsize=20)
+    plt.savefig(fig_name, dpi=600, format = saveAs)
+    plt.close()
 
-    #plt.yscale('log')
-    #plt.yscale('log')
-    plt.xlim(1, len(SAD))
-    plt.ylim(-0.25 , max_y)
+def kde_sklearn(x, x_grid, bandwidth=0.2, **kwargs):
+    """Kernel Density Estimation with Scikit-learn"""
+    kde_skl = KernelDensity(bandwidth=bandwidth, **kwargs)
+    kde_skl.fit(x[:, np.newaxis])
+    # score_samples() returns the log-likelihood of the samples
+    log_pdf = kde_skl.score_samples(x_grid[:, np.newaxis])
+    return np.exp(log_pdf)
 
-    plt.tick_params(axis='both', which='major', labelsize=14)
-    plt.legend(frameon=False, fontsize= 18)
 
-    fig_name = str(mydir + 'figures/' + figname + '_RGB_Presentation.' + saveAs)
-    plt.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600, \
-        format = saveAs)
+
+def figS5(data_dir=mydir, saveAs = 'eps', figname = 'figS5'):
+    params = ['beta', 'gamma', 'mu', 'sigma']
+    fig = plt.figure()
+    count = 0
+    for i, param in enumerate(params):
+        ax = fig.add_subplot(2, 2, count+1)
+        if param == 'beta':
+            NSR2 = importData.import_NSR2_data(data_dir + \
+            'data/NSR2/Stratified/mete_NSR2_stratify.txt')
+            x = np.asarray(list(((NSR2["p"]))))
+            x = np.asarray([math.log(p) * -1 for p in x])
+            ax.set_title("METE")
+            ax.set_xlabel(r'$\beta$', fontsize = 16)
+            ax.set_ylabel('Probability', fontsize = 16)
+            print 'Beta: mean = ' + str(np.mean(x)) + ' std = ' +  str(np.std(x))
+
+            x_grid = np.linspace(np.amin(x), np.amax(x), 10000)
+            kde_1 = kde_sklearn(x, x_grid, bandwidth=0.01)
+            kde_1 = [k / sum(kde_1) for k in kde_1]
+            ax.plot(x_grid, kde_1, linewidth=3, alpha=0.5)
+
+        elif param == 'gamma':
+            NSR2 = importData.import_NSR2_data(data_dir + \
+            'data/NSR2/Stratified/zipf_mle_NSR2_stratify.txt')
+            x = np.asarray(list(((NSR2["gamma"]))))
+            ax.set_title("Zipf")
+            ax.set_xlabel(r'$\gamma$', fontsize = 16)
+            ax.set_ylabel('Probability', fontsize = 16)
+            print 'Gamma: mean = ' + str(np.mean(x)) + ' std = ' +  str(np.std(x))
+
+            x_grid = np.linspace(np.amin(x), np.amax(x), 10000)
+            kde_1 = kde_sklearn(x, x_grid, bandwidth=0.05)
+            kde_1 = [k / sum(kde_1) for k in kde_1]
+            ax.plot(x_grid, kde_1, linewidth=3, alpha=0.5)
+
+        elif param == 'mu' or param == 'sigma':
+            NSR2 = importData.import_NSR2_data(data_dir + \
+            'data/NSR2/Stratified/lognorm_pln_NSR2_stratify.txt')
+            ax.set_title("Lognormal")
+            ax.set_ylabel('Probability', fontsize = 16)
+            if param == 'mu':
+                x = np.asarray(list(((NSR2["mu"]))))
+                ax.set_xlabel(r'$\mu$', fontsize = 16)
+                KDE = mo.CV_KDE(x)
+                ax.plot(KDE[0], KDE[1], linewidth=3, alpha=0.5, color = 'blue')
+                print 'Mu: mean = ' + str(np.mean(x)) + ' std = ' +  str(np.std(x))
+            elif param == 'sigma':
+                x = np.asarray(list(((NSR2["sigma"]))))
+                ax.set_xlabel(r'$\sigma$', fontsize = 16)
+                KDE = mo.CV_KDE(x)
+                ax.plot(KDE[0], KDE[1], linewidth=3, alpha=0.5, color = 'blue')
+                print 'Sigma: mean = ' + str(np.mean(x)) + ' std = ' +  str(np.std(x))
+
+        ax.set_xlim([min(x), max(x)])
+        plt.setp(ax.get_xticklabels()[::2], visible=False)
+        plt.setp(ax.get_yticklabels()[::2], visible=False)
+        plt.xticks(fontsize = 7)
+        plt.yticks(fontsize = 7)
+
+        count += 1
+    fig_name = str(mydir + 'figures/' + figname + '_RGB.' + saveAs)
+    fig.subplots_adjust(left=0.1, bottom = 0.1,hspace=0.1)
+    fig.tight_layout()#pad=1.2, w_pad=0.8, h_pad=0.8
+    plt.savefig(fig_name, dpi=600, format = saveAs)
     plt.close()
 
 
 
+
 #352899
-#fig4()
-#fig2(352899, figname = 'Fig2', data_dir=mydir, \
-#    stratify = True, radius=2, remove = 0, zipfType = 'mle', RGF = False, lognormType = 'pln')
-#fig3()
-#fig1()
-#figS2(352899)
 #test(seqSim = '95')
 #test(seqSim = '97')
 #test(seqSim = '99')
 #test(remove = 0)
 #figS3()
-fig1_Presentation()

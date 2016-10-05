@@ -11,7 +11,8 @@ from scipy.optimize import fsolve
 import scipy.optimize as opt
 from numpy import log, log2, exp, sqrt, log10
 from math import erf, pi
-
+from sklearn.grid_search import GridSearchCV
+from sklearn.neighbors import KernelDensity
 
 mydir = os.path.expanduser("~/github/MicroMETE/data/")
 
@@ -420,3 +421,17 @@ def skewness(RAD):
     if skew < 0:
         lms = lms * -1
     return lms
+
+def CV_KDE(oneD_array, select_bandwidth = True):
+    # remove +/- inf
+    oneD_array = oneD_array[np.logical_not(np.isnan(oneD_array))]
+    grid = GridSearchCV(KernelDensity(),
+                    {'bandwidth': np.logspace(0.1, 5.0, 30)},
+                    cv=20) # 20-fold cross-validation
+    grid.fit(oneD_array[:, None])
+    x_grid = np.linspace(np.amin(oneD_array), np.amax(oneD_array), 10000)
+    kde = grid.best_estimator_
+    pdf = np.exp(kde.score_samples(x_grid[:, None]))
+    # returns grod for x-axis,  pdf, and bandwidth
+    return_tuple = (x_grid, pdf, kde.bandwidth)
+    return return_tuple

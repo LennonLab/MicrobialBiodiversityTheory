@@ -65,9 +65,22 @@ def import_NSR2_data(input_filename):   # TAKEN FROM THE mete_sads.py script use
     #NSR2_method = input_filename_split[-4]
     #method = str(NSR2_method.split('/')[1])
     if '/Stratified/' in input_filename_str:
-        data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
-            names = ['site','N','S', 'NmaxObs', 'NmaxPred', 'evennessObs', \
-                'evennessPred', 'skewnessObs', 'skewnessPred','R2'], delimiter = " ")
+        if 'geom' in input_filename_str:
+            data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
+                names = ['site','N','S', 'NmaxObs', 'NmaxPred', 'evennessObs', \
+                    'evennessPred', 'skewnessObs', 'skewnessPred','R2'], delimiter = " ")
+        elif 'mete' in input_filename_str:
+            data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
+                names = ['site','N','S', 'NmaxObs', 'NmaxPred', 'evennessObs', \
+                    'evennessPred', 'skewnessObs', 'skewnessPred', 'p', 'll', 'R2'], delimiter = " ")
+        elif 'zipf' in input_filename_str:
+            data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
+                names = ['site','N','S', 'NmaxObs', 'NmaxPred', 'evennessObs', \
+                    'evennessPred', 'skewnessObs', 'skewnessPred','gamma','ll','R2'], delimiter = " ")
+        elif 'lognorm' in input_filename_str:
+            data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
+                names = ['site','N','S', 'NmaxObs', 'NmaxPred', 'evennessObs', \
+                    'evennessPred', 'skewnessObs', 'skewnessPred','mu','sigma','ll','R2'], delimiter = " ")
     elif '/Stratified_Test/' in input_filename_str and '95' not in input_filename_str \
     and  '97' not in input_filename_str and  '99' not in input_filename_str:
         data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8, \
@@ -81,63 +94,72 @@ def import_NSR2_data(input_filename):   # TAKEN FROM THE mete_sads.py script use
 
     elif '/geom_MGRAST95_NSR2.txt' in  input_filename_str or \
         '/geom_MGRAST97_NSR2.txt' in  input_filename_str  or \
-        '/geom_MGRAST99_NSR2.txt' in  input_filename_str or \
-        '/mete_MGRAST95_NSR2.txt' in  input_filename_str or \
-        '/mete_MGRAST97_NSR2.txt' in  input_filename_str  or \
-        '/mete_MGRAST99_NSR2.txt' in  input_filename_str or \
-        '/lognorm_pln_MGRAST95_NSR2.txt' in  input_filename_str or \
-        '/lognorm_pln_MGRAST97_NSR2.txt' in  input_filename_str  or \
-        '/lognorm_pln_MGRAST99_NSR2.txt' in  input_filename_str:
+        '/geom_MGRAST99_NSR2.txt' in  input_filename_str:
         data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
         names = ['site','N','S','NmaxObs', 'NmaxPred', 'evennessObs', \
             'evennessPred', 'skewnessObs', 'skewnessPred', 'R2'], delimiter = " ")
-    elif \
-        '/zipf_mle_MGRAST97_NSR2.txt' in  input_filename_str  \
-        :
-        data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
+    elif '/mete_MGRAST95_NSR2.txt' in  input_filename_str or \
+        '/mete_MGRAST97_NSR2.txt' in  input_filename_str  or \
+        '/mete_MGRAST99_NSR2.txt' in  input_filename_str:
+            data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
+            names = ['site','N','S','NmaxObs', 'NmaxPred', 'evennessObs', \
+                'evennessPred', 'skewnessObs', 'skewnessPred', 'p', 'll','R2'], delimiter = " ")
+    elif '/lognorm_pln_MGRAST95_NSR2.txt' in  input_filename_str or \
+        '/lognorm_pln_MGRAST97_NSR2.txt' in  input_filename_str  or \
+        '/lognorm_pln_MGRAST99_NSR2.txt' in  input_filename_str:
+        data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
+        names = ['site','N','S','NmaxObs', 'NmaxPred', 'evennessObs', \
+            'evennessPred', 'skewnessObs', 'skewnessPred','mu', 'sigma', 'll', 'R2'],\
+            delimiter = " ")
+    elif '/zipf_mle_MGRAST97_NSR2.txt' in  input_filename_str or \
+        '/zipf_mle_MGRAST95_NSR2.txt' in  input_filename_str or \
+        '/zipf_mle_MGRAST99_NSR2.txt' in  input_filename_str:
+        data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
             names = ['site','N','S', 'NmaxObs', 'NmaxPred', 'evennessObs', \
-            'evennessPred', 'skewnessObs', 'skewnessPred','gamma', 'R2'], delimiter = " ")
-    elif '/zipf_mle_MGRAST95_NSR2.txt' in  input_filename_str or\
-            '/zipf_mle_MGRAST99_NSR2.txt' in  input_filename_str:
-            data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8", \
-            names = ['site','N','S', 'NmaxObs', 'NmaxPred', 'evennessPred', 'R2'], delimiter = " ")
-    elif '95'in input_filename_str or '97'in input_filename_str or '99'in input_filename_str and \
+            'evennessPred', 'skewnessObs', 'skewnessPred','gamma','ll', 'R2'], delimiter = " ")
+    elif ('95'in input_filename_str or '97'in input_filename_str or '99'in input_filename_str) and \
         '/Stratified_Test/' in  input_filename_str:
         data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8", \
             names = ['site','N','S', 'R2', 'R2std'], delimiter = " ")
 
     else:
-        if 'HMP' in input_filename_str:
-            if ('zipf' in input_filename_str) :
-                if ('glm' in input_filename_str) :
-
-
-                    data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
-                        names = ['site','N','S', 'NmaxObs', 'NmaxPred', 'evennessObs', \
-                            'evennessPred', 'skewnessObs', 'skewnessPred','R2', 'NAP'], delimiter = " ")
-                else:
-                    data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
-                        names = ['site','N','S', 'NmaxObs', 'NmaxPred', 'evennessObs', \
-                            'evennessPred', 'skewnessObs', 'skewnessPred','R2', 'NAP'], delimiter = " ")
+        if ('zipf' in input_filename_str):
+            if 'HMP' in input_filename_str:
+                data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
+                names = ['site','N','S', 'NmaxObs', 'NmaxPred', 'evennessObs', \
+                    'evennessPred', 'skewnessObs', 'skewnessPred','gamma', 'll','R2', 'NAP'], delimiter = " ")
             else:
+                data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
+                names = ['site','N','S', 'NmaxObs', 'NmaxPred', 'evennessObs', \
+                    'evennessPred', 'skewnessObs', 'skewnessPred','gamma', 'll','R2'], delimiter = " ")
+
+        elif  'mete' in input_filename_str:
+            if 'HMP' in input_filename_str:
+                data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
+                names = ['site','N','S','NmaxObs', 'NmaxPred', 'evennessObs', \
+                    'evennessPred', 'skewnessObs', 'skewnessPred', 'p', 'll','R2', 'NAP'], delimiter = " ")
+            else:
+                data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
+                names = ['site','N','S','NmaxObs', 'NmaxPred', 'evennessObs', \
+                    'evennessPred', 'skewnessObs', 'skewnessPred', 'p', 'll','R2'], delimiter = " ")
+
+        elif 'lognorm' in input_filename_str:
+            if 'HMP' in input_filename_str:
+                data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
+                names = ['site','N','S','NmaxObs', 'NmaxPred', 'evennessObs', \
+                    'evennessPred', 'skewnessObs', 'skewnessPred','mu', 'sigma', 'll', 'R2', 'NAP'], delimiter = " ")
+            else:
+                data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
+                names = ['site','N','S','NmaxObs', 'NmaxPred', 'evennessObs', \
+                    'evennessPred', 'skewnessObs', 'skewnessPred','mu', 'sigma', 'll', 'R2'], delimiter = " ")
+
+        elif 'geom' in input_filename_str:
+            if 'HMP' in input_filename_str:
                 data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
                 names = ['site','N','S', 'NmaxObs', 'NmaxPred', 'evennessObs', \
                     'evennessPred', 'skewnessObs', 'skewnessPred', 'R2','NAP'], delimiter = " ")
-        else:
-            if 'zipf' in input_filename_str:
-                if ('glm' in input_filename_str) :
-                    data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
-                    names = ['site','N','S', 'NmaxObs', 'NmaxPred', 'evennessObs', \
-                        'evennessPred', 'skewnessObs', 'skewnessPred', 'R2'], delimiter = " ")
-
-                else:
-                    data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
-                    names = ['site','N','S', 'NmaxObs', 'NmaxPred', 'evennessObs', \
-                        'evennessPred', 'skewnessObs', 'skewnessPred','gamma', 'R2'], delimiter = " ")
-                        # 'gammma'
             else:
                 data = np.genfromtxt(input_filename, dtype = "f8,f8,f8,f8,f8,f8,f8,f8,f8,f8", \
                 names = ['site','N','S','NmaxObs', 'NmaxPred', 'evennessObs', \
                     'evennessPred', 'skewnessObs', 'skewnessPred', 'R2'], delimiter = " ")
-
     return data
