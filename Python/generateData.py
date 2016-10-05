@@ -548,7 +548,7 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove_obs = 0, zipfType
                     else:
                         print>> OUT2, j, N, S, NmaxObs, NmaxPred, evennessObs, \
                             evennessPred, skewnessObs, skewnessPred, p, ll, r2
-                elif method == 'lognorm'
+                elif method == 'lognorm':
                     if dataset == 'HMP':
                         print>> OUT2, j, N, S, NmaxObs, NmaxPred, evennessObs, \
                             evennessPred, skewnessObs, skewnessPred, mu, sigma, \
