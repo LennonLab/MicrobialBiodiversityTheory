@@ -28,6 +28,8 @@ if __name__ == '__main__':
             gf.figS1()
         elif figure == 'S2':
             gf.figS2()
+        elif figure == 'S3':
+            gf.figS3()
         else:
             print "Command not recognized"
     else:
@@ -43,7 +45,6 @@ if __name__ == '__main__':
         gd.generate_obs_pred_data(['95','97', '99'], methods, remove_obs = 0)
         gd.stratifyData(['EMPclosed','HMP', 'MGRAST'], remove_obs = 0)
         gd.stratifyData(['EMPclosed','HMP', 'MGRAST'], remove_obs = 1)
-        gd.stratifyData(['95','97', '99'], remove_obs = 0)
         gd.stratifyData1000(remove_obs = 0)
         gd.stratifyData1000(remove_obs = 1)
         gd.stratifyData1000(remove_obs = 0, seqSim = '95')

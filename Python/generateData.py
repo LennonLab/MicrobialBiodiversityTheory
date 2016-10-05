@@ -380,7 +380,6 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove_obs = 0, zipfType
             random_sites = np.random.randint(num_lines, size=size)
 
             line_count = 0
-            print OUT1, OUT2
             for j,line in enumerate(open(IN)):
                 if dataset == "HMP":
                     line = line.strip().split(',')
@@ -486,7 +485,7 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove_obs = 0, zipfType
                 elif method == 'zipf' and zipfType == 'mle':
 
                         # Start the timer. Once 1 second is over, a SIGALRM signal is sent.
-                        signal.alarm(6)
+                        signal.alarm(7)
                         # This try/except loop ensures that
                         #   you'll catch TimeoutException when it's sent.
                         try:
@@ -580,7 +579,8 @@ def stratifyData(datasets, zipfType = 'mle', \
         totalSADs = 239
     else:
         totalSADs = 108
-    methods = ['geom', 'mete', 'zipf', 'lognorm']
+    #methods = ['geom', 'mete', 'zipf', 'lognorm']
+    methods = ['lognorm','zipf', 'mete']
 
     MGRAST_sites = 1174
     HMP_sites = 4504
@@ -637,9 +637,11 @@ def stratifyData(datasets, zipfType = 'mle', \
                         removeSADs.append(int(x[0]))
             removeSADs = np.asarray(removeSADs)
             if dataset == 'MGRAST' and remove_obs == 0:
-                n = 239 - len(removeSADs)
+                n = totalSADs - len(removeSADs)
             elif dataset == 'MGRAST' and remove_obs == 1:
-                n = 108 - len(removeSADs)
+                n = totalSADs - len(removeSADs)
+            elif dataset == 'EMPclosed' and method == 'zipf' and remove_obs == 1:
+                n = 40
             else:
                 n = totalSADs
             print "sites to remove selected"
@@ -702,6 +704,15 @@ def stratifyData(datasets, zipfType = 'mle', \
             evennessPred = np.asarray(list(((nsr2_data["evennessPred"]))))
             skewnessObs = np.asarray(list(((nsr2_data["skewnessObs"]))))
             skewnessPred = np.asarray(list(((nsr2_data["skewnessPred"]))))
+            if method != 'geom':
+                ll = np.asarray(list(((nsr2_data["ll"]))))
+            if method == 'zipf':
+                gamma = np.asarray(list(((nsr2_data["gamma"]))))
+            if method == 'mete':
+                p_mete = np.asarray(list(((nsr2_data["p"]))))
+            if method == 'lognorm':
+                mu = np.asarray(list(((nsr2_data["mu"]))))
+                sigma = np.asarray(list(((nsr2_data["sigma"]))))
             R2 = np.asarray(list(((nsr2_data["R2"]))))
 
             site = ((obs_pred_data["site"]))
@@ -717,15 +728,30 @@ def stratifyData(datasets, zipfType = 'mle', \
 
             else:
                 uniqueSites = np.unique(siteNSR2)
-            print n, len(uniqueSites)
+            print "N", str(n), "Unique", str(len(uniqueSites))
             randomSites = np.random.choice(uniqueSites, size=n, replace=False)
 
-            print len(np.unique(site)),  len(siteNSR2)
+            #print len(np.unique(site)),  len(siteNSR2)
             for enumSite, randomSite in enumerate(randomSites):
                 for p, q in enumerate(siteNSR2):
                     if q == randomSite:
-                        print>> OUT2, count1, N[p], S[p], NmaxObs[p], NmaxPred[p], \
-                            evennessObs[p], evennessPred[p], skewnessObs[p], skewnessPred[p], R2[p]
+                        if method == 'geom':
+                            print>> OUT2, count1, N[p], S[p], NmaxObs[p], NmaxPred[p], \
+                                evennessObs[p], evennessPred[p], skewnessObs[p], skewnessPred[p], R2[p]
+                        elif method == 'lognorm':
+                            print>> OUT2, count1, N[p], S[p], NmaxObs[p], NmaxPred[p], \
+                                evennessObs[p], evennessPred[p], skewnessObs[p], \
+                                skewnessPred[p], mu[p], sigma[p], ll[p], R2[p]
+                        elif method == 'mete':
+                            print>> OUT2, count1, N[p], S[p], NmaxObs[p], NmaxPred[p], \
+                                evennessObs[p], evennessPred[p], skewnessObs[p], \
+                                skewnessPred[p], p_mete[p], ll[p], R2[p]
+                        elif method == 'zipf':
+                            print>> OUT2, count1, N[p], S[p], NmaxObs[p], NmaxPred[p], \
+                                evennessObs[p], evennessPred[p], skewnessObs[p], \
+                                skewnessPred[p], gamma[p], ll[p], R2[p]
+                #print site
+                #print randomSites
                 for r, s in enumerate(site):
                     if s == randomSite:
                         obs2.append(obs[r])
@@ -738,8 +764,7 @@ def stratifyData(datasets, zipfType = 'mle', \
             obs = np.asarray(obs2)
             pred = np.asarray(pred2)
             zippedSiteObsPred = zip(site2,obs2,pred2)
-            #site = np.asarray(site2)
-            k_minus1 = obs2[0]
+            #k_minus1 = obs2[0]
 
         OUT1.close()
         OUT2.close()
@@ -752,7 +777,8 @@ def stratifyData1000(zipfType = 'mle', iterations = 1000,  \
         datasets = ['EMPclosed','HMP', 'MGRAST']
     else:
         datasets = ['SeqSim']
-    methods = ['geom', 'mete', 'zipf', 'lognorm']
+    #methods = ['geom', 'mete', 'zipf', 'lognorm']
+    methods = ['mete', 'zipf', 'lognorm']
     # Number of lines in each file
     if remove_obs == 0 and seqSim == False:
         totalSADs = 200
@@ -803,6 +829,16 @@ def stratifyData1000(zipfType = 'mle', iterations = 1000,  \
         skewnessObs_iter = []
         skewnessPred_iter = []
         R2_iter = []
+        if method != 'geom':
+            ll_iter = []
+        if method  == 'mete':
+            p_mete_iter = []
+        if method == 'zipf':
+            gamma_iter = []
+        if method == 'lognorm':
+            mu_iter = []
+            sigma_iter = []
+
 
         slope1 = []
         intercept1 = []
@@ -842,11 +878,7 @@ def stratifyData1000(zipfType = 'mle', iterations = 1000,  \
                         if float(x[3]) < 0.2:
                             removeSADs.append(int(x[0]))
                 removeSADs = np.asarray(removeSADs)
-                #if dataset == 'MGRAST' and remove_obs == 0:
-                #    n = 239 - len(removeSADs)
-                #elif dataset == 'MGRAST' and remove_obs == 1:
-                #    n = 108 - len(removeSADs)
-                #else:
+
                 n = totalSADs
                 if remove_obs == 0:
                     if method == 'zipf':
@@ -901,6 +933,18 @@ def stratifyData1000(zipfType = 'mle', iterations = 1000,  \
                     skewnessObs = np.asarray(list(((nsr2_data["skewnessObs"]))))
                     skewnessPred = np.asarray(list(((nsr2_data["skewnessPred"]))))
                     R2 = np.asarray(list(((nsr2_data["R2"]))))
+
+                    if method == 'zipf':
+                        gamma = np.asarray(list(((nsr2_data["gamma"]))))
+                        ll = np.asarray(list(((nsr2_data["ll"]))))
+                    elif method == 'mete':
+                        p_mete = np.asarray(list(((nsr2_data["p"]))))
+                        ll = np.asarray(list(((nsr2_data["ll"]))))
+                    elif method == 'lognorm':
+                        mu = np.asarray(list(((nsr2_data["mu"]))))
+                        sigma = np.asarray(list(((nsr2_data["sigma"]))))
+                        ll = np.asarray(list(((nsr2_data["ll"]))))
+
                 else:
                     R2 = np.asarray(list(((nsr2_data["R2"]))))
 
@@ -926,6 +970,15 @@ def stratifyData1000(zipfType = 'mle', iterations = 1000,  \
                 R2_iter_sample = []
                 R2_iter_sample_Nmax = []
 
+                if method != 'geom':
+                    ll_iter_sample = []
+                if method == 'zipf':
+                    gamma_iter_sample = []
+                elif method == 'mete':
+                    p_mete_iter_sample = []
+                elif method  == 'lognorm':
+                    mu_iter_sample = []
+                    sigma_iter_sample = []
 
                 for enumSite, randomSite in enumerate(randomSites):
                     for p, q in enumerate(siteNSR2):
@@ -941,6 +994,16 @@ def stratifyData1000(zipfType = 'mle', iterations = 1000,  \
                                 skewnessObs_iter_sample.append(skewnessObs[p])
                                 skewnessPred_iter_sample.append(skewnessPred[p])
                                 R2_iter_sample.append(R2[p])
+                                if method != 'geom':
+                                    ll_iter_sample.append(ll[p])
+                                if method =='zipf':
+                                    gamma_iter_sample.append(gamma[p])
+                                elif method == 'mete':
+                                    p_mete_iter_sample.append(p_mete[p])
+                                elif method == 'lognorm':
+                                    mu_iter_sample.append(mu[p])
+                                    sigma_iter_sample.append(sigma[p])
+
                             else:
                                 N_iter_sample.append( N[p])
                                 S_iter_sample.append(S[p])
@@ -957,6 +1020,16 @@ def stratifyData1000(zipfType = 'mle', iterations = 1000,  \
                     skewnessPred_iter.append(np.mean(skewnessPred_iter_sample))
                     R2_iter.append(np.mean(R2_iter_sample))
                     R2_std_iter.append(np.std(R2_iter_sample))
+                    if method == 'zipf':
+                        ll_iter.append(np.mean(ll_iter_sample))
+                        gamma_iter.append(np.mean(gamma_iter_sample))
+                    elif method == 'mete':
+                        ll_iter.append(np.mean(ll_iter_sample))
+                        p_mete_iter.append(np.mean(p_mete_iter_sample))
+                    elif method == 'lognorm':
+                        ll_iter.append(np.mean(ll_iter_sample))
+                        mu_iter.append(np.mean(mu_iter_sample))
+                        sigma_iter.append(np.mean(sigma_iter_sample))
                 else:
                     N_iter.append(np.mean(N_iter_sample))
                     S_iter.append(np.mean(S_iter_sample))
@@ -983,9 +1056,6 @@ def stratifyData1000(zipfType = 'mle', iterations = 1000,  \
                     p_value3.append(p_value3_iter)
                     std_err3.append(std_err3_iter)
 
-                #R2_Nmax_iter_sample = macroecotools.obs_pred_rsquare(np.log10(NmaxObs_iter_sample), np.log10(NmaxPred_iter_sample))
-                #R2_Nmax_iter.append(R2_Nmax_iter_sample)
-
                 count1 += 1
 
             print str(count_iter)  + " iteration(s) to go!"
@@ -993,31 +1063,117 @@ def stratifyData1000(zipfType = 'mle', iterations = 1000,  \
 
         for k in range(0, iterations):
             if seqSim == False:
-                print>> OUT2, k, int(np.mean([N_iter[k], N_iter[k+iterations], N_iter[k + (2* iterations)]] )), \
-                                int(np.mean([S_iter[k], S_iter[k+iterations], S_iter[k + (2* iterations)] ])), \
-                                int(np.mean([NmaxObs_iter[k], NmaxObs_iter[k+iterations], NmaxObs_iter[k + (2* iterations)] ])), \
-                                int(np.mean([NmaxPred_iter[k], NmaxPred_iter[k+iterations], NmaxPred_iter[k + (2* iterations)] ])),\
-                                np.mean([evennessObs_iter[k], evennessObs_iter[k+iterations], evennessObs_iter[k + (2* iterations)] ]), \
-                                np.mean([evennessPred_iter[k], evennessPred_iter[k+iterations], evennessPred_iter[k + (2* iterations)] ]), \
-                                np.mean([skewnessObs_iter[k], skewnessObs_iter[k+iterations], skewnessObs_iter[k + (2* iterations)] ]), \
-                                np.mean([skewnessPred_iter[k], skewnessPred_iter[k+iterations], skewnessPred_iter[k + (2* iterations)] ]), \
-                                np.mean([R2_iter[k], R2_iter[k+iterations], R2_iter[k + (2* iterations)] ]), \
-                                np.mean([R2_std_iter[k], R2_std_iter[k+iterations], R2_std_iter[k + (2* iterations)] ]), \
-                                np.mean([slope1[k], slope1[k+iterations], slope1[k + (2* iterations)] ]), \
-                                np.mean([intercept1[k], intercept1[k+iterations], intercept1[k + (2* iterations)] ]),\
-                                np.mean([r_value1[k], r_value1[k+iterations], r_value1[k + (2* iterations)] ]),\
-                                np.mean([p_value1[k], p_value1[k+iterations], p_value1[k + (2* iterations)] ]),\
-                                np.mean([std_err1[k], std_err1[k+iterations], std_err1[k + (2* iterations)] ]), \
-                                np.mean([slope2[k], slope2[k+iterations], slope2[k + (2* iterations)] ]),\
-                                np.mean([intercept2[k], intercept2[k+iterations], intercept2[k + (2* iterations)] ]),\
-                                np.mean([r_value2[k], r_value2[k+iterations], r_value2[k + (2* iterations)] ]),\
-                                np.mean([p_value2[k], p_value2[k+iterations], p_value2[k + (2* iterations)] ]),\
-                                np.mean([std_err2[k], std_err2[k+iterations], std_err2[k + (2* iterations)] ]),\
-                                np.mean([slope3[k], slope3[k+iterations], slope3[k + (2* iterations)] ]), \
-                                np.mean([intercept3[k], intercept3[k+iterations], intercept3[k + (2* iterations)] ]),\
-                                np.mean([r_value3[k], r_value3[k+iterations], r_value3[k + (2* iterations)] ]), \
-                                np.mean([p_value3[k], p_value3[k+iterations], p_value3[k + (2* iterations)] ]), \
-                                np.mean([std_err3[k], std_err3[k+iterations], std_err3[k + (2* iterations)] ])
+                if method == 'geom':
+                    print>> OUT2, k, int(np.mean([N_iter[k], N_iter[k+iterations], N_iter[k + (2* iterations)]] )), \
+                                    int(np.mean([S_iter[k], S_iter[k+iterations], S_iter[k + (2* iterations)] ])), \
+                                    int(np.mean([NmaxObs_iter[k], NmaxObs_iter[k+iterations], NmaxObs_iter[k + (2* iterations)] ])), \
+                                    int(np.mean([NmaxPred_iter[k], NmaxPred_iter[k+iterations], NmaxPred_iter[k + (2* iterations)] ])),\
+                                    np.mean([evennessObs_iter[k], evennessObs_iter[k+iterations], evennessObs_iter[k + (2* iterations)] ]), \
+                                    np.mean([evennessPred_iter[k], evennessPred_iter[k+iterations], evennessPred_iter[k + (2* iterations)] ]), \
+                                    np.mean([skewnessObs_iter[k], skewnessObs_iter[k+iterations], skewnessObs_iter[k + (2* iterations)] ]), \
+                                    np.mean([skewnessPred_iter[k], skewnessPred_iter[k+iterations], skewnessPred_iter[k + (2* iterations)] ]), \
+                                    np.mean([R2_iter[k], R2_iter[k+iterations], R2_iter[k + (2* iterations)] ]), \
+                                    np.mean([R2_std_iter[k], R2_std_iter[k+iterations], R2_std_iter[k + (2* iterations)] ]), \
+                                    np.mean([slope1[k], slope1[k+iterations], slope1[k + (2* iterations)] ]), \
+                                    np.mean([intercept1[k], intercept1[k+iterations], intercept1[k + (2* iterations)] ]),\
+                                    np.mean([r_value1[k], r_value1[k+iterations], r_value1[k + (2* iterations)] ]),\
+                                    np.mean([p_value1[k], p_value1[k+iterations], p_value1[k + (2* iterations)] ]),\
+                                    np.mean([std_err1[k], std_err1[k+iterations], std_err1[k + (2* iterations)] ]), \
+                                    np.mean([slope2[k], slope2[k+iterations], slope2[k + (2* iterations)] ]),\
+                                    np.mean([intercept2[k], intercept2[k+iterations], intercept2[k + (2* iterations)] ]),\
+                                    np.mean([r_value2[k], r_value2[k+iterations], r_value2[k + (2* iterations)] ]),\
+                                    np.mean([p_value2[k], p_value2[k+iterations], p_value2[k + (2* iterations)] ]),\
+                                    np.mean([std_err2[k], std_err2[k+iterations], std_err2[k + (2* iterations)] ]),\
+                                    np.mean([slope3[k], slope3[k+iterations], slope3[k + (2* iterations)] ]), \
+                                    np.mean([intercept3[k], intercept3[k+iterations], intercept3[k + (2* iterations)] ]),\
+                                    np.mean([r_value3[k], r_value3[k+iterations], r_value3[k + (2* iterations)] ]), \
+                                    np.mean([p_value3[k], p_value3[k+iterations], p_value3[k + (2* iterations)] ]), \
+                                    np.mean([std_err3[k], std_err3[k+iterations], std_err3[k + (2* iterations)] ])
+                if method == 'zipf':
+                    print>> OUT2, k, int(np.mean([N_iter[k], N_iter[k+iterations], N_iter[k + (2* iterations)]] )), \
+                                    int(np.mean([S_iter[k], S_iter[k+iterations], S_iter[k + (2* iterations)] ])), \
+                                    int(np.mean([NmaxObs_iter[k], NmaxObs_iter[k+iterations], NmaxObs_iter[k + (2* iterations)] ])), \
+                                    int(np.mean([NmaxPred_iter[k], NmaxPred_iter[k+iterations], NmaxPred_iter[k + (2* iterations)] ])),\
+                                    np.mean([evennessObs_iter[k], evennessObs_iter[k+iterations], evennessObs_iter[k + (2* iterations)] ]), \
+                                    np.mean([evennessPred_iter[k], evennessPred_iter[k+iterations], evennessPred_iter[k + (2* iterations)] ]), \
+                                    np.mean([skewnessObs_iter[k], skewnessObs_iter[k+iterations], skewnessObs_iter[k + (2* iterations)] ]), \
+                                    np.mean([skewnessPred_iter[k], skewnessPred_iter[k+iterations], skewnessPred_iter[k + (2* iterations)] ]), \
+                                    np.mean([gamma_iter[k], gamma_iter[k+iterations], gamma_iter[k + (2* iterations)] ]), \
+                                    np.mean([ll_iter[k], ll_iter[k+iterations], ll_iter[k + (2* iterations)] ]), \
+                                    np.mean([R2_iter[k], R2_iter[k+iterations], R2_iter[k + (2* iterations)] ]), \
+                                    np.mean([R2_std_iter[k], R2_std_iter[k+iterations], R2_std_iter[k + (2* iterations)] ]), \
+                                    np.mean([slope1[k], slope1[k+iterations], slope1[k + (2* iterations)] ]), \
+                                    np.mean([intercept1[k], intercept1[k+iterations], intercept1[k + (2* iterations)] ]),\
+                                    np.mean([r_value1[k], r_value1[k+iterations], r_value1[k + (2* iterations)] ]),\
+                                    np.mean([p_value1[k], p_value1[k+iterations], p_value1[k + (2* iterations)] ]),\
+                                    np.mean([std_err1[k], std_err1[k+iterations], std_err1[k + (2* iterations)] ]), \
+                                    np.mean([slope2[k], slope2[k+iterations], slope2[k + (2* iterations)] ]),\
+                                    np.mean([intercept2[k], intercept2[k+iterations], intercept2[k + (2* iterations)] ]),\
+                                    np.mean([r_value2[k], r_value2[k+iterations], r_value2[k + (2* iterations)] ]),\
+                                    np.mean([p_value2[k], p_value2[k+iterations], p_value2[k + (2* iterations)] ]),\
+                                    np.mean([std_err2[k], std_err2[k+iterations], std_err2[k + (2* iterations)] ]),\
+                                    np.mean([slope3[k], slope3[k+iterations], slope3[k + (2* iterations)] ]), \
+                                    np.mean([intercept3[k], intercept3[k+iterations], intercept3[k + (2* iterations)] ]),\
+                                    np.mean([r_value3[k], r_value3[k+iterations], r_value3[k + (2* iterations)] ]), \
+                                    np.mean([p_value3[k], p_value3[k+iterations], p_value3[k + (2* iterations)] ]), \
+                                    np.mean([std_err3[k], std_err3[k+iterations], std_err3[k + (2* iterations)] ])
+                elif method == 'mete':
+                    print>> OUT2, k, int(np.mean([N_iter[k], N_iter[k+iterations], N_iter[k + (2* iterations)]] )), \
+                                    int(np.mean([S_iter[k], S_iter[k+iterations], S_iter[k + (2* iterations)] ])), \
+                                    int(np.mean([NmaxObs_iter[k], NmaxObs_iter[k+iterations], NmaxObs_iter[k + (2* iterations)] ])), \
+                                    int(np.mean([NmaxPred_iter[k], NmaxPred_iter[k+iterations], NmaxPred_iter[k + (2* iterations)] ])),\
+                                    np.mean([evennessObs_iter[k], evennessObs_iter[k+iterations], evennessObs_iter[k + (2* iterations)] ]), \
+                                    np.mean([evennessPred_iter[k], evennessPred_iter[k+iterations], evennessPred_iter[k + (2* iterations)] ]), \
+                                    np.mean([skewnessObs_iter[k], skewnessObs_iter[k+iterations], skewnessObs_iter[k + (2* iterations)] ]), \
+                                    np.mean([skewnessPred_iter[k], skewnessPred_iter[k+iterations], skewnessPred_iter[k + (2* iterations)] ]), \
+                                    np.mean([p_mete_iter[k], p_mete_iter[k+iterations], p_mete_iter[k + (2* iterations)] ]), \
+                                    np.mean([ll_iter[k], ll_iter[k+iterations], ll_iter[k + (2* iterations)] ]), \
+                                    np.mean([R2_iter[k], R2_iter[k+iterations], R2_iter[k + (2* iterations)] ]), \
+                                    np.mean([R2_std_iter[k], R2_std_iter[k+iterations], R2_std_iter[k + (2* iterations)] ]), \
+                                    np.mean([slope1[k], slope1[k+iterations], slope1[k + (2* iterations)] ]), \
+                                    np.mean([intercept1[k], intercept1[k+iterations], intercept1[k + (2* iterations)] ]),\
+                                    np.mean([r_value1[k], r_value1[k+iterations], r_value1[k + (2* iterations)] ]),\
+                                    np.mean([p_value1[k], p_value1[k+iterations], p_value1[k + (2* iterations)] ]),\
+                                    np.mean([std_err1[k], std_err1[k+iterations], std_err1[k + (2* iterations)] ]), \
+                                    np.mean([slope2[k], slope2[k+iterations], slope2[k + (2* iterations)] ]),\
+                                    np.mean([intercept2[k], intercept2[k+iterations], intercept2[k + (2* iterations)] ]),\
+                                    np.mean([r_value2[k], r_value2[k+iterations], r_value2[k + (2* iterations)] ]),\
+                                    np.mean([p_value2[k], p_value2[k+iterations], p_value2[k + (2* iterations)] ]),\
+                                    np.mean([std_err2[k], std_err2[k+iterations], std_err2[k + (2* iterations)] ]),\
+                                    np.mean([slope3[k], slope3[k+iterations], slope3[k + (2* iterations)] ]), \
+                                    np.mean([intercept3[k], intercept3[k+iterations], intercept3[k + (2* iterations)] ]),\
+                                    np.mean([r_value3[k], r_value3[k+iterations], r_value3[k + (2* iterations)] ]), \
+                                    np.mean([p_value3[k], p_value3[k+iterations], p_value3[k + (2* iterations)] ]), \
+                                    np.mean([std_err3[k], std_err3[k+iterations], std_err3[k + (2* iterations)] ])
+                elif method == 'lognorm':
+                    print>> OUT2, k, int(np.mean([N_iter[k], N_iter[k+iterations], N_iter[k + (2* iterations)]] )), \
+                                    int(np.mean([S_iter[k], S_iter[k+iterations], S_iter[k + (2* iterations)] ])), \
+                                    int(np.mean([NmaxObs_iter[k], NmaxObs_iter[k+iterations], NmaxObs_iter[k + (2* iterations)] ])), \
+                                    int(np.mean([NmaxPred_iter[k], NmaxPred_iter[k+iterations], NmaxPred_iter[k + (2* iterations)] ])),\
+                                    np.mean([evennessObs_iter[k], evennessObs_iter[k+iterations], evennessObs_iter[k + (2* iterations)] ]), \
+                                    np.mean([evennessPred_iter[k], evennessPred_iter[k+iterations], evennessPred_iter[k + (2* iterations)] ]), \
+                                    np.mean([skewnessObs_iter[k], skewnessObs_iter[k+iterations], skewnessObs_iter[k + (2* iterations)] ]), \
+                                    np.mean([skewnessPred_iter[k], skewnessPred_iter[k+iterations], skewnessPred_iter[k + (2* iterations)] ]), \
+                                    np.mean([mu_iter[k], mu_iter[k+iterations], mu_iter[k + (2* iterations)] ]), \
+                                    np.mean([sigma_iter[k], sigma_iter[k+iterations], sigma_iter[k + (2* iterations)] ]), \
+                                    np.mean([ll_iter[k], ll_iter[k+iterations], ll_iter[k + (2* iterations)] ]), \
+                                    np.mean([R2_iter[k], R2_iter[k+iterations], R2_iter[k + (2* iterations)] ]), \
+                                    np.mean([R2_std_iter[k], R2_std_iter[k+iterations], R2_std_iter[k + (2* iterations)] ]), \
+                                    np.mean([slope1[k], slope1[k+iterations], slope1[k + (2* iterations)] ]), \
+                                    np.mean([intercept1[k], intercept1[k+iterations], intercept1[k + (2* iterations)] ]),\
+                                    np.mean([r_value1[k], r_value1[k+iterations], r_value1[k + (2* iterations)] ]),\
+                                    np.mean([p_value1[k], p_value1[k+iterations], p_value1[k + (2* iterations)] ]),\
+                                    np.mean([std_err1[k], std_err1[k+iterations], std_err1[k + (2* iterations)] ]), \
+                                    np.mean([slope2[k], slope2[k+iterations], slope2[k + (2* iterations)] ]),\
+                                    np.mean([intercept2[k], intercept2[k+iterations], intercept2[k + (2* iterations)] ]),\
+                                    np.mean([r_value2[k], r_value2[k+iterations], r_value2[k + (2* iterations)] ]),\
+                                    np.mean([p_value2[k], p_value2[k+iterations], p_value2[k + (2* iterations)] ]),\
+                                    np.mean([std_err2[k], std_err2[k+iterations], std_err2[k + (2* iterations)] ]),\
+                                    np.mean([slope3[k], slope3[k+iterations], slope3[k + (2* iterations)] ]), \
+                                    np.mean([intercept3[k], intercept3[k+iterations], intercept3[k + (2* iterations)] ]),\
+                                    np.mean([r_value3[k], r_value3[k+iterations], r_value3[k + (2* iterations)] ]), \
+                                    np.mean([p_value3[k], p_value3[k+iterations], p_value3[k + (2* iterations)] ]), \
+                                    np.mean([std_err3[k], std_err3[k+iterations], std_err3[k + (2* iterations)] ])
             else:
                 print>> OUT2, k, int(N_iter[k]), \
                                 int(S_iter[k]), \
