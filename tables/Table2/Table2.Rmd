@@ -5,29 +5,29 @@ output: pdf_document
 
 |  $$\mathbf{Model}$$ | $$\mathbf{Diversity\,metric}$$ | $$\mathbf{Slope}$$ |$$\mathbf{\%\; Difference}$$ |
 |:-------------:|:----------------------------------:|-----------------:|------------:|------------:|
-|   $$\mathrm{Lognormal}$$ | $$\mathrm{N_{max}}$$ |    $$1.0$$   |     $$1.5$$           |
+|   $$\mathrm{Lognormal}$$ | $$\mathrm{N_{max}}$$ |    $$1.1$$   |     $$7.1$$           |
 |   |            |            | | |  
-|                          | $$\mathrm{Evenness}$$  |    $$-0.48$$   |     $$42.0$$           |
+|                          | $$\mathrm{Evenness}$$  |    $$-0.52$$   |     $$51.0$$           |
 |   |            |            | | | 
-|                          | $$\mathrm{Skewness}$$  |    $$0.10$$   |     $$23.0$$           |
+|                          | $$\mathrm{Skewness}$$  |    $$0.11$$   |     $$16.0$$           |
 |   |            |            | | | 
-|   $$\mathrm{Zipf}$$      | $$\mathrm{N_{max}}$$ |    $$1.0$$   |     $$0.28$$           | 
+|   $$\mathrm{Zipf}$$      | $$\mathrm{N_{max}}$$ |    $$1.0$$   |     $$4.0$$           | 
 |   |            |            | | | 
-|                          | $$\mathrm{Evenness}$$  |     $$-0.53$$   |     $$53.0$$           |
+|                          | $$\mathrm{Evenness}$$  |     $$-0.53$$   |     $$52.0$$           |
 |   |            |            | | | 
-|                          | $$\mathrm{Skewness}$$  | $$0.086$$   |     $$41.0$$           |
+|                          | $$\mathrm{Skewness}$$  | $$0.083$$   |     $$44.0$$           |
 |   |            |            | | |
-|  $$\mathrm{Log\mbox{-}series}$$ | $$\mathrm{N_{max}}$$ |   $$0.86$$    |      $$16.0$$            |
+|  $$\mathrm{Log\mbox{-}series}$$ | $$\mathrm{N_{max}}$$ |   $$0.85$$    |      $$16.0$$            |
 |   |            |            | | |
 |                          | $$\mathrm{Evenness}$$  |   $$-0.16$$    |      $$66.0$$            |
 |   |            |            | | | 
-|                          | $$\mathrm{Skewness}$$  |  $$0.048$$    |      $$92.0$$            | 
+|                          | $$\mathrm{Skewness}$$  |  $$0.048$$    |      $$93.0$$            | 
 |   |            |            | | | 
-| $$\mathrm{Broken\mbox{-}stick}$$| $$\mathrm{N_{max}}$$          |     $$0.73$$      |      $$32.0$$   |
+| $$\mathrm{Broken\mbox{-}stick}$$| $$\mathrm{N_{max}}$$          |     $$0.69$$      |      $$36.0$$   |
 |   |            |            | | | 
-|                          | $$\mathrm{Evenness}$$  |     $$-0.022$$    |     $$170.0$$           |
+|                          | $$\mathrm{Evenness}$$  |     $$-0.026$$    |     $$170.0$$           |
 |   |            |            | | |   
-|                          | $$\mathrm{Skewness}$$  |     $$0.014$$    |     $$160.0$$           |
+|                          | $$\mathrm{Skewness}$$  |     $$0.012$$    |     $$170.0$$           |
 
 
 

@@ -573,14 +573,14 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove_obs = 0, zipfType
         print dataset
 
 
-def stratifyData(datasets, zipfType = 'mle', \
+def stratifyDataOnce(datasets, zipfType = 'mle', \
     lognormType = 'pln', remove = True, data_dir= mydir, remove_obs = 0):
     if remove_obs == 0:
         totalSADs = 239
     else:
         totalSADs = 108
-    #methods = ['geom', 'mete', 'zipf', 'lognorm']
-    methods = ['lognorm','zipf', 'mete']
+    methods = ['geom', 'mete', 'zipf', 'lognorm']
+    #methods = ['lognorm','zipf', 'mete']
 
     MGRAST_sites = 1174
     HMP_sites = 4504
@@ -704,6 +704,8 @@ def stratifyData(datasets, zipfType = 'mle', \
             evennessPred = np.asarray(list(((nsr2_data["evennessPred"]))))
             skewnessObs = np.asarray(list(((nsr2_data["skewnessObs"]))))
             skewnessPred = np.asarray(list(((nsr2_data["skewnessPred"]))))
+            #slope_Nmax_iter, intercept_Nmax_iter, r_value_Nmax_iter, p_value_Nmax_iter, std_err_Nmax_iter = \
+            #    stats.linregress(np.log10(N),np.log10(NmaxPred))
             if method != 'geom':
                 ll = np.asarray(list(((nsr2_data["ll"]))))
             if method == 'zipf':
@@ -769,26 +771,31 @@ def stratifyData(datasets, zipfType = 'mle', \
         OUT1.close()
         OUT2.close()
 
-def stratifyData1000(zipfType = 'mle', iterations = 1000,  \
+def stratifyDataBootstrap(zipfType = 'mle', iterations = 10000,  \
     lognormType = 'pln', remove = True, data_dir= mydir, remove_obs = 0, seqSim = False):
     # do this for the NSR2 only
     # size of each dataset
+    modelSlopes = [0.69744476332, 0.851083946706, 1.04353269385, 1.07279674834]
+    modelInterepts = [0.386418541599, 0.295532342646, 1.05321973517, 0.139862729426]
     if seqSim == False:
         datasets = ['EMPclosed','HMP', 'MGRAST']
     else:
         datasets = ['SeqSim']
-    #methods = ['geom', 'mete', 'zipf', 'lognorm']
-    methods = ['mete', 'zipf', 'lognorm']
+    methods = ['geom', 'mete', 'zipf', 'lognorm']
+    #methods = ['lognorm']
     # Number of lines in each file
-    if remove_obs == 0 and seqSim == False:
-        totalSADs = 200
-    else:
-        totalSADs = 100
+
     MGRAST_sites = 1174
     HMP_sites = 4504
     EMPclosed_sites = 14979
     Total = MGRAST_sites + HMP_sites + EMPclosed_sites
     for i, method in enumerate(methods):
+        if remove_obs == 0 and seqSim == False:
+            totalSADs = 200
+        elif method == 'zipf':
+            totalSADs = 40
+        else:
+            totalSADs = 100
         print method
         count_iter = iterations
         if seqSim == False:
@@ -829,6 +836,7 @@ def stratifyData1000(zipfType = 'mle', iterations = 1000,  \
         skewnessObs_iter = []
         skewnessPred_iter = []
         R2_iter = []
+        R2_Nmax_iter = []
         if method != 'geom':
             ll_iter = []
         if method  == 'mete':
@@ -968,7 +976,6 @@ def stratifyData1000(zipfType = 'mle', iterations = 1000,  \
                 skewnessObs_iter_sample = []
                 skewnessPred_iter_sample = []
                 R2_iter_sample = []
-                R2_iter_sample_Nmax = []
 
                 if method != 'geom':
                     ll_iter_sample = []
@@ -1030,15 +1037,13 @@ def stratifyData1000(zipfType = 'mle', iterations = 1000,  \
                         ll_iter.append(np.mean(ll_iter_sample))
                         mu_iter.append(np.mean(mu_iter_sample))
                         sigma_iter.append(np.mean(sigma_iter_sample))
-                else:
-                    N_iter.append(np.mean(N_iter_sample))
-                    S_iter.append(np.mean(S_iter_sample))
-                    R2_iter.append(np.mean(R2_iter_sample))
-                    R2_std_iter.append(np.std(R2_iter_sample))
-                if seqSim == False:
-                    slope1_iter, intercept1_iter, r_value1_iter, p_value1_iter, std_err1_iter = stats.linregress(np.log10(N_iter_sample),np.log10(NmaxPred_iter_sample))
-                    slope2_iter, intercept2_iter, r_value2_iter, p_value2_iter, std_err2_iter = stats.linregress(np.log10(N_iter_sample),np.log10(evennessPred_iter_sample))
-                    slope3_iter, intercept3_iter, r_value3_iter, p_value3_iter, std_err3_iter = stats.linregress(np.log10(N_iter_sample),np.log10(skewnessPred_iter_sample))
+
+                    slope1_iter, intercept1_iter, r_value1_iter, p_value1_iter, std_err1_iter = \
+                        stats.linregress(np.log10(N_iter_sample),np.log10(NmaxPred_iter_sample))
+                    slope2_iter, intercept2_iter, r_value2_iter, p_value2_iter, std_err2_iter = \
+                        stats.linregress(np.log10(N_iter_sample),np.log10(evennessPred_iter_sample))
+                    slope3_iter, intercept3_iter, r_value3_iter, p_value3_iter, std_err3_iter = \
+                        stats.linregress(np.log10(N_iter_sample),np.log10(skewnessPred_iter_sample))
 
                     slope1.append(slope1_iter)
                     intercept1.append(intercept1_iter)
@@ -1055,6 +1060,25 @@ def stratifyData1000(zipfType = 'mle', iterations = 1000,  \
                     r_value3.append(r_value3_iter)
                     p_value3.append(p_value3_iter)
                     std_err3.append(std_err3_iter)
+
+                    scaling_NmaxPred_iter = []
+                    for m in range(len(N_iter_sample)):
+                        scaling_NmaxPred_iter_i = mo.predictNmax(N_iter_sample[m]).getNmax(b = (10 ** modelInterepts[i]), slope = modelSlopes[i])
+                        scaling_NmaxPred_iter.append(scaling_NmaxPred_iter_i)
+                    scaling_NmaxPred_iter = np.asarray(scaling_NmaxPred_iter)
+
+                    scaling_NmaxPred_obs_iter = [k for k in zip(NmaxObs_iter_sample, scaling_NmaxPred_iter) if k[0] < 200000 ]
+                    NmaxObs_iter_sample_clean = np.asarray([k[0] for k in scaling_NmaxPred_obs_iter])
+                    scaling_NmaxPred_iter_clean = np.asarray([k[1] for k in scaling_NmaxPred_obs_iter])
+                    R2_Nmax_iter_sample = macroecotools.obs_pred_rsquare(np.log10(NmaxObs_iter_sample_clean), np.log10(scaling_NmaxPred_iter_clean))
+                    R2_Nmax_iter.append(R2_Nmax_iter_sample)
+
+
+                else:
+                    N_iter.append(np.mean(N_iter_sample))
+                    S_iter.append(np.mean(S_iter_sample))
+                    R2_iter.append(np.mean(R2_iter_sample))
+                    R2_std_iter.append(np.std(R2_iter_sample))
 
                 count1 += 1
 
@@ -1074,6 +1098,7 @@ def stratifyData1000(zipfType = 'mle', iterations = 1000,  \
                                     np.mean([skewnessPred_iter[k], skewnessPred_iter[k+iterations], skewnessPred_iter[k + (2* iterations)] ]), \
                                     np.mean([R2_iter[k], R2_iter[k+iterations], R2_iter[k + (2* iterations)] ]), \
                                     np.mean([R2_std_iter[k], R2_std_iter[k+iterations], R2_std_iter[k + (2* iterations)] ]), \
+                                    np.mean([R2_Nmax_iter[k], R2_Nmax_iter[k+iterations], R2_Nmax_iter[k + (2* iterations)] ]), \
                                     np.mean([slope1[k], slope1[k+iterations], slope1[k + (2* iterations)] ]), \
                                     np.mean([intercept1[k], intercept1[k+iterations], intercept1[k + (2* iterations)] ]),\
                                     np.mean([r_value1[k], r_value1[k+iterations], r_value1[k + (2* iterations)] ]),\
@@ -1102,6 +1127,7 @@ def stratifyData1000(zipfType = 'mle', iterations = 1000,  \
                                     np.mean([ll_iter[k], ll_iter[k+iterations], ll_iter[k + (2* iterations)] ]), \
                                     np.mean([R2_iter[k], R2_iter[k+iterations], R2_iter[k + (2* iterations)] ]), \
                                     np.mean([R2_std_iter[k], R2_std_iter[k+iterations], R2_std_iter[k + (2* iterations)] ]), \
+                                    np.mean([R2_Nmax_iter[k], R2_Nmax_iter[k+iterations], R2_Nmax_iter[k + (2* iterations)] ]), \
                                     np.mean([slope1[k], slope1[k+iterations], slope1[k + (2* iterations)] ]), \
                                     np.mean([intercept1[k], intercept1[k+iterations], intercept1[k + (2* iterations)] ]),\
                                     np.mean([r_value1[k], r_value1[k+iterations], r_value1[k + (2* iterations)] ]),\
@@ -1130,6 +1156,7 @@ def stratifyData1000(zipfType = 'mle', iterations = 1000,  \
                                     np.mean([ll_iter[k], ll_iter[k+iterations], ll_iter[k + (2* iterations)] ]), \
                                     np.mean([R2_iter[k], R2_iter[k+iterations], R2_iter[k + (2* iterations)] ]), \
                                     np.mean([R2_std_iter[k], R2_std_iter[k+iterations], R2_std_iter[k + (2* iterations)] ]), \
+                                    np.mean([R2_Nmax_iter[k], R2_Nmax_iter[k+iterations], R2_Nmax_iter[k + (2* iterations)] ]), \
                                     np.mean([slope1[k], slope1[k+iterations], slope1[k + (2* iterations)] ]), \
                                     np.mean([intercept1[k], intercept1[k+iterations], intercept1[k + (2* iterations)] ]),\
                                     np.mean([r_value1[k], r_value1[k+iterations], r_value1[k + (2* iterations)] ]),\
@@ -1159,6 +1186,7 @@ def stratifyData1000(zipfType = 'mle', iterations = 1000,  \
                                     np.mean([ll_iter[k], ll_iter[k+iterations], ll_iter[k + (2* iterations)] ]), \
                                     np.mean([R2_iter[k], R2_iter[k+iterations], R2_iter[k + (2* iterations)] ]), \
                                     np.mean([R2_std_iter[k], R2_std_iter[k+iterations], R2_std_iter[k + (2* iterations)] ]), \
+                                    np.mean([R2_Nmax_iter[k], R2_Nmax_iter[k+iterations], R2_Nmax_iter[k + (2* iterations)] ]), \
                                     np.mean([slope1[k], slope1[k+iterations], slope1[k + (2* iterations)] ]), \
                                     np.mean([intercept1[k], intercept1[k+iterations], intercept1[k + (2* iterations)] ]),\
                                     np.mean([r_value1[k], r_value1[k+iterations], r_value1[k + (2* iterations)] ]),\
