@@ -213,7 +213,7 @@ def fig3(figname = 'Fig3', \
             site = np.asarray(list(((obs_pred_data["site"]))))
             y = np.asarray(list(((obs_pred_data["R2"]))))
             x = np.log10(np.asarray(list(((obs_pred_data[param])))))
-            print "nmax" + str(np.mean(np.asarray(list(((obs_pred_data["NmaxObs"]))))))
+            #print "nmax" + str(np.mean(np.asarray(list(((obs_pred_data["NmaxObs"]))))))
 
             mean_x = np.mean(x)
             mean_y = np.mean(y)
@@ -288,45 +288,120 @@ def fig3(figname = 'Fig3', \
         format = saveAs)
     plt.close()
 
+def count_pts_within_radius(x, y, radius, logscale=0):
+    """Count the number of points within a fixed radius in 2D space"""
+    #TODO: see if we can improve performance using KDTree.query_ball_point
+    #http://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.KDTree.query_ball_point.html
+    #instead of doing the subset based on the circle
+    unique_points = set([(x[i], y[i]) for i in range(len(x))])
+    count_data = []
+    logx, logy, logr = np.log10(x), np.log10(y), np.log10(radius)
+    for a, b in unique_points:
+        if logscale == 1:
+            loga, logb = np.log10(a), np.log10(b)
+            num_neighbors = len(x[((logx - loga) ** 2 +
+                                   (logy - logb) ** 2) <= logr ** 2])
+        else:
+            num_neighbors = len(x[((x - a) ** 2 + (y - b) ** 2) <= radius ** 2])
+        count_data.append((a, b, num_neighbors))
+    return count_data
+
+def plot_color_by_pt_dens(x, y, radius, loglog=0, plot_obj=None):
+    """Plot bivariate relationships with large n using color for point density
+
+    Inputs:
+    x & y -- variables to be plotted
+    radius -- the linear distance within which to count points as neighbors
+    loglog -- a flag to indicate the use of a loglog plot (loglog = 1)
+
+    The color of each point in the plot is determined by the logarithm (base 10)
+    of the number of points that occur with a given radius of the focal point,
+    with hotter colors indicating more points. The number of neighboring points
+    is determined in linear space regardless of whether a loglog plot is
+    presented.
+    """
+    plot_data = count_pts_within_radius(x, y, radius, loglog)
+    sorted_plot_data = np.array(sorted(plot_data, key=lambda point: point[2]))
+
+    if plot_obj == None:
+        plot_obj = plt.axes()
+
+    if loglog == 1:
+        plot_obj.set_xscale('log')
+        plot_obj.set_yscale('log')
+        plot_obj.scatter(sorted_plot_data[:, 0], sorted_plot_data[:, 1],
+                         c = np.sqrt(sorted_plot_data[:, 2]), edgecolors='none')
+        plot_obj.set_xlim(0, max(x) * 2)
+        plot_obj.set_ylim(0, max(y) * 2)
+    else:
+        plot_obj.scatter(sorted_plot_data[:, 0], sorted_plot_data[:, 1],
+                    c = log10(sorted_plot_data[:, 2]), edgecolors='none')
+    return plot_obj
 
 
-def fig4(figname = 'Fig4', data_dir=mydir, radius=2, saveAs = 'eps'):
+def fig4(figname = 'Fig4', data_dir=mydir, radius=1.5, saveAs = 'png'):
     fig = plt.figure()
     fig.subplots_adjust(bottom= 0.15)
     plot_dim = 1
     count = 0
-
-    IN_Obs_Pred = importData.import_NSR2_data(mydir + \
-        'data/NSR2/Stratified/lognorm_pln_NSR2_stratify.txt')
-    N = np.asarray(list(((IN_Obs_Pred["N"]))))
-    S = np.asarray(list(((IN_Obs_Pred["S"]))))
-    NmaxObs = np.asarray(list(((IN_Obs_Pred["NmaxObs"]))))
     models = ['geom', 'lognorm', 'mete', 'zipf']
-    modelSlopes = [0.647520323289, 0.942904468437, 0.769214774397, 0.954497727096]
-    modelInterepts = [0.116508916992, 0.292527611072, 0.19240314275, 0.189954627996]
-    for g, model in enumerate(models):
-        NmaxPred = []
-        SPred = []
-        for i in range(len(N)):
-            NmaxPred_i = mo.predictS(N[i], NmaxObs[i], \
-                predictNmax=True).getNmax(b = modelInterepts[g], slope = modelSlopes[g])
-            SPred_i = mo.predictS(N[i], NmaxObs[i], predictNmax=True).getS()
-            NmaxPred.append(NmaxPred_i)
-            SPred.append(SPred_i)
-        NmaxPred = np.asarray(NmaxPred)
-        SPred = np.asarray(SPred)
-        axis_min = 0
-        axis_max = 2 * max(NmaxObs)
-        ax = fig.add_subplot(2, 2, count+1)
-        if model == 'zipf':
-            OUT2 = importData.import_NSR2_data(data_dir + 'data/NSR2/Stratified_Test/'+ model  + '_mle_NSR2_stratify.txt')
-        elif model == 'lognorm':
-            OUT2 = importData.import_NSR2_data(data_dir + 'data/NSR2/Stratified_Test/'+ model  + '_pln_NSR2_stratify.txt')
-        else:
-            OUT2 = importData.import_NSR2_data(data_dir + 'data/NSR2/Stratified_Test/'+ model  +'_NSR2_stratify.txt')
+    #modelSlopes = [0.647520323289, 0.942904468437, 0.769214774397, 0.954497727096]
+    #modelInterepts = [0.116508916992, 0.292527611072, 0.19240314275, 0.189954627996]
+    modelSlopes = []
+    modelInterepts = []
 
-        NmaxObs_BS = np.asarray(list(((OUT2["NmaxObs"]))))
-        NmaxPred_BS = np.asarray(list(((OUT2["NmaxPred"]))))
+
+    for g, model in enumerate(models):
+
+        if model == 'geom':
+            IN_Obs_Pred = importData.import_NSR2_data(mydir + \
+                'data/NSR2/Stratified/geom_NSR2_stratify.txt')
+            nsr2 = importData.import_NSR2_data(data_dir + \
+            'data/NSR2/Stratified_Test/' + model + '_NSR2_stratify.txt')
+
+
+        elif model == 'lognorm':
+            IN_Obs_Pred = importData.import_NSR2_data(mydir + \
+                'data/NSR2/Stratified/lognorm_pln_NSR2_stratify.txt')
+            nsr2 = importData.import_NSR2_data(data_dir + \
+            'data/NSR2/Stratified_Test/' + model + '_'+  'pln' + '_NSR2_stratify.txt')
+
+
+        elif model == 'mete':
+            IN_Obs_Pred = importData.import_NSR2_data(mydir + \
+                'data/NSR2/Stratified/mete_NSR2_stratify.txt')
+            nsr2 = importData.import_NSR2_data(data_dir + \
+            'data/NSR2/Stratified_Test/' + model + '_NSR2_stratify.txt')
+
+
+        elif model == 'zipf':
+            IN_Obs_Pred = importData.import_NSR2_data(mydir + \
+                'data/NSR2/Stratified/zipf_mle_NSR2_stratify.txt')
+            nsr2 = importData.import_NSR2_data(data_dir + \
+            'data/NSR2/Stratified_Test/' + model + '_mle' + '_NSR2_stratify.txt')
+
+        N = np.asarray(list(((IN_Obs_Pred["N"]))))
+        N_All = np.asarray(list(((nsr2["N"]))))
+        domSlope = np.mean(((nsr2["NmaxPredSlope"])))
+        domIntercept =  10 ** np.mean(((nsr2["NmaxPredIntercept"])))
+
+        NmaxObs = np.asarray(list(((IN_Obs_Pred["NmaxObs"]))))
+        NmaxObsAll = np.asarray(list(((nsr2["NmaxObs"]))))
+
+        NmaxPred = []
+        NmaxPredAll = []
+        for i in range(len(N)):
+            NmaxPred_i = mo.predictNmax(N[i]).getNmax(b = domIntercept, slope = domSlope)
+            NmaxPred.append(NmaxPred_i)
+
+        NmaxPred = np.asarray(NmaxPred)
+        NmaxPred_obs = [k for k in zip(NmaxObs, NmaxPred) if k[0] < 200000 ]
+        NmaxObs = np.asarray([k[0] for k in NmaxPred_obs])
+        NmaxPred = np.asarray([k[1] for k in NmaxPred_obs])
+
+        axis_min = 10
+        axis_max = 1000000
+        ax = fig.add_subplot(2, 2, count+1)
 
         if model == 'geom':
             ax.set_title("Broken-stick")
@@ -336,11 +411,18 @@ def fig4(figname = 'Fig4', data_dir=mydir, radius=2, saveAs = 'eps'):
             ax.set_title("Log-series")
         elif model == 'zipf':
             ax.set_title("Zipf")
+
+        #plot_color_by_pt_dens(NmaxPred, NmaxObs, radius, loglog=1,
+        #                plot_obj=plt.subplot(2,2,count+1))
+        #if model == 'lognorm':
+        #    radius =  1.3
         macroecotools.plot_color_by_pt_dens(NmaxPred, NmaxObs, radius, loglog=1,
                         plot_obj=plt.subplot(2,2,count+1))
         plt.plot([axis_min, axis_max],[axis_min, axis_max], 'k-')
         plt.xlim(axis_min, axis_max)
-        plt.ylim(0, axis_max)
+        plt.ylim(axis_min, axis_max)
+        ax.set_xlim(axis_min, axis_max)
+        ax.set_ylim(axis_min, axis_max )
         r2_all = macroecotools.obs_pred_rsquare(np.log10(NmaxObs), np.log10(NmaxPred))
         r2text = r"${}^{{2}}_{{m}} = {:.{p}f} $".format('r',r2_all , p=2)
         plt.text(0.72, 0.12, r2text,  fontsize=13,
@@ -349,8 +431,8 @@ def fig4(figname = 'Fig4', data_dir=mydir, radius=2, saveAs = 'eps'):
         plt.tick_params(axis='both', which='major', labelsize=12)
         plt.subplots_adjust(wspace=0.00001, hspace=0.3)
         ax.set(adjustable='box-forced', aspect='equal')
-
         count += 1
+
     fig.text(0.50, 0.055 , 'Predicted, ' +r'$log_{10}(N_{max})$', ha='center', va='center', fontsize = 19)
     fig.text(0.09, 0.5, 'Observed, ' +r'$log_{10}(N_{max})$', ha='center', va='center', rotation='vertical',\
         fontsize = 19)
@@ -615,64 +697,6 @@ def figS2(n=35289, figname = 'FigS2', data_dir=mydir, \
     plt.close()
 
 
-def statOutput( data_dir=mydir, lognormType = 'pln', remove =0, seqSim = False):
-    methods = ['geom', 'lognorm', 'mete', 'zipf']
-    if seqSim != False:
-        print seqSim
-    for method in methods:
-        if remove == 0 and seqSim == False:
-            if method == 'zipf':
-                nsr2 = importData.import_NSR2_data(data_dir + 'data/NSR2/Stratified_Test/' + method + '_mle' + '_NSR2_stratify.txt')
-            elif method == 'lognorm':
-                nsr2 = importData.import_NSR2_data(data_dir + 'data/NSR2/Stratified_Test/' + method + '_'+  lognormType + '_NSR2_stratify.txt')
-            else:
-                nsr2 = importData.import_NSR2_data(data_dir + 'data/NSR2/Stratified_Test/' + method + '_NSR2_stratify.txt')
-        elif remove != 0 and seqSim == False:
-            if method == 'zipf':
-                nsr2 = importData.import_NSR2_data(data_dir + 'data/NSR2/Stratified_Test/Remove_1s/' + method + '_mle' + '_NSR2_1_stratify.txt')
-            elif method == 'lognorm':
-                nsr2 = importData.import_NSR2_data(data_dir + 'data/NSR2/Stratified_Test/Remove_1s/' + method + '_'+  lognormType + '_NSR2_1_stratify.txt')
-            else:
-                nsr2 = importData.import_NSR2_data(data_dir + 'data/NSR2/Stratified_Test/Remove_1s/' + method + '_NSR2_1_stratify.txt')
-        else:
-            if method == 'zipf':
-                nsr2 = importData.import_NSR2_data(data_dir + 'data/NSR2/Stratified_Test/SequenceSimilarity/'+ method  + '_mle_' +seqSim +'_NSR2_stratify.txt')
-            elif method == 'lognorm':
-                nsr2 = importData.import_NSR2_data(data_dir + 'data/NSR2/Stratified_Test/SequenceSimilarity/'+ method  + '_' + lognormType + '_' +seqSim  +'_NSR2_stratify.txt')
-            else:
-                nsr2 = importData.import_NSR2_data(data_dir + 'data/NSR2/Stratified_Test/SequenceSimilarity/'+ method + '_' +seqSim +'_NSR2_stratify.txt')
-
-        print method
-        print "r2 mean = " + str(np.mean(((nsr2["R2"]))))
-        print "r2 std = " +  str(np.mean(((nsr2["R2std"]))))
-        if seqSim == False:
-            domSlope = np.mean(((nsr2["NmaxPredSlope"])))
-            evenSlope = np.mean(((nsr2["evennessPredSlope"])))
-            skewSlope = np.mean(((nsr2["skewnessPredSlope"])))
-            print "Dominance slope " + str(domSlope)
-            diffDom = domSlope  - 1
-            p_diffDom = ((np.absolute(diffDom) /  ( 0.5 *(domSlope + 1) ))) * 100
-            diffDom_norm = diffDom / 1
-            P_errorDom = np.absolute(diffDom_norm) * 100
-            print "percent difference " + str(p_diffDom)
-            print "percent error " + str(P_errorDom)
-
-            print "Evenness slope " + str( evenSlope )
-            diffEven = evenSlope  - (-0.31)
-            p_diffEven = ((np.absolute(diffEven)  /  ( 0.5 *(np.absolute(evenSlope + -0.31)) ))) * 100
-            diffEven_norm = diffEven / -0.31
-            P_errorEven = np.absolute(diffEven_norm) * 100
-            print "percent difference " + str(p_diffEven)
-            print "percent error " + str(P_errorEven)
-
-            print "Skewness slope " + str(skewSlope )
-            diffSkew = skewSlope  - 0.13
-            p_diffSkew = ((np.absolute(diffSkew)  /  ( 0.5 *(skewSlope + 0.13) ))) * 100
-            diffSkew_norm = diffSkew / 0.13
-            P_errorSkew = np.absolute(diffSkew_norm) * 100
-            print "percent difference " + str(p_diffSkew)
-            print "percent error " + str(P_errorSkew)
-
 
 def figS3(data_dir=mydir, saveAs = 'eps'):
     models = ['geom', 'lognorm', 'mete', 'zipf']
@@ -789,7 +813,7 @@ def figS4(data_dir=mydir, figname = 'FigS4', saveAs = 'eps'):
             plt.xticks(fontsize = 7)
             plt.yticks(fontsize = 7)
             ax.set_xlabel('Log-likelihood', fontsize = 16)
-            ax.set_ylabel('Probability', fontsize = 16)
+            ax.set_ylabel('Probability density', fontsize = 14)
             plt.setp(ax.get_xticklabels()[::2], visible=False)
             plt.setp(ax.get_yticklabels()[::2], visible=False)
 
@@ -801,17 +825,10 @@ def figS4(data_dir=mydir, figname = 'FigS4', saveAs = 'eps'):
     plt.savefig(fig_name, dpi=600, format = saveAs)
     plt.close()
 
-def kde_sklearn(x, x_grid, bandwidth=0.2, **kwargs):
-    """Kernel Density Estimation with Scikit-learn"""
-    kde_skl = KernelDensity(bandwidth=bandwidth, **kwargs)
-    kde_skl.fit(x[:, np.newaxis])
-    # score_samples() returns the log-likelihood of the samples
-    log_pdf = kde_skl.score_samples(x_grid[:, np.newaxis])
-    return np.exp(log_pdf)
 
 
 
-def figS5(data_dir=mydir, saveAs = 'eps', figname = 'figS5'):
+def figS5(data_dir=mydir, saveAs = 'eps', figname = 'FigS5'):
     params = ['beta', 'gamma', 'mu', 'sigma']
     fig = plt.figure()
     count = 0
@@ -822,13 +839,13 @@ def figS5(data_dir=mydir, saveAs = 'eps', figname = 'figS5'):
             'data/NSR2/Stratified/mete_NSR2_stratify.txt')
             x = np.asarray(list(((NSR2["p"]))))
             x = np.asarray([math.log(p) * -1 for p in x])
-            ax.set_title("METE")
+            ax.set_title("Log-series")
             ax.set_xlabel(r'$\beta$', fontsize = 16)
-            ax.set_ylabel('Probability', fontsize = 16)
+            ax.set_ylabel('Probability density', fontsize = 14)
             print 'Beta: mean = ' + str(np.mean(x)) + ' std = ' +  str(np.std(x))
 
             x_grid = np.linspace(np.amin(x), np.amax(x), 10000)
-            kde_1 = kde_sklearn(x, x_grid, bandwidth=0.01)
+            kde_1 = mo.kde_sklearn(x, x_grid, bandwidth=0.01)
             kde_1 = [k / sum(kde_1) for k in kde_1]
             ax.plot(x_grid, kde_1, linewidth=3, alpha=0.5)
 
@@ -838,11 +855,11 @@ def figS5(data_dir=mydir, saveAs = 'eps', figname = 'figS5'):
             x = np.asarray(list(((NSR2["gamma"]))))
             ax.set_title("Zipf")
             ax.set_xlabel(r'$\gamma$', fontsize = 16)
-            ax.set_ylabel('Probability', fontsize = 16)
+            ax.set_ylabel('Probability density', fontsize = 14)
             print 'Gamma: mean = ' + str(np.mean(x)) + ' std = ' +  str(np.std(x))
 
             x_grid = np.linspace(np.amin(x), np.amax(x), 10000)
-            kde_1 = kde_sklearn(x, x_grid, bandwidth=0.05)
+            kde_1 = mo.kde_sklearn(x, x_grid, bandwidth=0.05)
             kde_1 = [k / sum(kde_1) for k in kde_1]
             ax.plot(x_grid, kde_1, linewidth=3, alpha=0.5)
 
@@ -850,7 +867,7 @@ def figS5(data_dir=mydir, saveAs = 'eps', figname = 'figS5'):
             NSR2 = importData.import_NSR2_data(data_dir + \
             'data/NSR2/Stratified/lognorm_pln_NSR2_stratify.txt')
             ax.set_title("Lognormal")
-            ax.set_ylabel('Probability', fontsize = 16)
+            ax.set_ylabel('Probability density', fontsize = 14)
             if param == 'mu':
                 x = np.asarray(list(((NSR2["mu"]))))
                 ax.set_xlabel(r'$\mu$', fontsize = 16)
@@ -878,11 +895,219 @@ def figS5(data_dir=mydir, saveAs = 'eps', figname = 'figS5'):
     plt.close()
 
 
+def statOutput( data_dir=mydir, lognormType = 'pln', remove =0, seqSim = False):
+    methods = ['geom', 'lognorm', 'mete', 'zipf']
+    if seqSim != False:
+        print seqSim
+    for method in methods:
+        if remove == 0 and seqSim == False:
+            if method == 'zipf':
+                nsr2 = importData.import_NSR2_data(data_dir + \
+                'data/NSR2/Stratified_Test/' + method + '_mle' + '_NSR2_stratify.txt')
+            elif method == 'lognorm':
+                nsr2 = importData.import_NSR2_data(data_dir + \
+                'data/NSR2/Stratified_Test/' + method + '_'+  lognormType + '_NSR2_stratify.txt')
+            else:
+                nsr2 = importData.import_NSR2_data(data_dir + \
+                'data/NSR2/Stratified_Test/' + method + '_NSR2_stratify.txt')
+        elif remove != 0 and seqSim == False:
+            if method == 'zipf':
+                nsr2 = importData.import_NSR2_data(data_dir + \
+                'data/NSR2/Stratified_Test/Remove_1s/' + method + '_mle' + '_NSR2_1_stratify.txt')
+            elif method == 'lognorm':
+                nsr2 = importData.import_NSR2_data(data_dir + \
+                'data/NSR2/Stratified_Test/Remove_1s/' + method + '_'+  lognormType + '_NSR2_1_stratify.txt')
+            else:
+                nsr2 = importData.import_NSR2_data(data_dir + \
+                'data/NSR2/Stratified_Test/Remove_1s/' + method + '_NSR2_1_stratify.txt')
+        else:
+            if method == 'zipf':
+                nsr2 = importData.import_NSR2_data(data_dir + \
+                'data/NSR2/Stratified_Test/SequenceSimilarity/'+ method  + '_mle_' +seqSim +'_NSR2_stratify.txt')
+            elif method == 'lognorm':
+                nsr2 = importData.import_NSR2_data(data_dir + \
+                'data/NSR2/Stratified_Test/SequenceSimilarity/'+ method  + '_' + lognormType + '_' +seqSim  +'_NSR2_stratify.txt')
+            else:
+                nsr2 = importData.import_NSR2_data(data_dir + \
+                'data/NSR2/Stratified_Test/SequenceSimilarity/'+ method + '_' +seqSim +'_NSR2_stratify.txt')
+
+        print method
+        print "r2 mean = " + str(np.mean(((nsr2["R2"]))))
+        print "r2 std = " +  str(np.mean(((nsr2["R2std"]))))
+        if seqSim == False:
+            domSlope = np.mean(((nsr2["NmaxPredSlope"])))
+            evenSlope = np.mean(((nsr2["evennessPredSlope"])))
+            skewSlope = np.mean(((nsr2["skewnessPredSlope"])))
+            print "Dominance slope " + str(domSlope)
+            diffDom = domSlope  - 1
+            p_diffDom = ((np.absolute(diffDom) /  ( 0.5 *(domSlope + 1) ))) * 100
+            diffDom_norm = diffDom / 1
+            P_errorDom = np.absolute(diffDom_norm) * 100
+            print "percent difference " + str(p_diffDom)
+            print "percent error " + str(P_errorDom)
+
+            print "Evenness slope " + str( evenSlope )
+            diffEven = evenSlope  - (-0.31)
+            p_diffEven = ((np.absolute(diffEven)  /  ( 0.5 *(np.absolute(evenSlope + -0.31)) ))) * 100
+            diffEven_norm = diffEven / -0.31
+            P_errorEven = np.absolute(diffEven_norm) * 100
+            print "percent difference " + str(p_diffEven)
+            print "percent error " + str(P_errorEven)
+
+            print "Skewness slope " + str(skewSlope )
+            diffSkew = skewSlope  - 0.13
+            p_diffSkew = ((np.absolute(diffSkew)  /  ( 0.5 *(skewSlope + 0.13) ))) * 100
+            diffSkew_norm = diffSkew / 0.13
+            P_errorSkew = np.absolute(diffSkew_norm) * 100
+            print "percent difference " + str(p_diffSkew)
+            print "percent error " + str(P_errorSkew)
+
+def table1(data_dir=mydir, lognormType = 'pln', remove =0, seqSim = False):
+    methods = ['geom', 'lognorm', 'mete', 'zipf']
+    if seqSim != False:
+        print seqSim
+    for method in methods:
+        if method == 'zipf':
+            nsr2 = importData.import_NSR2_data(data_dir + \
+            'data/NSR2/Stratified_Test/' + method + '_mle' + '_NSR2_stratify.txt')
+        elif method == 'lognorm':
+            nsr2 = importData.import_NSR2_data(data_dir + \
+            'data/NSR2/Stratified_Test/' + method + '_'+  lognormType + '_NSR2_stratify.txt')
+        else:
+            nsr2 = importData.import_NSR2_data(data_dir + \
+            'data/NSR2/Stratified_Test/' + method + '_NSR2_stratify.txt')
+
+        print method
+        print "r2 mean = " + str(np.mean(((nsr2["R2"]))))
+        print "r2 std = " +  str(np.std(((nsr2["R2"]))))
+
+def table2(data_dir=mydir, lognormType = 'pln', remove =0, seqSim = False):
+    methods = ['geom', 'lognorm', 'mete', 'zipf']
+    if seqSim != False:
+        print seqSim
+    for method in methods:
+        if method == 'zipf':
+            nsr2 = importData.import_NSR2_data(data_dir + \
+            'data/NSR2/Stratified_Test/' + method + '_mle' + '_NSR2_stratify.txt')
+        elif method == 'lognorm':
+            nsr2 = importData.import_NSR2_data(data_dir + \
+            'data/NSR2/Stratified_Test/' + method + '_'+  lognormType + '_NSR2_stratify.txt')
+        else:
+            nsr2 = importData.import_NSR2_data(data_dir + \
+            'data/NSR2/Stratified_Test/' + method + '_NSR2_stratify.txt')
+
+        print method
+        domSlope = np.mean(((nsr2["NmaxPredSlope"])))
+        evenSlope = np.mean(((nsr2["evennessPredSlope"])))
+        skewSlope = np.mean(((nsr2["skewnessPredSlope"])))
+        print "Dominance slope " + str(domSlope)
+        diffDom = domSlope  - 1
+        p_diffDom = ((np.absolute(diffDom) /  ( 0.5 *(domSlope + 1) ))) * 100
+        diffDom_norm = diffDom / 1
+        print "Dominance percent difference " + str(p_diffDom)
+
+        print "Evenness slope " + str( evenSlope )
+        diffEven = evenSlope  - (-0.31)
+        p_diffEven = ((np.absolute(diffEven)  /  ( 0.5 *(np.absolute(evenSlope + -0.31)) ))) * 100
+        diffEven_norm = diffEven / -0.31
+        print "Evenness percent difference " + str(p_diffEven)
+
+        print "Skewness slope " + str(skewSlope )
+        diffSkew = skewSlope  - 0.13
+        p_diffSkew = ((np.absolute(diffSkew)  /  ( 0.5 *(skewSlope + 0.13) ))) * 100
+        diffSkew_norm = diffSkew / 0.13
+        print "Skewness percent difference " + str(p_diffSkew)
+
+def tableS1(data_dir=mydir, lognormType = 'pln', remove =1):
+    fig3()
+
+def tableS2(data_dir=mydir, lognormType = 'pln', remove =1):
+    seqsims = ['95', '97', '99']
+    methods = ['geom', 'lognorm', 'mete', 'zipf']
+    for seqsim in seqsims:
+        print seqsim
+        for method in methods:
+            if method == 'zipf':
+                nsr2 = importData.import_NSR2_data(data_dir + \
+                'data/NSR2/Stratified_Test/SequenceSimilarity/'+ method  + '_mle_' +seqsim +'_NSR2_stratify.txt')
+            elif method == 'lognorm':
+                nsr2 = importData.import_NSR2_data(data_dir + \
+                'data/NSR2/Stratified_Test/SequenceSimilarity/'+ method  + '_' + lognormType + '_' +seqsim  +'_NSR2_stratify.txt')
+            else:
+                nsr2 = importData.import_NSR2_data(data_dir + \
+                'data/NSR2/Stratified_Test/SequenceSimilarity/'+ method + '_' +seqsim +'_NSR2_stratify.txt')
+            print method
+            print "r2 mean = " + str(np.mean(((nsr2["R2"]))))
+            print "r2 std = " +  str(np.std(((nsr2["R2"]))))
+
+def tableS3(data_dir=mydir, lognormType = 'pln', remove =1, seqSim = False):
+    methods = ['geom', 'lognorm', 'mete', 'zipf']
+    for method in methods:
+        if method == 'zipf':
+            nsr2 = importData.import_NSR2_data(data_dir + \
+            'data/NSR2/Stratified_Test/Remove_1s/zipf_mle_NSR2_1_stratify.txt')
+        elif method == 'lognorm':
+            nsr2 = importData.import_NSR2_data(data_dir + \
+            'data/NSR2/Stratified_Test/Remove_1s/lognorm_pln_NSR2_1_stratify.txt')
+        elif method == 'mete':
+            nsr2 = importData.import_NSR2_data(data_dir + \
+            'data/NSR2/Stratified_Test/Remove_1s/mete_NSR2_1_stratify.txt')
+        elif method == 'geom':
+            nsr2 = importData.import_NSR2_data(data_dir + \
+            'data/NSR2/Stratified_Test/Remove_1s/geom_NSR2_1_stratify.txt')
+        print method
+        print "r2 mean = " + str(np.mean(((nsr2["R2"]))))
+        print "r2 std = " +  str(np.std(((nsr2["R2"]))))
+
+def tableS4(data_dir=mydir, lognormType = 'pln'):
+    'Mean and standard deviation of parameters'
+    methods = ['lognorm', 'mete', 'zipf']
+    for method in methods:
+        print method
+        if method == 'zipf':
+            nsr2 = importData.import_NSR2_data(data_dir + \
+            'data/NSR2/Stratified_Test/Remove_1s/zipf_mle_NSR2_1_stratify.txt')
+            print "gamma mean = " + str(np.mean(((nsr2["gamma"]))))
+            print "gamma std = " +  str(np.std(((nsr2["gamma"]))))
+        elif method == 'lognorm':
+            nsr2 = importData.import_NSR2_data(data_dir + \
+            'data/NSR2/Stratified_Test/Remove_1s/lognorm_pln_NSR2_1_stratify.txt')
+            print "mu mean = " + str(np.mean(((nsr2["mu"]))))
+            print "mu std = " +  str(np.std(((nsr2["mu"]))))
+            print "sigma mean = " + str(np.mean(((nsr2["sigma"]))))
+            print "sigma std = " +  str(np.std(((nsr2["sigma"]))))
+        elif method == 'mete':
+            nsr2 = importData.import_NSR2_data(data_dir + \
+            'data/NSR2/Stratified_Test/Remove_1s/mete_NSR2_1_stratify.txt')
+            p = np.asarray(list(((nsr2["p"]))))
+            beta = np.asarray([math.log(x) * -1 for x in p])
+            print "beta mean = " + str(np.mean(beta))
+            print "beta std = " +  str(np.std(beta))
+
+
+def tableS5(data_dir=mydir, lognormType = 'pln'):
+    'Mean and standard deviation of log-likelihood'
+    methods = ['lognorm', 'mete', 'zipf']
+    for method in methods:
+        if method == 'zipf':
+            nsr2 = importData.import_NSR2_data(data_dir + \
+            'data/NSR2/Stratified_Test/Remove_1s/zipf_mle_NSR2_1_stratify.txt')
+        elif method == 'lognorm':
+            nsr2 = importData.import_NSR2_data(data_dir + \
+            'data/NSR2/Stratified_Test/Remove_1s/lognorm_pln_NSR2_1_stratify.txt')
+        elif method == 'mete':
+            nsr2 = importData.import_NSR2_data(data_dir + \
+            'data/NSR2/Stratified_Test/Remove_1s/mete_NSR2_1_stratify.txt')
+        ll = np.asarray(list(((nsr2["ll"]))))
+        ll = ll[np.isneginf(ll) == False]
+        print method
+        print "Log-likelihood mean = " + str(np.mean(ll))
+        print "Log-likelihood std = " +  str(np.std(ll))
 
 
 #352899
-#test(seqSim = '95')
-#test(seqSim = '97')
-#test(seqSim = '99')
-#test(remove = 0)
-#figS3()
+
+#figS4()
+#figS5()
+
+tableS5()

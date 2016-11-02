@@ -12,6 +12,9 @@ mydir = os.path.expanduser("~/github/MicroMETE/")
 import importData as im
 
 
-gd.stratifyData(['EMPclosed','HMP', 'MGRAST'], remove_obs = 1)
-
-#gd.stratifyData(['EMPclosed'], remove_obs = 1)
+gd.stratifyDataBootstrap(remove_obs = 0)
+#gd.stratifyDataBootstrap(remove_obs = 1)
+#gd.stratifyDataBootstrap(remove_obs = 0, seqSim = '95')
+#gd.stratifyDataBootstrap(remove_obs = 0, seqSim = '97')
+#gd.stratifyDataBootstrap(remove_obs = 0, seqSim = '99')
+#gd.stratifyDataOnce(['EMPclosed', 'MGRAST', 'HMP'], remove_obs = 0)

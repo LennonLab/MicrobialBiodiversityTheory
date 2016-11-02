@@ -5,10 +5,10 @@ output: pdf_document
 
 | $$\mathbf{Model}$$     | $$\overline{r^{2}_{m}}$$ | $$\sigma_{\bar{r^{2}_{m}}}$$ | 
 |:----------------------:|------------------------:|------------------------:|
-|$$\mathrm{Lognormal}$$   |  $$0.91$$   |     $$0.087$$           |
+|$$\mathrm{Lognormal}$$   |  $$0.91$$   |     $$ 0.0048$$           |
 |   |            |            |
-|   $$\mathrm{Zipf}$$   |        $$-0.021$$      |   $$0.73$$            |
+|   $$\mathrm{Zipf}$$   |        $$0.13$$      |   $$0.081$$            |
 |   |            |            |
-|$$\mathrm{Log\mbox{-}series}$$   | $$0.74$$    |      $$0.28$$            |
+|$$\mathrm{Log\mbox{-}series}$$   | $$0.76$$    |      $$0.015$$            |
 |   |            |            |
-|   $$\mathrm{Broken\mbox{-}stick}$$   |    $$-0.20$$    |     $$0.82$$           |
+|   $$\mathrm{Broken\mbox{-}stick}$$   |    $$-0.026$$    |     $$0.039$$           |

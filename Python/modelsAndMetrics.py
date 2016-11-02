@@ -21,32 +21,18 @@ mydir = os.path.expanduser("~/github/MicroMETE/data/")
 repos: METE (https://github.com/weecology/METE) and macroecotools
 (https://github.com/weecology/macroecotools). """
 
+def kde_sklearn(x, x_grid, bandwidth=0.2, **kwargs):
+    """Kernel Density Estimation with Scikit-learn"""
+    kde_skl = KernelDensity(bandwidth=bandwidth, **kwargs)
+    kde_skl.fit(x[:, np.newaxis])
+    # score_samples() returns the log-likelihood of the samples
+    log_pdf = kde_skl.score_samples(x_grid[:, np.newaxis])
+    return np.exp(log_pdf)
 
 
-class predictS:
-    def __init__(self, N, Nmax, predictNmax = True):
+class predictNmax:
+    def __init__(self, N):
         self.N = N
-        self.Nmax = Nmax
-        self.predictNmax = predictNmax
-
-    def alpha(self, a, Nmax, Nmin=1):
-
-        """Numerically solve for Preston's a. Needed to estimate S using the lognormal"""
-
-        y = sqrt(pi*Nmin*Nmax)/(2.0*a) * exp((a * log2(sqrt(Nmax/Nmin)))**2.0)
-        y = y * exp((log(2.0)/(2.0*a))**2.0)
-        y = y * erf(a * log2(sqrt(Nmax/Nmin)) - log(2.0)/(2.0*a))
-        y += erf(a * log2(sqrt(Nmax/Nmin)) + log(2.0)/(2.0*a))
-        y -= self.N
-
-        return y # find alpha
-
-    def s(self, a, Nmax, Nmin=1):
-
-        """Predict S from the lognormal using Nmax as the only empirical input"""
-
-        return sqrt(pi)/a * exp( (a * log2(sqrt(Nmax/Nmin)))**2) # Using equation 10
-
 
     def getNmax(self, b=0.6148, slope=0.942904468437):
 
@@ -57,20 +43,6 @@ class predictS:
         return int(round(NmaxCalc))
 
 
-    def getS(self, predictNmax=True):
-
-        guess = 0.1 # initial guess for Pre ston's alpha
-        Nmin = 1
-
-        if self.predictNmax == True:
-            Nmax = self.getNmax()
-        else:
-            Nmax = self.Nmax
-
-        a = opt.fsolve(self.alpha, guess, (Nmax, Nmin))[0]
-        S2 = self.s(a, Nmax, 1)
-
-        return int(round(S2))
 
 class TimeoutException(Exception):   # Custom exception class
     pass
