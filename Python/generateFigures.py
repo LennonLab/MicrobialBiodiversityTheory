@@ -46,14 +46,14 @@ def fig1(figname = 'Fig1', data_dir= mydir, saveAs = 'eps'):
 
     max_y = max(max(SAD),  max(zipf_SAD))
 
-    plt.plot(x, SAD,color = '#A9A9A9', linestyle = '-', linewidth=2, label="Observed")
-    plt.plot(x, geom,color = '#00008B', linestyle = '-', linewidth=2, label="Broken-stick")
-    plt.plot(x, lognorm_SAD, color = '#0000CD',linestyle = '--', linewidth=2, label="Lognormal")
-    plt.plot(x, logSeries, color = '#FF4500',linestyle = '-.', linewidth=2, label="Log-series")
-    plt.plot(x, zipf_SAD, color = 'red',linestyle = '-',linewidth=2,  label="Zipf")
+    plt.plot(x, SAD,color = '#696969', linestyle = '-', linewidth=4, label="Observed")
+    plt.plot(x, geom,color = '#FFA500', linestyle = '-', linewidth=4, label="Broken-stick")
+    plt.plot(x, lognorm_SAD, color = '#0000CD',linestyle = '-', linewidth=4, label="Lognormal")
+    plt.plot(x, logSeries, color = '#008000',linestyle = '-', linewidth=4, label="Log-series")
+    plt.plot(x, zipf_SAD, color = 'red',linestyle = '-',linewidth=4,  label="Zipf")
 
     plt.tight_layout()
-    plt.xlabel('Rank Abundance', fontsize = 22)
+    plt.xlabel('Rank in abundance', fontsize = 22)
     plt.ylabel('Abundance, ' +r'$log_{10}$', fontsize = 22)
     output = "dorm_fix_prob.png"
     plt.legend(loc='upper right')
@@ -187,10 +187,10 @@ def fig2(n=352899, figname = 'Fig2', data_dir=mydir, \
 
         count += 1
     plt.tight_layout(pad=1.5, w_pad=0.8, h_pad=0.8)
-    fig.text(0.50, 0.03, 'Predicted abundance', ha='center', va='center', fontsize=16)
-    fig.text(0.08, 0.5, 'Observed abundance', ha='center', va='center', rotation='vertical', fontsize=16)
+    fig.text(0.50, 0.02, 'Predicted abundance', ha='center', va='center', fontsize=16)
+    fig.text(0.095, 0.5, 'Observed abundance', ha='center', va='center', rotation='vertical', fontsize=16)
     fig_name = str(mydir + 'figures/' + figname + '_RGB.' + saveAs)
-    plt.savefig(fig_name, dpi=600, format = saveAs)#, bbox_inches = 'tight')#, pad_inches=0)
+    plt.savefig(fig_name, dpi=600, format = saveAs, bbox_inches = 'tight')#, pad_inches=0)
     plt.close()
 
 
@@ -339,7 +339,7 @@ def plot_color_by_pt_dens(x, y, radius, loglog=0, plot_obj=None):
     return plot_obj
 
 
-def fig4(figname = 'Fig4', data_dir=mydir, radius=1.5, saveAs = 'png'):
+def fig4(figname = 'Fig4', data_dir=mydir, radius=1.5, saveAs = 'eps '):
     fig = plt.figure()
     fig.subplots_adjust(bottom= 0.15)
     plot_dim = 1
@@ -1059,7 +1059,7 @@ def tableS3(data_dir=mydir, lognormType = 'pln', remove =1, seqSim = False):
         print "r2 mean = " + str(np.mean(((nsr2["R2"]))))
         print "r2 std = " +  str(np.std(((nsr2["R2"]))))
 
-def tableS4(data_dir=mydir, lognormType = 'pln'):
+def tableS5(data_dir=mydir, lognormType = 'pln'):
     'Mean and standard deviation of parameters'
     methods = ['lognorm', 'mete', 'zipf']
     for method in methods:
@@ -1085,7 +1085,7 @@ def tableS4(data_dir=mydir, lognormType = 'pln'):
             print "beta std = " +  str(np.std(beta))
 
 
-def tableS5(data_dir=mydir, lognormType = 'pln'):
+def tableS4(data_dir=mydir, lognormType = 'pln'):
     'Mean and standard deviation of log-likelihood'
     methods = ['lognorm', 'mete', 'zipf']
     for method in methods:
@@ -1108,6 +1108,6 @@ def tableS5(data_dir=mydir, lognormType = 'pln'):
 #352899
 
 #figS4()
-#figS5()
-
-tableS5()
+#fig2()
+table1()
+#tableS5()
