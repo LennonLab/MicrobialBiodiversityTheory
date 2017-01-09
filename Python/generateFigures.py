@@ -46,14 +46,14 @@ def fig1(figname = 'Fig1', data_dir= mydir, saveAs = 'eps'):
 
     max_y = max(max(SAD),  max(zipf_SAD))
 
-    plt.plot(x, SAD,color = '#A9A9A9', linestyle = '-', linewidth=2, label="Observed")
-    plt.plot(x, geom,color = '#00008B', linestyle = '-', linewidth=2, label="Broken-stick")
-    plt.plot(x, lognorm_SAD, color = '#0000CD',linestyle = '--', linewidth=2, label="Lognormal")
-    plt.plot(x, logSeries, color = '#FF4500',linestyle = '-.', linewidth=2, label="Log-series")
-    plt.plot(x, zipf_SAD, color = 'red',linestyle = '-',linewidth=2,  label="Zipf")
+    plt.plot(x, SAD,color = '#696969', linestyle = '-', linewidth=4, label="Observed")
+    plt.plot(x, geom,color = '#FFA500', linestyle = '-', linewidth=4, label="Broken-stick")
+    plt.plot(x, lognorm_SAD, color = '#0000CD',linestyle = '-', linewidth=4, label="Lognormal")
+    plt.plot(x, logSeries, color = '#008000',linestyle = '-', linewidth=4, label="Log-series")
+    plt.plot(x, zipf_SAD, color = 'red',linestyle = '-',linewidth=4,  label="Zipf")
 
     plt.tight_layout()
-    plt.xlabel('Rank Abundance', fontsize = 22)
+    plt.xlabel('Rank in abundance', fontsize = 22)
     plt.ylabel('Abundance, ' +r'$log_{10}$', fontsize = 22)
     output = "dorm_fix_prob.png"
     plt.legend(loc='upper right')
@@ -187,10 +187,22 @@ def fig2(n=352899, figname = 'Fig2', data_dir=mydir, \
 
         count += 1
     plt.tight_layout(pad=1.5, w_pad=0.8, h_pad=0.8)
-    fig.text(0.50, 0.03, 'Predicted abundance', ha='center', va='center', fontsize=16)
-    fig.text(0.08, 0.5, 'Observed abundance', ha='center', va='center', rotation='vertical', fontsize=16)
+    fig.text(0.50, 0.02, 'Predicted abundance', ha='center', va='center', fontsize=16)
+    fig.text(0.095, 0.5, 'Observed abundance', ha='center', va='center', rotation='vertical', fontsize=16)
+    fig.text(0.17, 0.94, 'a',  fontsize=14,
+        horizontalalignment='center',
+        verticalalignment='center', fontweight='bold')
+    fig.text(0.57, 0.94, 'b',  fontsize=14,
+        horizontalalignment='center',
+        verticalalignment='center', fontweight='bold')
+    fig.text(0.17, 0.47, 'c',  fontsize=14,
+        horizontalalignment='center',
+        verticalalignment='center', fontweight='bold')
+    fig.text(0.57, 0.47, 'd',  fontsize=14,
+        horizontalalignment='center',
+        verticalalignment='center', fontweight='bold')
     fig_name = str(mydir + 'figures/' + figname + '_RGB.' + saveAs)
-    plt.savefig(fig_name, dpi=600, format = saveAs)#, bbox_inches = 'tight')#, pad_inches=0)
+    plt.savefig(fig_name, dpi=600, format = saveAs, bbox_inches = 'tight')#, pad_inches=0)
     plt.close()
 
 
@@ -283,63 +295,25 @@ def fig3(figname = 'Fig3', \
             count += 1
 
     plt.tight_layout(pad=0.8, w_pad=0.8, h_pad=0.8)
+    fig.text(0.15, 0.96, 'a',  fontsize=14,
+        horizontalalignment='center',
+        verticalalignment='center', fontweight='bold')
+    fig.text(0.61, 0.96, 'b',  fontsize=14,
+        horizontalalignment='center',
+        verticalalignment='center', fontweight='bold')
+    fig.text(0.15, 0.5, 'c',  fontsize=14,
+        horizontalalignment='center',
+        verticalalignment='center', fontweight='bold')
+    fig.text(0.61, 0.5, 'd',  fontsize=14,
+        horizontalalignment='center',
+        verticalalignment='center', fontweight='bold')
     fig_name = str(mydir + 'figures/' + figname  + '_RGB.' + saveAs)
     plt.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600, \
         format = saveAs)
     plt.close()
 
-def count_pts_within_radius(x, y, radius, logscale=0):
-    """Count the number of points within a fixed radius in 2D space"""
-    #TODO: see if we can improve performance using KDTree.query_ball_point
-    #http://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.KDTree.query_ball_point.html
-    #instead of doing the subset based on the circle
-    unique_points = set([(x[i], y[i]) for i in range(len(x))])
-    count_data = []
-    logx, logy, logr = np.log10(x), np.log10(y), np.log10(radius)
-    for a, b in unique_points:
-        if logscale == 1:
-            loga, logb = np.log10(a), np.log10(b)
-            num_neighbors = len(x[((logx - loga) ** 2 +
-                                   (logy - logb) ** 2) <= logr ** 2])
-        else:
-            num_neighbors = len(x[((x - a) ** 2 + (y - b) ** 2) <= radius ** 2])
-        count_data.append((a, b, num_neighbors))
-    return count_data
 
-def plot_color_by_pt_dens(x, y, radius, loglog=0, plot_obj=None):
-    """Plot bivariate relationships with large n using color for point density
-
-    Inputs:
-    x & y -- variables to be plotted
-    radius -- the linear distance within which to count points as neighbors
-    loglog -- a flag to indicate the use of a loglog plot (loglog = 1)
-
-    The color of each point in the plot is determined by the logarithm (base 10)
-    of the number of points that occur with a given radius of the focal point,
-    with hotter colors indicating more points. The number of neighboring points
-    is determined in linear space regardless of whether a loglog plot is
-    presented.
-    """
-    plot_data = count_pts_within_radius(x, y, radius, loglog)
-    sorted_plot_data = np.array(sorted(plot_data, key=lambda point: point[2]))
-
-    if plot_obj == None:
-        plot_obj = plt.axes()
-
-    if loglog == 1:
-        plot_obj.set_xscale('log')
-        plot_obj.set_yscale('log')
-        plot_obj.scatter(sorted_plot_data[:, 0], sorted_plot_data[:, 1],
-                         c = np.sqrt(sorted_plot_data[:, 2]), edgecolors='none')
-        plot_obj.set_xlim(0, max(x) * 2)
-        plot_obj.set_ylim(0, max(y) * 2)
-    else:
-        plot_obj.scatter(sorted_plot_data[:, 0], sorted_plot_data[:, 1],
-                    c = log10(sorted_plot_data[:, 2]), edgecolors='none')
-    return plot_obj
-
-
-def fig4(figname = 'Fig4', data_dir=mydir, radius=1.5, saveAs = 'png'):
+def fig4(figname = 'Fig4', data_dir=mydir, radius=1.5, saveAs = 'eps'):
     fig = plt.figure()
     fig.subplots_adjust(bottom= 0.15)
     plot_dim = 1
@@ -412,10 +386,6 @@ def fig4(figname = 'Fig4', data_dir=mydir, radius=1.5, saveAs = 'png'):
         elif model == 'zipf':
             ax.set_title("Zipf")
 
-        #plot_color_by_pt_dens(NmaxPred, NmaxObs, radius, loglog=1,
-        #                plot_obj=plt.subplot(2,2,count+1))
-        #if model == 'lognorm':
-        #    radius =  1.3
         macroecotools.plot_color_by_pt_dens(NmaxPred, NmaxObs, radius, loglog=1,
                         plot_obj=plt.subplot(2,2,count+1))
         plt.plot([axis_min, axis_max],[axis_min, axis_max], 'k-')
@@ -436,6 +406,18 @@ def fig4(figname = 'Fig4', data_dir=mydir, radius=1.5, saveAs = 'png'):
     fig.text(0.50, 0.055 , 'Predicted, ' +r'$log_{10}(N_{max})$', ha='center', va='center', fontsize = 19)
     fig.text(0.09, 0.5, 'Observed, ' +r'$log_{10}(N_{max})$', ha='center', va='center', rotation='vertical',\
         fontsize = 19)
+    fig.text(0.21, 0.92, 'a',  fontsize=14,
+        horizontalalignment='center',
+        verticalalignment='center', fontweight='bold')
+    fig.text(0.59, 0.92, 'b',  fontsize=14,
+        horizontalalignment='center',
+        verticalalignment='center', fontweight='bold')
+    fig.text(0.21, 0.5, 'c',  fontsize=14,
+        horizontalalignment='center',
+        verticalalignment='center', fontweight='bold')
+    fig.text(0.59, 0.5, 'd',  fontsize=14,
+        horizontalalignment='center',
+        verticalalignment='center', fontweight='bold')
     fig_name = str(mydir + 'figures/' + figname + '_RGB.' + saveAs)
     plt.savefig(fig_name, dpi=600, format = saveAs)#, bbox_inches = 'tight')#, pad_inches=0)
     plt.close()
@@ -766,56 +748,56 @@ def figS3(data_dir=mydir, saveAs = 'eps'):
     plt.savefig(name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600, format = saveAs)
 
 def figS4(data_dir=mydir, figname = 'FigS4', saveAs = 'eps'):
-    models = ['lognorm', 'mete', 'zipf']
+    models = ['geom', 'lognorm', 'mete', 'zipf']
     fig = plt.figure()
     count = 0
-    gs = gridspec.GridSpec(4, 4)
-    #gs.update(wspace=0.1, hspace=0.1)
-    for i in range(0, 4, 2):
-        for j in range(0, 4, 2):
-            if count < 2:
-                ax = plt.subplot(gs[i:i+2, j:j+2], adjustable='box-forced')
-                count += 1
-            else:
-                ax = plt.subplot(gs[i:i+2, 1:3], adjustable='box-forced')
-            if i == 0 and j == 0:
-                NSR2 = importData.import_NSR2_data(data_dir + \
-                'data/NSR2/Stratified/lognorm_pln_NSR2_stratify.txt')
-                ax.set_title("Lognormal", fontsize = 18)
-                ll = np.asarray(list(((NSR2["ll"]))))
-                ll = ll[np.isneginf(ll) == False]
-                print 'Lognorm: mean = ' + str(np.mean(ll)) + ' std = ' + str(np.std(ll))
-            elif i == 0 and j == 2:
-                NSR2 = importData.import_NSR2_data(data_dir + \
-                'data/NSR2/Stratified/zipf_mle_NSR2_stratify.txt')
-                ax.set_title("Zipf", fontsize = 18)
-                ll = np.asarray(list(((NSR2["ll"]))))
-                ll = ll[np.isneginf(ll) == False]
-                print 'Zipf: mean = ' + str(np.mean(ll)) + ' std = ' + str(np.std(ll))
-            elif i == 2 and j == 0:
-                NSR2 = importData.import_NSR2_data(data_dir + \
-                'data/NSR2/Stratified/mete_NSR2_stratify.txt')
-                ax.set_title("Log-series", fontsize = 18)
-                ll = np.asarray(list(((NSR2["ll"]))))
-                ll = ll[np.isneginf(ll) == False]
-                print 'Log-series: mean = ' + str(np.mean(ll)) + ' std = ' + str(np.std(ll))
-            else:
-                continue
+    for i, model in enumerate(models):
+        ax = fig.add_subplot(2, 2, count+1)
+        if model == 'lognorm':
+            NSR2 = importData.import_NSR2_data(data_dir + \
+            'data/NSR2/Stratified/lognorm_pln_NSR2_stratify.txt')
+            ax.set_title("Lognormal", fontsize = 18)
+            ll = np.asarray(list(((NSR2["ll"]))))
+            ll = ll[np.isneginf(ll) == False]
+            print 'Lognorm: mean = ' + str(np.mean(ll)) + ' std = ' + str(np.std(ll))
+        elif model == 'zipf':
+            NSR2 = importData.import_NSR2_data(data_dir + \
+            'data/NSR2/Stratified/zipf_mle_NSR2_stratify.txt')
+            ax.set_title("Zipf", fontsize = 18)
+            ll = np.asarray(list(((NSR2["ll"]))))
+            ll = ll[np.isneginf(ll) == False]
+            print 'Zipf: mean = ' + str(np.mean(ll)) + ' std = ' + str(np.std(ll))
+        elif model == 'mete':
+            NSR2 = importData.import_NSR2_data(data_dir + \
+            'data/NSR2/Stratified/mete_NSR2_stratify.txt')
+            ax.set_title("Log-series", fontsize = 18)
+            ll = np.asarray(list(((NSR2["ll"]))))
+            ll = ll[np.isneginf(ll) == False]
+            print 'Log-series: mean = ' + str(np.mean(ll)) + ' std = ' + str(np.std(ll))
+        elif model == 'geom':
+            NSR2 = importData.import_NSR2_data(data_dir + \
+            'data/NSR2/Stratified/geom_NSR2_stratify.txt')
+            ax.set_title("Broken-stick", fontsize = 18)
+            ll = np.asarray(list(((NSR2["ll"]))))
+            ll = ll[np.isneginf(ll) == False]
+            print 'Broken-stick: mean = ' + str(np.mean(ll)) + ' std = ' + str(np.std(ll))
 
-            ax.set( adjustable='box-forced')
-            KDE = mo.CV_KDE(ll)
-            #ax.hist(ll, 30, fc='gray', histtype='stepfilled', alpha=0.5, normed=True)
-            ax.plot(KDE[0], KDE[1], linewidth=3, alpha=0.8 , color = 'blue')
-            ax.yaxis.set_major_formatter(mticker.FormatStrFormatter('%.0E'))
-            ax.xaxis.set_major_formatter(mticker.FormatStrFormatter('%.0E'))
+        count += 1
 
-            ax.set_xlim([min(KDE[0]), 0])
-            plt.xticks(fontsize = 7)
-            plt.yticks(fontsize = 7)
-            ax.set_xlabel('Log-likelihood', fontsize = 16)
-            ax.set_ylabel('Probability density', fontsize = 14)
-            plt.setp(ax.get_xticklabels()[::2], visible=False)
-            plt.setp(ax.get_yticklabels()[::2], visible=False)
+        ax.set( adjustable='box-forced')
+        KDE = mo.CV_KDE(ll)
+        #ax.hist(ll, 30, fc='gray', histtype='stepfilled', alpha=0.5, normed=True)
+        ax.plot(KDE[0], KDE[1], linewidth=3, alpha=0.8 , color = 'blue')
+        ax.yaxis.set_major_formatter(mticker.FormatStrFormatter('%.0E'))
+        ax.xaxis.set_major_formatter(mticker.FormatStrFormatter('%.0E'))
+
+        ax.set_xlim([min(KDE[0]), 0])
+        plt.xticks(fontsize = 7)
+        plt.yticks(fontsize = 7)
+        ax.set_xlabel('Log-likelihood', fontsize = 16)
+        ax.set_ylabel('Probability density', fontsize = 14)
+        plt.setp(ax.get_xticklabels()[::2], visible=False)
+        plt.setp(ax.get_yticklabels()[::2], visible=False)
 
     fig_name = str(mydir + 'figures/' + figname + '_RGB.' + saveAs)
     fig.subplots_adjust(left=0.1, bottom = 0.1,hspace=0.1)
@@ -824,8 +806,6 @@ def figS4(data_dir=mydir, figname = 'FigS4', saveAs = 'eps'):
     #fig.text(0.04, 0.5, 'Probability', ha='center', va='center', rotation='vertical', fontsize=20)
     plt.savefig(fig_name, dpi=600, format = saveAs)
     plt.close()
-
-
 
 
 def figS5(data_dir=mydir, saveAs = 'eps', figname = 'FigS5'):
@@ -891,6 +871,55 @@ def figS5(data_dir=mydir, saveAs = 'eps', figname = 'FigS5'):
     fig_name = str(mydir + 'figures/' + figname + '_RGB.' + saveAs)
     fig.subplots_adjust(left=0.1, bottom = 0.1,hspace=0.1)
     fig.tight_layout()#pad=1.2, w_pad=0.8, h_pad=0.8
+    plt.savefig(fig_name, dpi=600, format = saveAs)
+    plt.close()
+
+
+def figS6(data_dir=mydir, saveAs = 'eps', figname = 'FigS6'):
+    IN = pd.read_csv(data_dir + 'data/NSR2/NSR2_AICc/AICc_winner_freqs.txt', \
+        sep='\t', header='infer')
+    data_to_plot = [IN['geom'].values, IN['mete'].values, \
+        IN['lognorm'].values, IN['zipf'].values]
+    # Create a figure instance
+    fig = plt.figure(1, figsize=(9, 6))
+    # Create an axes instance
+    ax = fig.add_subplot(111)
+    # Create the boxplot
+    ## add patch_artist=True option to ax.boxplot()
+    ## to get fill color
+    bp = ax.boxplot(data_to_plot, patch_artist=True)
+
+    ## change outline color, fill color and linewidth of the boxes
+    for box in bp['boxes']:
+        # change outline color
+        box.set( color='#7570b3', linewidth=2)
+        # change fill color
+        box.set( facecolor = '#1b9e77' )
+
+    ## change color and linewidth of the whiskers
+    for whisker in bp['whiskers']:
+        whisker.set(color='#7570b3', linewidth=2)
+
+    ## change color and linewidth of the caps
+    for cap in bp['caps']:
+        cap.set(color='#7570b3', linewidth=2)
+
+    ## change color and linewidth of the medians
+    for median in bp['medians']:
+        median.set(color='#b2df8a', linewidth=2)
+
+    ## change the style of fliers and their fill
+    for flier in bp['fliers']:
+        flier.set(marker='o', color='#e7298a', alpha=0.5)
+    ## Custom x-axis labels
+    ax.set_xticklabels(['Broken-stick', 'Log-series', 'Lognormal', 'Zipf'])
+    ax.set_ylabel('Percent of the time that a given model \n has the highest AICc weight')
+
+    ## Remove top axes and right axes ticks
+    ax.get_xaxis().tick_bottom()
+    ax.get_yaxis().tick_left()
+
+    fig_name = str(data_dir + 'figures/' + figname + '_RGB.' + saveAs)
     plt.savefig(fig_name, dpi=600, format = saveAs)
     plt.close()
 
@@ -1060,54 +1089,69 @@ def tableS3(data_dir=mydir, lognormType = 'pln', remove =1, seqSim = False):
         print "r2 std = " +  str(np.std(((nsr2["R2"]))))
 
 def tableS4(data_dir=mydir, lognormType = 'pln'):
-    'Mean and standard deviation of parameters'
-    methods = ['lognorm', 'mete', 'zipf']
-    for method in methods:
-        print method
-        if method == 'zipf':
-            nsr2 = importData.import_NSR2_data(data_dir + \
-            'data/NSR2/Stratified_Test/Remove_1s/zipf_mle_NSR2_1_stratify.txt')
-            print "gamma mean = " + str(np.mean(((nsr2["gamma"]))))
-            print "gamma std = " +  str(np.std(((nsr2["gamma"]))))
-        elif method == 'lognorm':
-            nsr2 = importData.import_NSR2_data(data_dir + \
-            'data/NSR2/Stratified_Test/Remove_1s/lognorm_pln_NSR2_1_stratify.txt')
-            print "mu mean = " + str(np.mean(((nsr2["mu"]))))
-            print "mu std = " +  str(np.std(((nsr2["mu"]))))
-            print "sigma mean = " + str(np.mean(((nsr2["sigma"]))))
-            print "sigma std = " +  str(np.std(((nsr2["sigma"]))))
-        elif method == 'mete':
-            nsr2 = importData.import_NSR2_data(data_dir + \
-            'data/NSR2/Stratified_Test/Remove_1s/mete_NSR2_1_stratify.txt')
-            p = np.asarray(list(((nsr2["p"]))))
-            beta = np.asarray([math.log(x) * -1 for x in p])
-            print "beta mean = " + str(np.mean(beta))
-            print "beta std = " +  str(np.std(beta))
-
-
-def tableS5(data_dir=mydir, lognormType = 'pln'):
     'Mean and standard deviation of log-likelihood'
-    methods = ['lognorm', 'mete', 'zipf']
+    methods = ['geom','lognorm', 'mete', 'zipf']
     for method in methods:
-        if method == 'zipf':
+        if method == 'geom':
             nsr2 = importData.import_NSR2_data(data_dir + \
-            'data/NSR2/Stratified_Test/Remove_1s/zipf_mle_NSR2_1_stratify.txt')
+            'data/NSR2/Stratified_Test/geom_NSR2_stratify.txt')
+        elif method == 'zipf':
+            nsr2 = importData.import_NSR2_data(data_dir + \
+            'data/NSR2/Stratified_Test/zipf_mle_NSR2_stratify.txt')
         elif method == 'lognorm':
             nsr2 = importData.import_NSR2_data(data_dir + \
-            'data/NSR2/Stratified_Test/Remove_1s/lognorm_pln_NSR2_1_stratify.txt')
+            'data/NSR2/Stratified_Test/lognorm_pln_NSR2_stratify.txt')
         elif method == 'mete':
             nsr2 = importData.import_NSR2_data(data_dir + \
-            'data/NSR2/Stratified_Test/Remove_1s/mete_NSR2_1_stratify.txt')
+            'data/NSR2/Stratified_Test/mete_NSR2_stratify.txt')
         ll = np.asarray(list(((nsr2["ll"]))))
         ll = ll[np.isneginf(ll) == False]
         print method
         print "Log-likelihood mean = " + str(np.mean(ll))
         print "Log-likelihood std = " +  str(np.std(ll))
 
+def tableS5(data_dir=mydir, lognormType = 'pln'):
+    'Mean and standard deviation of parameters'
+    methods = ['lognorm', 'mete', 'zipf']
+    for method in methods:
+        print method
+        if method == 'zipf':
+            nsr2 = importData.import_NSR2_data(data_dir + \
+            'data/NSR2/Stratified_Test/zipf_mle_NSR2_stratify.txt')
+            print "gamma mean = " + str(np.mean(((nsr2["gamma"]))))
+            print "gamma std = " +  str(np.std(((nsr2["gamma"]))))
+        elif method == 'lognorm':
+            nsr2 = importData.import_NSR2_data(data_dir + \
+            'data/NSR2/Stratified_Test/lognorm_pln_NSR2_stratify.txt')
+            print "mu mean = " + str(np.mean(((nsr2["mu"]))))
+            print "mu std = " +  str(np.std(((nsr2["mu"]))))
+            print "sigma mean = " + str(np.mean(((nsr2["sigma"]))))
+            print "sigma std = " +  str(np.std(((nsr2["sigma"]))))
+        elif method == 'mete':
+            nsr2 = importData.import_NSR2_data(data_dir + \
+            'data/NSR2/Stratified_Test/mete_NSR2_stratify.txt')
+            p = np.asarray(list(((nsr2["p"]))))
+            beta = np.asarray([math.log(x) * -1 for x in p])
+            print "beta mean = " + str(np.mean(beta))
+            print "beta std = " +  str(np.std(beta))
+
+
+def tableS6(data_dir=mydir, lognormType = 'pln'):
+    IN = pd.read_csv(data_dir + 'data/NSR2/NSR2_AICc/AICc_winner_freqs.txt', \
+        sep='\t', header='infer')
+    methods = ['geom', 'lognorm', 'mete', 'zipf']
+    for method in methods:
+        IN_method = IN[method].values
+        print method
+        print "Percent win mean = " + str(np.mean(IN_method))
+        print "Percent win std = " +  str(np.std(IN_method))
+
 
 #352899
 
 #figS4()
-#figS5()
-
-tableS5()
+#fig2()
+#table1()
+#tableS5()
+#tableS6()
+figS6()

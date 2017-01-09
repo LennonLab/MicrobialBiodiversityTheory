@@ -1,15 +1,14 @@
 ---
 output: pdf_document
 ---
-  
 
-| $$\mathbf{Model}$$     | $$\mathbf{Parameter}$$ | $$\mathbf{Mean}$$ | $$\mathbf{Standard \; deviation}$$   |
-|:----------------------:|:------------------------:|:------------------------:|:------:|
-|$$\mathrm{Lognormal}$$   |  $$\mu$$   |     $$ 1.8$$           | $$ 0.044$$  |
-|   |            |            |   |
-|   |      $$\sigma$$      |      $$1.9$$      | $$0.029$$ |
-|   |            |            |   |
-|   $$\mathrm{Zipf}$$   |        $$\gamma$$      |   $$1.4$$            |  $$0.0038$$  |
-|   |            |            |   |
-|$$\mathrm{Log\mbox{-}series}$$   | $$\beta$$    |      $$0.0055$$            | $$0.00069$$  |
 
+| $$\mathbf{Model}$$     | $$\mu_{Log-likelihood}$$ | $$\sigma_{Log-likelihood}$$ | 
+|:----------------------:|:------------------------:|:------------------------:|
+|$$\mathrm{Lognormal}$$   |  $$-970$$   |     $$ 47$$           |
+|   |            |            |
+|   $$\mathrm{Zipf}$$   |        $$-630$$      |   $$19$$            |
+|   |            |            |
+|$$\mathrm{Log\mbox{-}series}$$   | $$-2000$$    |      $$89$$            |
+|   |            |            |
+|$$\mathrm{Broken\mbox{-}stick}$$   | $$-3400$$    |      $$130$$            |
