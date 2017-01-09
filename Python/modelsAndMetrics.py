@@ -360,13 +360,13 @@ class lognorm:
         return (pred_rad, mu, sigma)
 
 def get_Geom(N,S,zeros):
-
     rank = range(1,S+1)
     cdf = [(S-i+0.5)/S for i in rank]
     SNratio = S/N
     if zeros == False:
         abd = trunc_geom.ppf(np.array(cdf), SNratio, N)
     return abd
+
 
 def e_simpson(SAD): # based on 1/D, not 1 - D
 
