@@ -7,7 +7,7 @@ Shoemaker WR, Locey KJ, Lennon JT. (2016) A unifying ecological theory of microb
 
 Files in the data folder ending with ".zip" will have to be unzipped before the code can be run.
 
-To Figure2 and supplementary  figures 1 and 2 you will need to request data, as the files are too large to store on GitHub. The data will need to be unzipped and in the main folder in a sub-folder named "data."
+To Figure2 and supplementary figures 1 and 2 you will need to request data, as the files are too large to store on GitHub. The data will need to be unzipped and in the main folder in a sub-folder named "data."
 
 The code accepts the following arguments from the user.
 
@@ -15,17 +15,28 @@ The code accepts the following arguments from the user.
 
 **-a** or **--analysis:** Runs the analysis required for the figure.
 
-**-f:**  The figure you want to generate. Indicate what figure you want to generate after the flag using the table below.
+**-f:**  The figure or table you want to generate. Indicate what figure/ table you want to generate after the flag using the table below.
 
-| Argument |          Figure         |
+| Argument |          Figure/ Table         |
 |:--------:|:-----------------------:|
-|     1    |         Figure 1        |
-|     2    |         Figure 2        |
-|    3    |  Figure 3  |
-|    4    | Figure 4 |
-|    S1    |  Supplementary figure 1 |
-|    S2    |  Supplementary figure 2 |
-
+|     F1    |         Figure 1        |
+|     F2    |         Figure 2        |
+|    F3    |  Figure 3  |
+|    F4    | Figure 4 |
+|    FS1    |  Supplementary figure 1 |
+|    FS2    |  Supplementary figure 2 |
+|    FS3    |  Supplementary figure 3 |
+|    FS4    |  Supplementary figure 4 |
+|    FS5    |  Supplementary figure 5 |
+|    FS6    |  Supplementary figure 6 |
+|     T1    |         Table 1        |
+|     T2    |         Table 2        |
+|    TS1    |  Supplementary table 1 |
+|    TS2    |  Supplementary table 2 |
+|    TS3    |  Supplementary table 3 |
+|    TS4    |  Supplementary table 4 |
+|    TS5    |  Supplementary table 5 |
+|    TS6    |  Supplementary table 6 |
 
 ### Order of operations
 

@@ -682,7 +682,6 @@ def figS2(n=35289, figname = 'FigS2', data_dir=mydir, \
 
 def figS3(data_dir=mydir, saveAs = 'eps'):
     models = ['geom', 'lognorm', 'mete', 'zipf']
-    #models = ['geom']
     fig = plt.figure()
     count = 0
     fig.subplots_adjust(bottom= 0.30, top = 0.30, left = 0.30)
@@ -1145,13 +1144,3 @@ def tableS6(data_dir=mydir, lognormType = 'pln'):
         print method
         print "Percent win mean = " + str(np.mean(IN_method))
         print "Percent win std = " +  str(np.std(IN_method))
-
-
-#352899
-
-#figS4()
-#fig2()
-#table1()
-#tableS5()
-#tableS6()
-figS6()
