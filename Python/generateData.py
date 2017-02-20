@@ -1376,9 +1376,6 @@ def get_AICc(data_dir= mydir):
         NSR2_merged = reduce(lambda left,right: pd.merge(left,right,on='Site'), NSR2s)
         NSR2_merged.to_csv(mydir + 'data/NSR2/NSR2_LogLikelihood/NSR2_' + \
             dataset + '_likelihoods.txt', sep='\t', index=False)
-        #print NSR2_merges
-        #AICc = macroecotools
-        # remove -inf mete ll values
         AICcS = []
         AICcS.append(['Site', 'AICc_geom', 'AICc_mete', 'AICc_lognorm', \
             'AICc_zipf', 'winner'])
@@ -1471,4 +1468,3 @@ def subsample_AICc(data_dir= mydir, iterations = 10000, sample_size = 100):
     freqs_df = pd.DataFrame(winner_freqs[1:],columns=winner_freqs[0])
     freqs_df.to_csv(data_dir + 'data/NSR2/NSR2_AICc/AICc_winner_freqs.txt', \
         sep='\t', index=False)
-#stratifyDataOnce(['EMPclosed', 'MGRAST', 'HMP'])
