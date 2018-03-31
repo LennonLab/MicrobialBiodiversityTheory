@@ -73,7 +73,7 @@ The following Python modules/versions are used in this analysis.
 
 + [macroeco_distributions](https://github.com/weecology/macroecotools)
 
-+ [macroecotools](https://github.com/weecology/macroecotools)
++ [macroecotools 0.2](https://github.com/weecology/macroecotools)
 
 + [mete](https://github.com/weecology/METE)
 
