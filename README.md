@@ -1,21 +1,35 @@
 # MicrobialBiodiversityTheory
-Project repository for data and Python code associated with the following preprint:
+
+Project repository for data and Python code associated with the preprint
 
 Shoemaker WR, Locey KJ, Lennon JT. (2016) A unifying ecological theory of microbial biodiversity. PeerJ Preprints 4:e1450v3 https://doi.org/10.7287/peerj.preprints.1450v3
 
+and the accepted manuscript
+
+Shoemaker WR, Locey KJ, Lennon JT. (2017) A macroecological theory of microbial biodiversity. Nature Ecology & Evolution 1:0107 doi:10.1038/s41559-017-0107
+
 ## Re-running the analyses and re-generating the figures
 
-Files in the data folder ending with ".zip" will have to be unzipped before the code can be run.
+The following files and folders need to be uncompressed before you run the analsis:
 
-To Figure2 and supplementary figures 1 and 2 you will need to request data, as the files are too large to store on GitHub. The data will need to be unzipped and in the main folder in a sub-folder named "data."
+`~/MicrobialBiodiversityTheory/data/EMPclosed-Data/EMPclosed-SADs.txt.zip`
+
+`~/MicrobialBiodiversityTheory/data/EMPopen-Data/EMPopen-SADs.txt.zip`
+
+`~/MicrobialBiodiversityTheory/data/HMP-Data/hmp1.v35.hq.otu.counts.bz2`
+
+`~/MicrobialBiodiversityTheory/data/ObsPred.zip`
+
+
+To Figure2 and supplementary figures 1 and 2 you will need to request data, as the files are too large to store on GitHub.
 
 The code accepts the following arguments from the user.
 
 **Flags**
 
-**-a** or **--analysis:** Runs the analysis required for the figure.
+**`-a`** or **`--analysis`:** Runs the analysis required for the figure.
 
-**-f:**  The figure or table you want to generate. Indicate what figure/ table you want to generate after the flag using the table below.
+**`-f`:**  The figure or table you want to generate. Indicate what figure/ table you want to generate after the flag using the table below.
 
 | Argument |          Figure/ Table         |
 |:--------:|:-----------------------:|
@@ -44,38 +58,42 @@ If you want to regenerate the data (warning, this is very computationally intens
 
 1) Run the following command.
 
-	python runAnalysis.py -a
+	`python runAnalysis.py -a`
 
 2) Run this command
 
-	python runAnalysis.py -f
+	`python runAnalysis.py -f`
 
-  and indicate what figure  you want after "-f"
+  and indicate what figure  you want after "`-f`"
 
 
 ## Dependencies
 
-Python version 2.7.10-2 is used.
+`Python 2.7.10-2` is used.
 
 The following Python modules/versions are used in this analysis.
 
-+ numpy 1.10.1
++ `numpy 1.10.1`
 
-+ matplotlib 1.4.2
++ `matplotlib 1.4.2`
 
-+ Pandas 0.16.2
++ `Pandas 0.16.2`
 
-+ scipy 0.16.0
++ `scipy 0.16.0`
 
-+ setuptools 18.4
++ `setuptools 18.4`
 
-+ statsmodels 0.6.1
++ `statsmodels 0.6.1`
 
-+ [macroeco_distributions](https://github.com/weecology/macroecotools)
++ [`macroecotools 0.2`](https://github.com/weecology/macroecotools)
 
-+ [macroecotools 0.2](https://github.com/weecology/macroecotools)
++ [`mete 0.1`](https://github.com/weecology/METE)
 
-+ [mete](https://github.com/weecology/METE)
+
+## A note of caution
+
+Since we wrote the code for this analysis (~2015) the [Weecology](http://www.weecology.org/) group has updated [`macroecotools`](https://github.com/weecology/macroecotools). Newer versions of macroecotools are incompatible with this code. In addition, as described in the manuscript, we ran into issues with fitting the lognormal using maximum likelihood estimation on microbial communities with a large number of individuals. If you want to just reproduce our results, then using [`macroecotools 0.2`](https://github.com/weecology/macroecotools) is fine. **However, if you want to fit the lognormal to your data, we strongly recommend that you work with the most recent version of [`macroecotools`](https://github.com/weecology/macroecotools)**.
+
 
 ## The MIT License (MIT)
 
@@ -101,4 +119,4 @@ THE SOFTWARE.
 
 ## Attributes
 
-To write the code in this repository we used MIT liscensed code from the GitHub repositories [METE](https://github.com/weecology/macroecotools) and [macroecotools](https://github.com/weecology/macroecotools) on 9/20/2015.
+To write the code in this repository we used MIT liscensed code from the GitHub repositories [`mete 0.1`](https://github.com/weecology/METE) and [`macroecotools 0.2`](https://github.com/weecology/macroecotools) on 9/20/2015.
