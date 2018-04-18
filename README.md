@@ -1,7 +1,12 @@
 # MicrobialBiodiversityTheory
-Project repository for data and Python code associated with the following preprint:
+
+Project repository for data and Python code associated with the preprint
 
 Shoemaker WR, Locey KJ, Lennon JT. (2016) A unifying ecological theory of microbial biodiversity. PeerJ Preprints 4:e1450v3 https://doi.org/10.7287/peerj.preprints.1450v3
+
+and the accepted manuscript
+
+Shoemaker WR, Locey KJ, Lennon JT. (2017) A macroecological theory of microbial biodiversity. Nature Ecology & Evolution 1:0107 doi:10.1038/s41559-017-0107
 
 ## Re-running the analyses and re-generating the figures
 
@@ -87,7 +92,7 @@ The following Python modules/versions are used in this analysis.
 
 ## A note of caution
 
-Since we wrote the code for this analysis (~2015) the [Weecology](http://www.weecology.org/) group has updated [`macroecotools`](https://github.com/weecology/macroecotools). Newer versions of macroecotools are incompatible with this code. In addition, as described in the manuscript, we ran into issues with fitting the lognormal using maximum likelihood estimation on microbial communities with a large number of individuals. If you want to just reproduce our results, then using [`macroecotools 0.2`](https://github.com/weecology/macroecotools) is fine. **However, if you want to fit the lognormal to your data, we strongly recommend that you work with the most recent version of [`macroecotools`](https://github.com/weecology/macroecotools)**. 
+Since we wrote the code for this analysis (~2015) the [Weecology](http://www.weecology.org/) group has updated [`macroecotools`](https://github.com/weecology/macroecotools). Newer versions of macroecotools are incompatible with this code. In addition, as described in the manuscript, we ran into issues with fitting the lognormal using maximum likelihood estimation on microbial communities with a large number of individuals. If you want to just reproduce our results, then using [`macroecotools 0.2`](https://github.com/weecology/macroecotools) is fine. **However, if you want to fit the lognormal to your data, we strongly recommend that you work with the most recent version of [`macroecotools`](https://github.com/weecology/macroecotools)**.
 
 
 ## The MIT License (MIT)
@@ -114,4 +119,4 @@ THE SOFTWARE.
 
 ## Attributes
 
-To write the code in this repository we used MIT liscensed code from the GitHub repositories [mete 0.1](https://github.com/weecology/METE) and [macroecotools 0.2](https://github.com/weecology/macroecotools) on 9/20/2015.
+To write the code in this repository we used MIT liscensed code from the GitHub repositories [`mete 0.1`](https://github.com/weecology/METE) and [`macroecotools 0.2`](https://github.com/weecology/macroecotools) on 9/20/2015.
