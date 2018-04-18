@@ -421,13 +421,17 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove_obs = 0, zipfType
 
                 if method == 'geom': # Predicted geometric series
                     pred = mo.get_Geom(N, S, False) # False mean no zeros allowed
+                    SNratio = S/N
+                    ll = md.trunc_geom_ll(obs, SNratio, N)
 
                 elif method == 'mete': # Predicted log-series
                     logSeries = mete.get_mete_rad(S, N)
                     pred = logSeries[0]
                     p = logSeries[1]
                     beta = math.log(p) * -1
-                    ll = sum(np.log(mete.trunc_logser_pmf(range(1, int(N) + 1), p, N)))
+                    #ll = sum(mete.get_mete_pmf(range(1, int(N) + 1), p, N))
+                    #ll = sum(np.log(mete.trunc_logser_pmf(range(1, int(N) + 1), p, N)))
+                    ll = md.logser_ll(obs, p, upper_trunc = True, upper_bound = N)
                 elif method == 'lognorm' and lognormType == 'glm':
                     lognorm_pred = mo.lognorm(obs, lognormType)
                     pred = lognorm_pred.lognorm_glm()
@@ -559,10 +563,10 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove_obs = 0, zipfType
                 else:
                     if dataset == 'HMP':
                         print>> OUT2, j, N, S, NmaxObs, NmaxPred, evennessObs, \
-                            evennessPred, skewnessObs, skewnessPred, r2, site_name
+                            evennessPred, skewnessObs, skewnessPred, ll, r2, site_name
                     else:
                         print>> OUT2, j, N, S, NmaxObs, NmaxPred, evennessObs, \
-                            evennessPred, skewnessObs, skewnessPred, r2
+                            evennessPred, skewnessObs, skewnessPred, ll, r2
 
                 for i, sp in enumerate(pred):
                     print>> OUT1, j, obs[i], pred[i]
@@ -573,14 +577,14 @@ def generate_obs_pred_data(datasets, methods, size = 0, remove_obs = 0, zipfType
         print dataset
 
 
-def stratifyData(datasets, zipfType = 'mle', \
+def stratifyDataOnce(datasets, zipfType = 'mle', \
     lognormType = 'pln', remove = True, data_dir= mydir, remove_obs = 0):
     if remove_obs == 0:
         totalSADs = 239
     else:
         totalSADs = 108
     #methods = ['geom', 'mete', 'zipf', 'lognorm']
-    methods = ['lognorm','zipf', 'mete']
+    methods = ['geom']
 
     MGRAST_sites = 1174
     HMP_sites = 4504
@@ -704,8 +708,9 @@ def stratifyData(datasets, zipfType = 'mle', \
             evennessPred = np.asarray(list(((nsr2_data["evennessPred"]))))
             skewnessObs = np.asarray(list(((nsr2_data["skewnessObs"]))))
             skewnessPred = np.asarray(list(((nsr2_data["skewnessPred"]))))
-            if method != 'geom':
-                ll = np.asarray(list(((nsr2_data["ll"]))))
+            #slope_Nmax_iter, intercept_Nmax_iter, r_value_Nmax_iter, p_value_Nmax_iter, std_err_Nmax_iter = \
+            #    stats.linregress(np.log10(N),np.log10(NmaxPred))
+            ll = np.asarray(list(((nsr2_data["ll"]))))
             if method == 'zipf':
                 gamma = np.asarray(list(((nsr2_data["gamma"]))))
             if method == 'mete':
@@ -737,7 +742,7 @@ def stratifyData(datasets, zipfType = 'mle', \
                     if q == randomSite:
                         if method == 'geom':
                             print>> OUT2, count1, N[p], S[p], NmaxObs[p], NmaxPred[p], \
-                                evennessObs[p], evennessPred[p], skewnessObs[p], skewnessPred[p], R2[p]
+                                evennessObs[p], evennessPred[p], skewnessObs[p], skewnessPred[p], ll[p], R2[p]
                         elif method == 'lognorm':
                             print>> OUT2, count1, N[p], S[p], NmaxObs[p], NmaxPred[p], \
                                 evennessObs[p], evennessPred[p], skewnessObs[p], \
@@ -769,26 +774,31 @@ def stratifyData(datasets, zipfType = 'mle', \
         OUT1.close()
         OUT2.close()
 
-def stratifyData1000(zipfType = 'mle', iterations = 1000,  \
+def stratifyDataBootstrap(zipfType = 'mle', iterations = 10000,  \
     lognormType = 'pln', remove = True, data_dir= mydir, remove_obs = 0, seqSim = False):
     # do this for the NSR2 only
     # size of each dataset
+    modelSlopes = [0.69744476332, 0.851083946706, 1.04353269385, 1.07279674834]
+    modelInterepts = [0.386418541599, 0.295532342646, 1.05321973517, 0.139862729426]
     if seqSim == False:
         datasets = ['EMPclosed','HMP', 'MGRAST']
     else:
         datasets = ['SeqSim']
     #methods = ['geom', 'mete', 'zipf', 'lognorm']
-    methods = ['mete', 'zipf', 'lognorm']
+    methods = ['mete', 'geom']
     # Number of lines in each file
-    if remove_obs == 0 and seqSim == False:
-        totalSADs = 200
-    else:
-        totalSADs = 100
+
     MGRAST_sites = 1174
     HMP_sites = 4504
     EMPclosed_sites = 14979
     Total = MGRAST_sites + HMP_sites + EMPclosed_sites
     for i, method in enumerate(methods):
+        if remove_obs == 0 and seqSim == False:
+            totalSADs = 200
+        elif method == 'zipf':
+            totalSADs = 40
+        else:
+            totalSADs = 100
         print method
         count_iter = iterations
         if seqSim == False:
@@ -829,8 +839,8 @@ def stratifyData1000(zipfType = 'mle', iterations = 1000,  \
         skewnessObs_iter = []
         skewnessPred_iter = []
         R2_iter = []
-        if method != 'geom':
-            ll_iter = []
+        R2_Nmax_iter = []
+        ll_iter = []
         if method  == 'mete':
             p_mete_iter = []
         if method == 'zipf':
@@ -933,17 +943,14 @@ def stratifyData1000(zipfType = 'mle', iterations = 1000,  \
                     skewnessObs = np.asarray(list(((nsr2_data["skewnessObs"]))))
                     skewnessPred = np.asarray(list(((nsr2_data["skewnessPred"]))))
                     R2 = np.asarray(list(((nsr2_data["R2"]))))
-
+                    ll = np.asarray(list(((nsr2_data["ll"]))))
                     if method == 'zipf':
                         gamma = np.asarray(list(((nsr2_data["gamma"]))))
-                        ll = np.asarray(list(((nsr2_data["ll"]))))
                     elif method == 'mete':
                         p_mete = np.asarray(list(((nsr2_data["p"]))))
-                        ll = np.asarray(list(((nsr2_data["ll"]))))
                     elif method == 'lognorm':
                         mu = np.asarray(list(((nsr2_data["mu"]))))
                         sigma = np.asarray(list(((nsr2_data["sigma"]))))
-                        ll = np.asarray(list(((nsr2_data["ll"]))))
 
                 else:
                     R2 = np.asarray(list(((nsr2_data["R2"]))))
@@ -968,10 +975,8 @@ def stratifyData1000(zipfType = 'mle', iterations = 1000,  \
                 skewnessObs_iter_sample = []
                 skewnessPred_iter_sample = []
                 R2_iter_sample = []
-                R2_iter_sample_Nmax = []
 
-                if method != 'geom':
-                    ll_iter_sample = []
+                ll_iter_sample = []
                 if method == 'zipf':
                     gamma_iter_sample = []
                 elif method == 'mete':
@@ -994,8 +999,10 @@ def stratifyData1000(zipfType = 'mle', iterations = 1000,  \
                                 skewnessObs_iter_sample.append(skewnessObs[p])
                                 skewnessPred_iter_sample.append(skewnessPred[p])
                                 R2_iter_sample.append(R2[p])
-                                if method != 'geom':
+                                #ll_iter_sample.append(ll[p])
+                                if np.isneginf(ll[p]) == False:
                                     ll_iter_sample.append(ll[p])
+                                    #print ll[p]
                                 if method =='zipf':
                                     gamma_iter_sample.append(gamma[p])
                                 elif method == 'mete':
@@ -1020,25 +1027,21 @@ def stratifyData1000(zipfType = 'mle', iterations = 1000,  \
                     skewnessPred_iter.append(np.mean(skewnessPred_iter_sample))
                     R2_iter.append(np.mean(R2_iter_sample))
                     R2_std_iter.append(np.std(R2_iter_sample))
+                    ll_iter.append(np.mean(ll_iter_sample))
                     if method == 'zipf':
-                        ll_iter.append(np.mean(ll_iter_sample))
                         gamma_iter.append(np.mean(gamma_iter_sample))
                     elif method == 'mete':
-                        ll_iter.append(np.mean(ll_iter_sample))
                         p_mete_iter.append(np.mean(p_mete_iter_sample))
                     elif method == 'lognorm':
-                        ll_iter.append(np.mean(ll_iter_sample))
                         mu_iter.append(np.mean(mu_iter_sample))
                         sigma_iter.append(np.mean(sigma_iter_sample))
-                else:
-                    N_iter.append(np.mean(N_iter_sample))
-                    S_iter.append(np.mean(S_iter_sample))
-                    R2_iter.append(np.mean(R2_iter_sample))
-                    R2_std_iter.append(np.std(R2_iter_sample))
-                if seqSim == False:
-                    slope1_iter, intercept1_iter, r_value1_iter, p_value1_iter, std_err1_iter = stats.linregress(np.log10(N_iter_sample),np.log10(NmaxPred_iter_sample))
-                    slope2_iter, intercept2_iter, r_value2_iter, p_value2_iter, std_err2_iter = stats.linregress(np.log10(N_iter_sample),np.log10(evennessPred_iter_sample))
-                    slope3_iter, intercept3_iter, r_value3_iter, p_value3_iter, std_err3_iter = stats.linregress(np.log10(N_iter_sample),np.log10(skewnessPred_iter_sample))
+
+                    slope1_iter, intercept1_iter, r_value1_iter, p_value1_iter, std_err1_iter = \
+                        stats.linregress(np.log10(N_iter_sample),np.log10(NmaxPred_iter_sample))
+                    slope2_iter, intercept2_iter, r_value2_iter, p_value2_iter, std_err2_iter = \
+                        stats.linregress(np.log10(N_iter_sample),np.log10(evennessPred_iter_sample))
+                    slope3_iter, intercept3_iter, r_value3_iter, p_value3_iter, std_err3_iter = \
+                        stats.linregress(np.log10(N_iter_sample),np.log10(skewnessPred_iter_sample))
 
                     slope1.append(slope1_iter)
                     intercept1.append(intercept1_iter)
@@ -1056,6 +1059,25 @@ def stratifyData1000(zipfType = 'mle', iterations = 1000,  \
                     p_value3.append(p_value3_iter)
                     std_err3.append(std_err3_iter)
 
+                    scaling_NmaxPred_iter = []
+                    for m in range(len(N_iter_sample)):
+                        scaling_NmaxPred_iter_i = mo.predictNmax(N_iter_sample[m]).getNmax(b = (10 ** modelInterepts[i]), slope = modelSlopes[i])
+                        scaling_NmaxPred_iter.append(scaling_NmaxPred_iter_i)
+                    scaling_NmaxPred_iter = np.asarray(scaling_NmaxPred_iter)
+
+                    scaling_NmaxPred_obs_iter = [k for k in zip(NmaxObs_iter_sample, scaling_NmaxPred_iter) if k[0] < 200000 ]
+                    NmaxObs_iter_sample_clean = np.asarray([k[0] for k in scaling_NmaxPred_obs_iter])
+                    scaling_NmaxPred_iter_clean = np.asarray([k[1] for k in scaling_NmaxPred_obs_iter])
+                    R2_Nmax_iter_sample = macroecotools.obs_pred_rsquare(np.log10(NmaxObs_iter_sample_clean), np.log10(scaling_NmaxPred_iter_clean))
+                    R2_Nmax_iter.append(R2_Nmax_iter_sample)
+
+
+                else:
+                    N_iter.append(np.mean(N_iter_sample))
+                    S_iter.append(np.mean(S_iter_sample))
+                    R2_iter.append(np.mean(R2_iter_sample))
+                    R2_std_iter.append(np.std(R2_iter_sample))
+
                 count1 += 1
 
             print str(count_iter)  + " iteration(s) to go!"
@@ -1072,8 +1094,10 @@ def stratifyData1000(zipfType = 'mle', iterations = 1000,  \
                                     np.mean([evennessPred_iter[k], evennessPred_iter[k+iterations], evennessPred_iter[k + (2* iterations)] ]), \
                                     np.mean([skewnessObs_iter[k], skewnessObs_iter[k+iterations], skewnessObs_iter[k + (2* iterations)] ]), \
                                     np.mean([skewnessPred_iter[k], skewnessPred_iter[k+iterations], skewnessPred_iter[k + (2* iterations)] ]), \
+                                    np.mean([ll_iter[k], ll_iter[k+iterations], ll_iter[k + (2* iterations)] ]), \
                                     np.mean([R2_iter[k], R2_iter[k+iterations], R2_iter[k + (2* iterations)] ]), \
                                     np.mean([R2_std_iter[k], R2_std_iter[k+iterations], R2_std_iter[k + (2* iterations)] ]), \
+                                    np.mean([R2_Nmax_iter[k], R2_Nmax_iter[k+iterations], R2_Nmax_iter[k + (2* iterations)] ]), \
                                     np.mean([slope1[k], slope1[k+iterations], slope1[k + (2* iterations)] ]), \
                                     np.mean([intercept1[k], intercept1[k+iterations], intercept1[k + (2* iterations)] ]),\
                                     np.mean([r_value1[k], r_value1[k+iterations], r_value1[k + (2* iterations)] ]),\
@@ -1102,6 +1126,7 @@ def stratifyData1000(zipfType = 'mle', iterations = 1000,  \
                                     np.mean([ll_iter[k], ll_iter[k+iterations], ll_iter[k + (2* iterations)] ]), \
                                     np.mean([R2_iter[k], R2_iter[k+iterations], R2_iter[k + (2* iterations)] ]), \
                                     np.mean([R2_std_iter[k], R2_std_iter[k+iterations], R2_std_iter[k + (2* iterations)] ]), \
+                                    np.mean([R2_Nmax_iter[k], R2_Nmax_iter[k+iterations], R2_Nmax_iter[k + (2* iterations)] ]), \
                                     np.mean([slope1[k], slope1[k+iterations], slope1[k + (2* iterations)] ]), \
                                     np.mean([intercept1[k], intercept1[k+iterations], intercept1[k + (2* iterations)] ]),\
                                     np.mean([r_value1[k], r_value1[k+iterations], r_value1[k + (2* iterations)] ]),\
@@ -1130,6 +1155,7 @@ def stratifyData1000(zipfType = 'mle', iterations = 1000,  \
                                     np.mean([ll_iter[k], ll_iter[k+iterations], ll_iter[k + (2* iterations)] ]), \
                                     np.mean([R2_iter[k], R2_iter[k+iterations], R2_iter[k + (2* iterations)] ]), \
                                     np.mean([R2_std_iter[k], R2_std_iter[k+iterations], R2_std_iter[k + (2* iterations)] ]), \
+                                    np.mean([R2_Nmax_iter[k], R2_Nmax_iter[k+iterations], R2_Nmax_iter[k + (2* iterations)] ]), \
                                     np.mean([slope1[k], slope1[k+iterations], slope1[k + (2* iterations)] ]), \
                                     np.mean([intercept1[k], intercept1[k+iterations], intercept1[k + (2* iterations)] ]),\
                                     np.mean([r_value1[k], r_value1[k+iterations], r_value1[k + (2* iterations)] ]),\
@@ -1159,6 +1185,7 @@ def stratifyData1000(zipfType = 'mle', iterations = 1000,  \
                                     np.mean([ll_iter[k], ll_iter[k+iterations], ll_iter[k + (2* iterations)] ]), \
                                     np.mean([R2_iter[k], R2_iter[k+iterations], R2_iter[k + (2* iterations)] ]), \
                                     np.mean([R2_std_iter[k], R2_std_iter[k+iterations], R2_std_iter[k + (2* iterations)] ]), \
+                                    np.mean([R2_Nmax_iter[k], R2_Nmax_iter[k+iterations], R2_Nmax_iter[k + (2* iterations)] ]), \
                                     np.mean([slope1[k], slope1[k+iterations], slope1[k + (2* iterations)] ]), \
                                     np.mean([intercept1[k], intercept1[k+iterations], intercept1[k + (2* iterations)] ]),\
                                     np.mean([r_value1[k], r_value1[k+iterations], r_value1[k + (2* iterations)] ]),\
@@ -1296,3 +1323,148 @@ def subsample_N(data_dir= mydir, SAD_numbers=10, iterations=100):
                 print>> OUT, percent, np.mean(N_0_zip[i]),np.mean(S_0_zip[i]), \
                     np.mean(N_max_obs_zip[i]),np.mean(N_max_pred_zip[i]), \
                     np.mean(r2_zip[i])
+
+def get_AICc(data_dir= mydir):
+    datasets = ['EMPclosed','HMP', 'MGRAST']
+    #datasets = ['MGRAST']
+    methods = ['geom', 'mete', 'zipf', 'lognorm']
+
+    for dataset in datasets:
+        NSR2_geom = pd.read_csv(data_dir + 'data/NSR2/geom_' + dataset + '_NSR2.txt', \
+        sep = ' ', header=None)
+        NSR2_mete = pd.read_csv(data_dir + 'data/NSR2/mete_' + dataset + '_NSR2.txt', \
+        sep = ' ', header=None)
+        NSR2_lognorm = pd.read_csv(data_dir + 'data/NSR2/lognorm_pln_' + dataset + '_NSR2.txt', \
+        sep = ' ', header=None)
+        NSR2_zipf = pd.read_csv(data_dir + 'data/NSR2/zipf_mle_' + dataset + '_NSR2.txt', \
+        sep = ' ', header=None)
+        if dataset != 'HMP':
+            NSR2_geom.columns = ['Site', 'N', 'S','NmaxObs', 'NmaxPred_geom', \
+                'evennessObs', 'evennessPred_geom', 'skewnessObs', 'skewnessPred_geom', \
+                'll_geom', 'r2_geom']
+            NSR2_mete.columns = ['Site', 'N', 'S','NmaxObs', 'NmaxPred_mete', \
+                'evennessObs', 'evennessPred_mete', 'skewnessObs', 'skewnessPred_mete', \
+                'p_mete', 'll_mete', 'r2_mete']
+            NSR2_lognorm.columns = ['Site', 'N', 'S','NmaxObs', 'NmaxPred_lognorm', \
+                'evennessObs', 'evennessPred_lognorm', 'skewnessObs', 'skewnessPred_lognorm', \
+                'mu_lognorm', 'sigma_lognorm','ll_lognorm', 'r2_lognorm']
+            NSR2_zipf.columns = ['Site', 'N', 'S','NmaxObs', 'NmaxPred_zipf', \
+                'evennessObs', 'evennessPred_zipf', 'skewnessObs', 'skewnessPred_zipf', \
+                'gamma_zif', 'll_zipf', 'r2_zipf']
+        else:
+            NSR2_geom.columns = ['Site', 'N', 'S','NmaxObs', 'NmaxPred_geom', \
+                'evennessObs', 'evennessPred_geom', 'skewnessObs', 'skewnessPred_geom', \
+                'll_geom', 'r2_geom', 'site_name']
+            NSR2_mete.columns = ['Site', 'N', 'S','NmaxObs', 'NmaxPred_mete', \
+                'evennessObs', 'evennessPred_mete', 'skewnessObs', 'skewnessPred_mete', \
+                'p_mete', 'll_mete', 'r2_mete', 'site_name']
+            NSR2_lognorm.columns = ['Site', 'N', 'S','NmaxObs', 'NmaxPred_lognorm', \
+                'evennessObs', 'evennessPred_lognorm', 'skewnessObs', 'skewnessPred_lognorm', \
+                'mu_lognorm', 'sigma_lognorm','ll_lognorm', 'r2_lognorm', 'site_name']
+            NSR2_zipf.columns = ['Site', 'N', 'S','NmaxObs', 'NmaxPred_zipf', \
+                'evennessObs', 'evennessPred_zipf', 'skewnessObs', 'skewnessPred_zipf', \
+                'gamma_zif', 'll_zipf', 'r2_zipf', 'site_name']
+
+        NSR2_mete = NSR2_mete[['Site','NmaxPred_mete', 'evennessPred_mete', \
+            'skewnessPred_mete', 'p_mete', 'll_mete', 'r2_mete']]
+        NSR2_lognorm = NSR2_lognorm[['Site','NmaxPred_lognorm', 'evennessPred_lognorm', \
+            'skewnessPred_lognorm', 'mu_lognorm', 'sigma_lognorm', 'll_lognorm', 'r2_lognorm']]
+        NSR2_zipf = NSR2_zipf[['Site','NmaxPred_zipf', 'evennessPred_zipf', \
+            'skewnessPred_zipf', 'gamma_zif', 'll_zipf', 'r2_zipf']]
+
+        NSR2s = [NSR2_geom, NSR2_mete, NSR2_lognorm, NSR2_zipf]
+        NSR2_merged = reduce(lambda left,right: pd.merge(left,right,on='Site'), NSR2s)
+        NSR2_merged.to_csv(mydir + 'data/NSR2/NSR2_LogLikelihood/NSR2_' + \
+            dataset + '_likelihoods.txt', sep='\t', index=False)
+        AICcS = []
+        AICcS.append(['Site', 'AICc_geom', 'AICc_mete', 'AICc_lognorm', \
+            'AICc_zipf', 'winner'])
+        for index, row in NSR2_merged.iterrows():
+            S = row['S']
+            # AICc corrects for the number of parameters and sample size
+            AICc_zipf = macroecotools.AICc(1, row['ll_zipf'], S)
+            AICc_geom = macroecotools.AICc(0, row['ll_geom'], S)
+            AICc_lognorm = macroecotools.AICc(2, row['ll_lognorm'], S)
+            mete_ll_real = np.isfinite(row['ll_mete'])
+            if mete_ll_real == True:
+                AICc_mete = macroecotools.AICc(1, row['ll_mete'], S)
+                AICc_list = [AICc_geom, AICc_mete, AICc_lognorm, AICc_zipf]
+            else:
+                AICc_mete = np.nan
+                AICc_list = [AICc_geom, AICc_lognorm, AICc_zipf]
+            # Calculate AICc weight
+            weight = macroecotools.aic_weight(AICc_list, S, cutoff = 4)
+            # The model with the greatest AICc weight is the winner
+            max_weight = max(weight)
+            position = [i for i, j in enumerate(weight) if j == max_weight]
+            position = position[0]
+            if mete_ll_real == True:
+                if position == 0:
+                    winner = 'geom'
+                elif position == 1:
+                    winner = 'mete'
+                elif position == 2:
+                    winner = 'lognorm'
+                elif position == 3:
+                    winner = 'zipf'
+                AICc_list_winner = [row['Site'], AICc_geom, AICc_mete, \
+                    AICc_lognorm, AICc_zipf, winner]
+            else:
+                if position == 0:
+                    winner = 'geom'
+                elif position == 1:
+                    winner = 'lognorm'
+                elif position == 2:
+                    winner = 'zipf'
+                AICc_list_winner = [row['Site'], AICc_geom, AICc_mete, \
+                    AICc_lognorm, AICc_zipf, winner]
+
+            AICcS.append(AICc_list_winner)
+        AICcs_df = pd.DataFrame(AICcS[1:],columns=AICcS[0])
+        AICcs_df.to_csv(data_dir + 'data/NSR2/NSR2_AICc/AICc_' + \
+            dataset + '.txt', sep='\t', index=False)
+
+def subsample_AICc(data_dir= mydir, iterations = 10000, sample_size = 100):
+    #10000
+    AIC_MGRAST = pd.read_csv(data_dir + 'data/NSR2/NSR2_AICc/AICc_MGRAST.txt', \
+        sep='\t', header='infer')
+    AIC_EMP = pd.read_csv(data_dir + 'data/NSR2/NSR2_AICc/AICc_EMPclosed.txt', \
+        sep='\t', header='infer')
+    AIC_HMP = pd.read_csv(data_dir + 'data/NSR2/NSR2_AICc/AICc_HMP.txt', \
+        sep='\t', header='infer')
+    #print AIC_MGRAST.sample(n = 100)
+    winner_freqs = []
+    winner_freqs.append(['geom', 'mete', 'lognorm', 'zipf'])
+    for i in range(iterations):
+        print i
+        sample_MGRAST =  AIC_MGRAST.loc[np.random.choice(AIC_MGRAST.index, \
+            sample_size, replace=False)]
+        sample_EMP =  AIC_EMP.loc[np.random.choice(AIC_EMP.index, \
+            sample_size, replace=False)]
+        sample_HMP =  AIC_HMP.loc[np.random.choice(AIC_HMP.index, \
+            sample_size, replace=False)]
+        winner_MGRAST = sample_MGRAST['winner'].tolist()
+        winner_MGRAST_count = collections.Counter(winner_MGRAST)
+        winner_EMP = sample_EMP['winner'].tolist()
+        winner_EMP_count = collections.Counter(winner_EMP)
+        winner_HMP= sample_HMP['winner'].tolist()
+        winner_HMP_count = collections.Counter(winner_HMP)
+        winner_dict_sum = winner_MGRAST_count + winner_EMP_count + winner_HMP_count
+        geom_freq = 0
+        mete_freq = 0
+        lognorm_freq = 0
+        zipf_freq = 0
+        for key, value in winner_dict_sum.items():
+            freq = value / 300
+            if key == 'geom':
+                geom_freq = freq
+            elif key == 'mete':
+                mete_freq = freq
+            elif key == 'lognorm':
+                lognorm_freq = freq
+            elif key == 'zipf':
+                zipf_freq = freq
+        winner_freqs.append([geom_freq, mete_freq, lognorm_freq, zipf_freq])
+    freqs_df = pd.DataFrame(winner_freqs[1:],columns=winner_freqs[0])
+    freqs_df.to_csv(data_dir + 'data/NSR2/NSR2_AICc/AICc_winner_freqs.txt', \
+        sep='\t', index=False)

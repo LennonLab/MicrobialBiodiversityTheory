@@ -1,0 +1,14 @@
+---
+output: pdf_document
+---
+
+
+| $$\mathbf{Model}$$     | $$\mu_{Log-likelihood}$$ | $$\sigma_{Log-likelihood}$$ | 
+|:----------------------:|:------------------------:|:------------------------:|
+|$$\mathrm{Lognormal}$$   |  $$-970$$   |     $$ 47$$           |
+|   |            |            |
+|   $$\mathrm{Zipf}$$   |        $$-630$$      |   $$19$$            |
+|   |            |            |
+|$$\mathrm{Log\mbox{-}series}$$   | $$-2000$$    |      $$89$$            |
+|   |            |            |
+|$$\mathrm{Broken\mbox{-}stick}$$   | $$-3400$$    |      $$130$$            |
