@@ -352,7 +352,7 @@ class lognorm:
 
     def get_rad_from_obs(self):
         if self.dist == 'negbin':
-            n, p = negbin_solver(self.obs)
+            n, p = nbinom_lower_trunc_solver(self.obs)
             pred_rad = self.get_rad_negbin(len(self.obs), n, p)
         elif self.dist == 'pln':
             mu, sigma = pln_solver(self.obs)
