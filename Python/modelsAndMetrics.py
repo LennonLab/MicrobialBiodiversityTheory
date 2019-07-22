@@ -6,7 +6,7 @@ import statsmodels.api as sm
 from scipy.stats import nbinom
 import numpy as np
 import pandas as pd
-from macroeco_distributions import pln, pln_solver, negbin_solver, trunc_geom
+from macroeco_distributions import pln, pln_solver, nbinom_lower_trunc_solver, trunc_geom
 from scipy.optimize import fsolve
 import scipy.optimize as opt
 from numpy import log, log2, exp, sqrt, log10
